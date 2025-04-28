@@ -9,4 +9,4 @@
   });
 </script>
 
-<p class="mt-4 text-center text-lg font-semibold text-blue-600">Logging in...</p>
+<p class="mt-4 text-center text-lg font-semibold text-blue-600 bg-red">Logging in...</p>

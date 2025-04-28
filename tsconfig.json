@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "types": ["svelte", "vite/client"],
     "paths": {
       "@/*": ["src/*"]
     },
