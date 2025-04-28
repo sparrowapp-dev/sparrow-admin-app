@@ -4,8 +4,8 @@ const config: Config = {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
+      // design system for line height
       lineHeight: {
-        // design system for line height
         'lh-ds-auto': 'auto',
         'lh-ds-143': '1.43',
         'lh-ds-150': '1.5',
@@ -13,9 +13,16 @@ const config: Config = {
         'lh-ds-120': '1.2',
         'lh-ds-200': '2',
       },
-
+      // design system for font weight
+      fontWeight: {
+        light: '300',
+        regular: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+      },
+      // design system for font size
       fontSize: {
-        // design system for font size
         'fs-ds-52': '3.25rem', // 52px
         'fs-ds-48': '3rem', // 48px
         'fs-ds-42': '2.625rem', // 42px
@@ -149,14 +156,6 @@ const config: Config = {
         'surface-700': '#14181f',
         'surface-800': '#101318',
         'surface-900': '#0b0c0f',
-      },
-      // design system for font weight
-      fontWeight: {
-        light: '300',
-        regular: '400',
-        medium: '500',
-        semibold: '600',
-        bold: '700',
       },
     },
   },
