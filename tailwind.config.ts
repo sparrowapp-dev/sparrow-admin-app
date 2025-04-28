@@ -4,6 +4,11 @@ const config: Config = {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
+      // design system font families
+      fontFamily: {
+        inter: ['Inter', 'sans-serif'],
+        aileron: ['Aileron', 'sans-serif'],
+      },
       // design system for line height
       lineHeight: {
         'lh-ds-auto': 'auto',
