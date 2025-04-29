@@ -1,11 +1,12 @@
 <script>
   import { writable, get } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { navigate } from 'svelte-routing';
+  // icons
   import WorkspaceIcon from '@/assets/icons/WorkspaceIcon.svelte';
   import ChartIcon from '@/assets/icons/ChartIcon.svelte';
   import HomeIcon from '@/assets/icons/HomeIcon.svelte';
   import UsersIcon from '@/assets/icons/UsersIcon.svelte';
-  import { onMount } from 'svelte';
-  import { navigate } from 'svelte-routing';
   import BillingIcon from '@/assets/icons/BillingIcon.svelte';
   import AuditIcon from '@/assets/icons/AuditIcon.svelte';
   import SecurityIcon from '@/assets/icons/SecurityIcon.svelte';
@@ -29,13 +30,13 @@
     return 'default';
   };
 
-  // Reactive variant computations
+  // Reactive top variant computations
   $: homeVariant = getIconVariant('/home');
   $: dashboardVariant = getIconVariant('/dashboard');
   $: workspaceVariant = getIconVariant('/workspace');
   $: hubsVariant = getIconVariant('/hubs');
 
-  // Reactive variant computations
+  // Reactive bottom variant computations
   $: billingVariant = getIconVariant('/billing');
   $: auditVariant = getIconVariant('/audit');
   $: securityVariant = getIconVariant('/security');
@@ -43,7 +44,7 @@
   $: settingsVariant = getIconVariant('/settings');
 </script>
 
-<div class="bg-surface-300 flex flex-col justify-between p-1 text-white">
+<div class="bg-surface-700 flex flex-col justify-between p-1 text-white">
   <!-- top section -->
   <div class="flex flex-col space-y-0">
     <!-- Home Icon -->
