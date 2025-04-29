@@ -1,14 +1,4 @@
 <script lang="ts">
-  export let catchError: Function;
-
-  // Simulating an error for demonstration
-  setTimeout(() => {
-    try {
-      throw new Error('Something went wrong in Workspace!');
-    } catch (error) {
-      catchError(error);
-    }
-  }, 1000);
 </script>
 
 <div class="rounded-lg bg-white p-6 shadow-md">
