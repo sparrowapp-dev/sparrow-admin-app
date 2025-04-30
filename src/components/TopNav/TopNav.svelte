@@ -1,5 +1,11 @@
 <script lang="ts">
   import { navigate } from 'svelte-routing';
+  import Navbarbg1 from '../../assets/images/NavbarBg1.png';
+  import Sparrowadmin from '@/assets/icons/Sparrowadmin.svelte';
+  import LaunchSparrow from '@/assets/icons/LaunchSparrow.svelte';
+  import LaunchSparrow2 from '@/assets/icons/LaunchSparrow2.svelte';
+  import BellIcon from '@/assets/icons/BellIcon.svelte';
+  import Tooltip from '../Tooltip/Tooltip.svelte';
 
   // Function to clear storage and navigate to NotFound route
   function handleLogout() {
@@ -9,15 +15,45 @@
   }
 </script>
 
-<div class="bg-gray-900 p-4 text-white shadow-md">
-  <div class="flex items-center justify-between">
-    <h1 class="text-xl font-semibold">Admin Panel</h1>
-    <div class="space-x-4">
+<div class="bg-surface-700 relative w-full px-2 py-[21px] text-neutral-50 shadow-md">
+  <div
+    class="absolute left-4 z-0 bg-cover bg-no-repeat opacity-100"
+    style="background-image: url({Navbarbg1})"
+  ></div>
+  <div class="relative z-10 flex w-full items-center justify-between">
+    <div class="text-xl font-semibold">
+      <div class="flex items-center gap-3">
+        <Sparrowadmin />
+        <h2 class="font-inter leading-lh-ds-150 font-normal">Sparrow Admin</h2>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 px-1">
       <!-- Profile button -->
-      <button class="rounded p-2 hover:bg-gray-700">Profile</button>
-
-      <!-- Logout button that clears storage and navigates to NotFound -->
-      <button on:click={handleLogout} class="rounded p-2 hover:bg-gray-700">Logout</button>
+      <button
+        class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+        ><span><LaunchSparrow /> </span>
+        <p class="font-inter text-fs-ds-12 leading-lh-ds-130">Launch Sparrow</p>
+        <span><LaunchSparrow2 /> </span></button
+      >
+      <button
+        class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
+        >Help & Support</button
+      >
+      <button
+        class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
+        ><p class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130">Documentation</p>
+        <span><LaunchSparrow2 /> </span>
+      </button>
+      <Tooltip text="Notification" position="bottom" mode="hover" size="sm"
+        ><button
+          class="hover:bg-surface-300 cursor-pointer rounded p-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+          ><BellIcon />
+        </button>
+      </Tooltip>
+      <button
+        class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
+        >F</button
+      >
     </div>
   </div>
 </div>
