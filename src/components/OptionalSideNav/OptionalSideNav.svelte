@@ -4,7 +4,7 @@
   import { data } from './data';
 </script>
 
-<section class="bg-surface-700 h-full w-full rounded-r-[8px] border border-amber-200 p-3">
+<section class="bg-surface-700 h-full w-full rounded-r-[8px] p-3">
   <div class="flex flex-col gap-3">
     <div class="border-surface-100 border-b pb-3">
       <Dropdown

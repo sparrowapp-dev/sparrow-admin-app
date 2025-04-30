@@ -49,7 +49,9 @@
   <div
     class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
       ? 'border border-blue-300'
-      : ''} bg-surface-600 hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 focus-within:outline focus-within:outline-2 focus-within:outline-blue-300"
+      : ''} {searchMode || open
+      ? 'bg-surface-600'
+      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 focus-within:outline focus-within:outline-2 focus-within:outline-blue-300"
   >
     <svelte:component this={icon} />
 
