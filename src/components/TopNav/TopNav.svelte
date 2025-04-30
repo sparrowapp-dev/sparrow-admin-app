@@ -40,7 +40,7 @@
         >Help & Support</button
       >
       <button
-        class="flex min-h-[28px] items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
         ><p class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130">Documentation</p>
         <span><LaunchSparrow2 /> </span>
       </button>
