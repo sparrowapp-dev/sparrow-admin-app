@@ -103,7 +103,7 @@
                 text={key?.value}
                 position={index === 0 ? 'bottom' : 'top'}
                 mode="hover"
-                size="sm"
+                size="xs"
               >
                 <span>{key.value}</span>
               </Tooltip>
