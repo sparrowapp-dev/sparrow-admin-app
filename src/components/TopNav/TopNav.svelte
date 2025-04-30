@@ -15,7 +15,9 @@
   }
 </script>
 
-<div class="bg-surface-700 relative w-full px-2 py-[21px] text-neutral-50 shadow-md">
+<div
+  class="bg-surface-700 relative flex max-h-[48px] w-full items-center px-2 py-3 text-neutral-50 shadow-md"
+>
   <div
     class="absolute left-4 z-0 bg-cover bg-no-repeat opacity-100"
     style="background-image: url({Navbarbg1})"
@@ -29,21 +31,25 @@
     </div>
     <div class="flex items-center gap-4 px-1">
       <!-- Profile button -->
-      <button
-        class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
-        ><span><LaunchSparrow /> </span>
-        <p class="font-inter text-fs-ds-12 leading-lh-ds-130">Launch Sparrow</p>
-        <span><LaunchSparrow2 /> </span></button
+      <a href="https://web.sparrowapp.dev/app/collections" target="_blank">
+        <button
+          class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+          ><span><LaunchSparrow /> </span>
+          <p class="font-inter text-fs-ds-12 leading-lh-ds-130">Launch Sparrow</p>
+          <span><LaunchSparrow2 /> </span></button
+        ></a
       >
       <button
         class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
         >Help & Support</button
       >
-      <button
-        class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
-        ><p class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130">Documentation</p>
-        <span><LaunchSparrow2 /> </span>
-      </button>
+      <a href="https://docs.sparrowapp.dev/" target="_blank">
+        <button
+          class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
+          ><p class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130">Documentation</p>
+          <span><LaunchSparrow2 /> </span>
+        </button>
+      </a>
       <Tooltip text="Notification" position="bottom" mode="hover" size="sm"
         ><button
           class="hover:bg-surface-300 cursor-pointer rounded p-1 focus-visible:outline-2 focus-visible:outline-blue-300"

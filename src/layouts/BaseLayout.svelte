@@ -9,7 +9,7 @@
     <TopNav />
   </div>
 
-  <div class="flex h-full pt-[72px]">
+  <div class="flex h-full pt-[48px]">
     <!-- Add padding-top equal to TopNav height -->
     <!-- Side Navigation -->
     <SideNav />
