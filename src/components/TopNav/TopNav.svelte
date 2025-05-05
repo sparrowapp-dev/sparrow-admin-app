@@ -6,17 +6,10 @@
   import LaunchSparrow2 from '@/assets/icons/LaunchSparrow2.svelte';
   import BellIcon from '@/assets/icons/BellIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
-
-  // Function to clear storage and navigate to NotFound route
-  function handleLogout() {
-    localStorage.clear();
-
-    navigate('*');
-  }
 </script>
 
 <div
-  class="bg-surface-700 relative flex max-h-[48px] w-full items-center px-2 py-3 text-neutral-50 shadow-md"
+  class="bg-surface-700 border-surface-900 relative flex max-h-[48px] w-full items-center border-b-4 px-2 py-3 text-neutral-50 shadow-md"
 >
   <div
     class="absolute left-4 z-0 bg-cover bg-no-repeat opacity-100"

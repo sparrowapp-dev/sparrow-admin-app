@@ -15,7 +15,7 @@
 
   <!-- Protected routes -->
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
-  <PrivateRoute path="/hubs" component={Hubs} />
+  <PrivateRoute path="/hubs/*" component={Hubs} />
 
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />

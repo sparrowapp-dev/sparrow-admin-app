@@ -1,7 +1,8 @@
 <script lang="ts">
   import Tooltip from '../Tooltip/Tooltip.svelte';
+  import type { ComponentType } from 'svelte';
 
-  export let icon: typeof import('svelte').SvelteComponent;
+  export let icon: ComponentType;
   export let label: string;
   export let options;
   export let onSelect: (value: string) => void = () => {};
