@@ -122,6 +122,8 @@
 
   function getSizeClasses(size) {
     switch (size) {
+      case 'xs':
+        return 'px-3 py-1 text-fs-ds-12';
       case 'sm':
         return 'px-[12px] py-[4px] text-fs-ds-14';
       case 'md':
