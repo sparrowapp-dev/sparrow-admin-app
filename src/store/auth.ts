@@ -1,20 +1,35 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 
-type AuthData = {
-  token: string;
-  refresh: string;
-  email: string;
+// Check if tokens are already stored in localStorage
+const storedAccessToken = localStorage.getItem('accessToken');
+const storedRefreshToken = localStorage.getItem('refreshToken');
+
+// Writable stores for individual tokens
+export const accessToken = writable<string | null>(storedAccessToken || null);
+export const refreshToken = writable<string | null>(storedRefreshToken || null);
+
+// Derived store that exposes combined auth state
+export const auth = derived([accessToken, refreshToken], ([$accessToken, $refreshToken]) => ({
+  accessToken: $accessToken,
+  refreshToken: $refreshToken,
+  token: $accessToken, // Alias to simplify checks like $auth.token
+  isLoggedIn: !!$accessToken,
+}));
+
+// Function to set both tokens and persist them to localStorage
+export const setTokens = (tokens: { accessToken: string; refreshToken: string }) => {
+  accessToken.set(tokens.accessToken);
+  refreshToken.set(tokens.refreshToken);
+
+  localStorage.setItem('accessToken', tokens.accessToken);
+  localStorage.setItem('refreshToken', tokens.refreshToken);
 };
 
-// Retrieve auth data from localStorage, if available
-const saved = localStorage.getItem('auth');
-export const auth = writable<AuthData | null>(saved ? JSON.parse(saved) : null);
+// Function to clear both tokens and remove them from localStorage (useful for logout)
+export const clearTokens = () => {
+  accessToken.set(null);
+  refreshToken.set(null);
 
-// Sync the store with localStorage
-auth.subscribe((value) => {
-  if (value) {
-    localStorage.setItem('auth', JSON.stringify(value));
-  } else {
-    localStorage.removeItem('auth');
-  }
-});
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};

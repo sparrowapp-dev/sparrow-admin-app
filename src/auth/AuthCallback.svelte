@@ -1,12 +1,31 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { handleAuthCallback } from './authService.viewModel';
+  import { setTokens } from '@/store/auth';
+  import { authService } from '@/services/auth.service';
 
-  // Get the query string from the URL and call viewModel
-  onMount(() => {
-    const urlSearch = window.location.search;
-    handleAuthCallback(urlSearch);
+  onMount(async () => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const result = await authService.handleAuthCallback(token);
+
+      setTokens({
+        accessToken: result?.data?.accessToken.token,
+        refreshToken: result?.data?.refreshToken.token,
+      });
+
+      // Redirect to the app
+      window.location.href = '/hubs';
+    } catch (err) {
+      window.location.href = '/login';
+    }
   });
 </script>
 
-<p class="mt-4 text-center text-lg font-semibold text-blue-600 bg-red">Logging in...</p>
+<p class="mt-4 text-center text-lg font-semibold text-blue-600">Logging in...</p>

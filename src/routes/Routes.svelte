@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Router, Route } from 'svelte-routing';
   import AuthCallback from '@/auth/AuthCallback.svelte';
-  import Workspace from '@/pages/Workspace/Workspace.svelte';
   import Hubs from '@/pages/Hubs/Hubs.svelte';
   import NotFound from '@/pages/NotFound/NotFound.svelte';
   import PrivateRoute from './PrivateRoute.svelte';
@@ -15,7 +14,7 @@
   <Route path="/auth-callback" component={AuthCallback} />
 
   <!-- Protected routes -->
-  <PrivateRoute path="/workspace" component={Workspace} />
+  <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
   <PrivateRoute path="/hubs" component={Hubs} />
 
   <!-- Fallback for unmatched routes -->
