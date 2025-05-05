@@ -12,7 +12,7 @@ export const refreshToken = writable<string | null>(storedRefreshToken || null);
 export const auth = derived([accessToken, refreshToken], ([$accessToken, $refreshToken]) => ({
   accessToken: $accessToken,
   refreshToken: $refreshToken,
-  token: $accessToken, // Alias to simplify checks like $auth.token
+  token: $accessToken,
   isLoggedIn: !!$accessToken,
 }));
 

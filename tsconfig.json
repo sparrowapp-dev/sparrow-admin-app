@@ -12,7 +12,8 @@
     "strict": true,
     "jsx": "react",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": false
   },
   "include": ["src/**/*", "types/**/*.d.ts"],
   "exclude": ["node_modules"]

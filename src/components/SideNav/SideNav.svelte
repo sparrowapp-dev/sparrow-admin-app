@@ -45,7 +45,9 @@
   $: settingsVariant = getIconVariant('/settings');
 </script>
 
-<div class="bg-surface-700 flex flex-col justify-between p-1 text-white">
+<div
+  class="bg-surface-700 border-surface-900 flex flex-col justify-between border border-r-4 p-1 text-white"
+>
   <!-- top section -->
   <div class="flex flex-col items-center justify-center">
     <!-- Home Icon -->
