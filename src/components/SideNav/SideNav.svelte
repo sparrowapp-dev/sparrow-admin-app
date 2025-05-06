@@ -17,6 +17,7 @@
   const currentPath = writable(window.location.pathname);
   let hoveredPath = null;
   let focusedPath = null;
+
   // Update currentPath on mount
   onMount(() => {
     window.addEventListener('popstate', () => {
@@ -24,10 +25,22 @@
     });
   });
 
+  // Function to determine if a path is active (including child paths)
+  const isPathActive = (path) => {
+    const current = get(currentPath);
+
+    // Special case for home to avoid matching everything
+    if (path === '/home') {
+      return current === '/home';
+    }
+
+    // For all other paths, check if current path starts with this path
+    return current.startsWith(path);
+  };
+
   // Function to determine icon variant
   const getIconVariant = (path) => {
-    const current = get(currentPath);
-    if (current === path) return 'selected';
+    if (isPathActive(path)) return 'selected';
     return 'default';
   };
 
@@ -60,7 +73,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/home'}
+        class:active={isPathActive('/home')}
         on:click={() => navigate('/home')}
         on:mouseenter={() => (hoveredPath = '/home')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -69,11 +82,11 @@
       >
         <div class="rounded px-4 py-4">
           <HomeIcon
-            variant={hoveredPath === '/home' && $currentPath !== '/home' ? 'hover' : homeVariant}
+            variant={hoveredPath === '/home' && !isPathActive('/home') ? 'hover' : homeVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/home' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/home') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -87,7 +100,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/analytics'}
+        class:active={isPathActive('/analytics')}
         on:click={() => navigate('/analytics')}
         on:mouseenter={() => (hoveredPath = '/analytics')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -96,13 +109,13 @@
       >
         <div class="rounded px-4 py-4">
           <ChartIcon
-            variant={hoveredPath === '/analytics' && $currentPath !== '/analytics'
+            variant={hoveredPath === '/analytics' && !isPathActive('/analytics')
               ? 'hover'
               : dashboardVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/analytics' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/analytics') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -116,7 +129,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/hubs'}
+        class:active={isPathActive('/hubs')}
         on:click={() => navigate('/hubs')}
         on:mouseenter={() => (hoveredPath = '/hubs')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -125,13 +138,11 @@
       >
         <div class="rounded px-4 py-4">
           <WorkspaceIcon
-            variant={hoveredPath === '/hubs' && $currentPath !== '/hubs'
-              ? 'hover'
-              : workspaceVariant}
+            variant={hoveredPath === '/hubs' && !isPathActive('/hubs') ? 'hover' : workspaceVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/hubs' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/hubs') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -146,20 +157,20 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/users'}
+        class:active={isPathActive('/users')}
         on:click={() => navigate('/users')}
         on:mouseenter={() => (hoveredPath = '/users')}
         on:mouseleave={() => (hoveredPath = null)}
         on:focus={() => (focusedPath = '/users')}
         on:blur={() => (focusedPath = null)}
       >
-        <div class=" px-4 py-4">
+        <div class="px-4 py-4">
           <UsersIcon
-            variant={hoveredPath === '/users' && $currentPath !== '/users' ? 'hover' : hubsVariant}
+            variant={hoveredPath === '/users' && !isPathActive('/users') ? 'hover' : hubsVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/users' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/users') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -177,7 +188,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/billing'}
+        class:active={isPathActive('/billing')}
         on:click={() => navigate('/billing')}
         on:mouseenter={() => (hoveredPath = '/billing')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -186,13 +197,13 @@
       >
         <div class="rounded px-4 py-4">
           <BillingIcon
-            variant={hoveredPath === '/billing' && $currentPath !== '/billing'
+            variant={hoveredPath === '/billing' && !isPathActive('/billing')
               ? 'hover'
               : billingVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/billing' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/billing') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -206,7 +217,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/audit'}
+        class:active={isPathActive('/audit')}
         on:click={() => navigate('/audit')}
         on:mouseenter={() => (hoveredPath = '/audit')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -215,11 +226,11 @@
       >
         <div class="rounded px-4 py-4">
           <AuditIcon
-            variant={hoveredPath === '/audit' && $currentPath !== '/audit' ? 'hover' : auditVariant}
+            variant={hoveredPath === '/audit' && !isPathActive('/audit') ? 'hover' : auditVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/audit' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/audit') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -233,7 +244,7 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/security'}
+        class:active={isPathActive('/security')}
         on:click={() => navigate('/security')}
         on:mouseenter={() => (hoveredPath = '/security')}
         on:mouseleave={() => (hoveredPath = null)}
@@ -242,13 +253,13 @@
       >
         <div class="rounded px-4 py-4">
           <SecurityIcon
-            variant={hoveredPath === '/security' && $currentPath !== '/security'
+            variant={hoveredPath === '/security' && !isPathActive('/security')
               ? 'hover'
               : securityVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/security' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/security') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -262,22 +273,22 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/self-hosting'}
+        class:active={isPathActive('/self-hosting')}
         on:click={() => navigate('/self-hosting')}
         on:mouseenter={() => (hoveredPath = '/self-hosting')}
         on:mouseleave={() => (hoveredPath = null)}
         on:focus={() => (focusedPath = '/self-hosting')}
         on:blur={() => (focusedPath = null)}
       >
-        <div class=" px-4 py-4">
+        <div class="px-4 py-4">
           <HostingIcon
-            variant={hoveredPath === '/self-hosting' && $currentPath !== '/self-hosting'
+            variant={hoveredPath === '/self-hosting' && !isPathActive('/self-hosting')
               ? 'hover'
               : HostingVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/self-hosting' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/self-hosting') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
@@ -291,22 +302,22 @@
     >
       <button
         class="group hover:bg-surface-500 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={$currentPath === '/settings'}
+        class:active={isPathActive('/settings')}
         on:click={() => navigate('/settings')}
         on:mouseenter={() => (hoveredPath = '/settings')}
         on:mouseleave={() => (hoveredPath = null)}
         on:focus={() => (focusedPath = '/settings')}
         on:blur={() => (focusedPath = null)}
       >
-        <div class=" px-4 py-4">
+        <div class="px-4 py-4">
           <SettingsIcon
-            variant={hoveredPath === '/settings' && $currentPath !== '/settings'
+            variant={hoveredPath === '/settings' && !isPathActive('/settings')
               ? 'hover'
               : settingsVariant}
           />
         </div>
         <div
-          class={`absolute inset-y-1 left-0 w-[2px] rounded  transition-all  ${$currentPath === '/settings' ? 'bg-blue-500' : ''}`}
+          class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${isPathActive('/settings') ? 'bg-blue-500' : ''}`}
         ></div>
       </button>
     </Tooltip>
