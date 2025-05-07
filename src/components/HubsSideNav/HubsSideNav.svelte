@@ -1,54 +1,39 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import GiftIcon from '@/assets/icons/GiftIcon.svelte';
   import Dropdown from '../ReusableDropdown/Dropdown.svelte';
-  import { Link } from 'svelte-routing';
-  let dropdownOpen = false;
-  let selectOption = null;
-  const apiResponse = [
-    {
-      teamId: '67dd3d367331fd132b665738',
-      teamName: "Mithesh's TeamxXZ",
-      role: 'owner',
-      users: [
-        {
-          id: '67dd3d367331fd132b665737',
-          email: 'mithesh.bangera@techdome.net.in',
-          name: 'Mithesh Bangera',
-          role: 'owner',
-        },
-      ],
-      workspaces: [
-        {
-          id: '67dd3d697331fd132b66573a',
-          name: 'My Workspace',
-        },
-        {
-          id: '67dd3ea47331fd132b66573c',
-          name: 'My Workspace 2',
-        },
-      ],
-    },
-    {
-      teamId: '67fe3e9c8a47696105024e39',
-      teamName: 'asd2',
-      role: 'owner',
-      users: [
-        {
-          id: '67dd3d367331fd132b665737',
-          email: 'mithesh.bangera@techdome.net.in',
-          name: 'Mithesh Bangera',
-          role: 'owner',
-        },
-      ],
-      workspaces: [],
-    },
-  ];
+  import { Link, navigate } from 'svelte-routing';
 
-  const dropdownOptions = apiResponse.map((team) => ({
-    label: team.teamName,
-    value: team, // full team object
-    plan: team.plan, // optional plan value, can be undefined
-  }));
+  interface Team {
+    teamId: string;
+    teamName: string;
+    plan: string;
+  }
+
+  export let data: Array<any>;
+  let dropdownOpen = false;
+  let selectOption: Team | null = null;
+
+  //navigate when a selection is made
+  function handleSelection(val: any) {
+    selectOption = val;
+
+    if (selectOption) {
+      navigate(`/hubs/workspace/${val.teamId}`);
+    }
+  }
+
+  // reactively update selected value if id is present in query
+  $: if (!selectOption && data.length > 0) {
+    const match = location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
+    const currentId = match?.[1];
+
+    const foundTeam = data.find((team) => team?.value?.teamId === currentId);
+
+    if (foundTeam) {
+      selectOption = foundTeam?.value;
+    }
+  }
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
@@ -58,8 +43,8 @@
         bind:open={dropdownOpen}
         icon={GiftIcon}
         label={selectOption?.teamName ? selectOption?.teamName : 'Select your Hub'}
-        options={dropdownOptions}
-        onSelect={(val) => (selectOption = val)}
+        options={data}
+        onSelect={handleSelection}
       />
     </div>
     {#if selectOption}
