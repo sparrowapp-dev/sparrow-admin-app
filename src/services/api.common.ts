@@ -176,13 +176,11 @@ export const makeRequest = async (
 
 export function createQuery<T>(fetchFn: () => Promise<T>) {
   const data = writable<T | null>(null);
-  const isLoading = writable(true);
   const isFetching = writable(true);
   const isError = writable(false);
   const error = writable<any>(null);
 
   const refetch = async () => {
-    isLoading.set(false); // Only set true on first load if needed
     isFetching.set(true);
     isError.set(false);
     error.set(null);
@@ -203,7 +201,6 @@ export function createQuery<T>(fetchFn: () => Promise<T>) {
 
   return {
     data,
-    isLoading,
     isFetching,
     isError,
     error,
