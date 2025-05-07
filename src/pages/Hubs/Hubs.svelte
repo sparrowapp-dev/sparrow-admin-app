@@ -10,14 +10,14 @@
 
 <div>
   {#if $location.pathname.startsWith('/hubs/workspace') || $location.pathname.startsWith('/hubs/settings') || $location.pathname.startsWith('/hubs/members')}
-    <div class="flex gap-4" style="height: calc(100vh - 48px);">
+    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
       <!-- Sidebar -->
-      <div class="w-[250px]">
+      <div class="w-[266px]">
         <OptionalSideNav />
       </div>
 
       <!-- Nested Route Content -->
-      <div class="flex-1">
+      <div class="p-4">
         <Router>
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />

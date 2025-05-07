@@ -1,7 +1,3 @@
-<!-- 
-  EnhancedTooltip.svelte - A customizable tooltip component using Tailwind CSS
-  with support for both hover-triggered and controlled visibility modes
--->
 <script>
   // Props for the tooltip component
   export let text = 'Notification'; // The text to display in the tooltip
@@ -147,7 +143,7 @@
   </slot>
 
   <div
-    class="absolute {positionClasses} {variantClasses} {sizeClasses} {zIndex} rounded whitespace-nowrap transition-all duration-300"
+    class="absolute {positionClasses} {variantClasses} {sizeClasses} {zIndex} pointer-events-none rounded whitespace-nowrap transition-all duration-300"
     role="tooltip"
     style="transform: scale({shouldShow ? 1 : 0.8}); opacity: {shouldShow ? 1 : 0}; "
   >

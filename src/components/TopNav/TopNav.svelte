@@ -16,10 +16,10 @@
     style="background-image: url({Navbarbg1})"
   ></div>
   <div class="relative z-10 flex w-full items-center justify-between">
-    <div class="text-xl font-semibold">
+    <div class="font-fw-ds-600 text-xl">
       <div class="flex items-center gap-3">
         <Sparrowadmin />
-        <h2 class="font-inter leading-lh-ds-150 font-normal">Sparrow Admin</h2>
+        <h2 class="font-inter text-fs-ds-16 leading-lh-ds-150 font-fw-ds-400">Sparrow Admin</h2>
       </div>
     </div>
     <div class="flex items-center gap-4 px-1">
@@ -28,18 +28,20 @@
         <button
           class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
           ><span><LaunchSparrow /> </span>
-          <p class="font-inter text-fs-ds-12 leading-lh-ds-130">Launch Sparrow</p>
+          <p class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">Launch Sparrow</p>
           <span><LaunchSparrow2 /> </span></button
         ></a
       >
       <button
-        class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
         >Help & Support</button
       >
       <a href="https://docs.sparrowapp.dev/" target="_blank">
         <button
           class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
-          ><p class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130">Documentation</p>
+          ><p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">
+            Documentation
+          </p>
           <span><LaunchSparrow2 /> </span>
         </button>
       </a>
@@ -50,7 +52,7 @@
         </button>
       </Tooltip>
       <button
-        class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
         >F</button
       >
     </div>
