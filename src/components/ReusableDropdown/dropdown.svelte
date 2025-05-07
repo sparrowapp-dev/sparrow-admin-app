@@ -4,30 +4,36 @@
 
   export let icon: ComponentType;
   export let label: string;
-  export let options;
-  export let onSelect: (value: string) => void = () => {};
+  export let options: { label: string; value: any; plan?: string }[] = [];
+  export let showPlans: boolean = false;
+  export let onSelect: (value: any) => void = () => {};
+
   let selected = label;
-  let open = false;
+  export let open = false;
   let searchMode = false;
   let searchTerm = '';
+
   $: filteredOptions = searchTerm
-    ? options.filter((item) => item.value.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
+
   function toggleDropdown() {
     open = !open;
     searchMode = false;
     if (!open) searchTerm = '';
   }
+
   function openSearchMode() {
     searchMode = true;
     open = true;
   }
-  function selectOption(labelText: string) {
+
+  function selectOption(option) {
     open = false;
     searchMode = false;
     searchTerm = '';
-    label = labelText;
-    selected = labelText;
+    selected = option.label;
+    onSelect(option.value); // Emit full value (the team object)
   }
 
   function getDynamicCssClasses(plan: string) {
@@ -50,15 +56,15 @@
   <div
     class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
       ? 'border border-blue-300'
-      : ''} {searchMode || open
+      : 'py-3'} {searchMode || open
       ? 'bg-surface-600'
-      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 focus-within:outline focus-within:outline-2 focus-within:outline-blue-300"
+      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
   >
     <svelte:component this={icon} />
 
     {#if !searchMode}
       <div
-        class="font-inter text-fs-ds-12 leading-lh-ds-150 flex-1 cursor-pointer truncate font-medium text-neutral-50"
+        class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 cursor-pointer truncate text-neutral-50"
         on:click={openSearchMode}
       >
         {label}
@@ -67,8 +73,8 @@
       <div class="">
         <input
           type="text"
-          class="font-inter max-w-[186px] flex-1 text-neutral-50 outline-none"
-          placeholder="Search..."
+          class="font-inter text-fs-ds-12 max-w-[186px] flex-1 text-neutral-50 outline-none"
+          placeholder="Search"
           bind:value={searchTerm}
         />
       </div>
@@ -86,7 +92,7 @@
   </div>
 
   {#if open}
-    <div class="bg-surface-600 w-full">
+    <div class="bg-surface-600 w-full shadow-2xs">
       <div
         class="bg-surface-600 custom-scroll absolute z-10 mt-1 flex max-h-70 w-full flex-col gap-2 overflow-y-auto p-1 shadow"
       >
@@ -97,21 +103,23 @@
             No result found.
           </div>
         {:else}
-          {#each filteredOptions as key, index}
+          {#each filteredOptions as option, index}
             <button
-              class="font-inter font-regular text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 text-neutral-50"
-              on:click={() => selectOption(key?.value)}
+              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 text-neutral-50"
+              on:click={() => selectOption(option)}
             >
               <Tooltip
-                text={key?.value}
+                text={option.label}
                 position={index === 0 ? 'bottom' : 'top'}
                 mode="hover"
                 size="xs"
               >
-                <span>{key.value}</span>
+                <span>{option.label}</span>
               </Tooltip>
-              {#if selected === key?.value}<span
-                  ><svg
+
+              {#if selected === option.label}
+                <span>
+                  <svg
                     width="12"
                     height="9"
                     viewBox="0 0 12 9"
@@ -124,9 +132,9 @@
                     />
                   </svg>
                 </span>
-              {:else}
-                <span class="rounded-[2x] border px-1 py-0.5 {getDynamicCssClasses(key?.plan)}">
-                  {key?.plan}
+              {:else if showPlans && option.plan}
+                <span class="rounded-[2x] border px-1 py-0.5 {getDynamicCssClasses(option.plan)}">
+                  {option.plan}
                 </span>
               {/if}
             </button>

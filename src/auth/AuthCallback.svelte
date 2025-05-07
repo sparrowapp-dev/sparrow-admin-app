@@ -28,4 +28,4 @@
   });
 </script>
 
-<p class="mt-4 text-center text-lg font-semibold text-blue-600">Logging in...</p>
+<p class="font-fw-ds-600 mt-4 text-center text-lg text-blue-600">Logging in...</p>

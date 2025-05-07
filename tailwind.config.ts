@@ -20,11 +20,11 @@ const config: Config = {
       },
       // design system for font weight
       fontWeight: {
-        light: '300',
-        regular: '400',
-        medium: '500',
-        semibold: '600',
-        bold: '700',
+        'fw-ds-300': '300',
+        'fw-ds-400': '400',
+        'fw-ds-500': '500',
+        'fw-ds-600': '600',
+        'fw-ds-700': '700',
       },
       // design system for font size
       fontSize: {
