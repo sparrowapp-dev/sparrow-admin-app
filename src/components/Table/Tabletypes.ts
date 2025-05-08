@@ -1,9 +1,9 @@
 import type { ColumnDef } from '@tanstack/svelte-table';
 import type { SortingState } from '@tanstack/table-core';
 
-export interface TableProps<T> {
-  columns: ColumnDef<T, any>[];
-  fetchData: (options: TableFetchOptions) => Promise<TableFetchResponse<T>>;
+export interface TableProps {
+  columns: ColumnDef<any, any>[];
+  fetchData: (options: TableFetchOptions) => Promise<TableFetchResponse>;
   initialPageSize?: number;
   initialPageIndex?: number;
   initialSearchTerm?: string;
@@ -25,8 +25,8 @@ export interface TableFetchOptions {
   sorting: SortingState;
 }
 
-export interface TableFetchResponse<T> {
-  data: T[];
+export interface TableFetchResponse {
+  data: any[];
   totalItems: number;
-  pageCount: number;
+  pageCount?: number;
 }

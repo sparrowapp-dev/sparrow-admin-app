@@ -3,44 +3,37 @@
   import { getCoreRowModel, getSortedRowModel } from '@tanstack/svelte-table';
   import { onMount, createEventDispatcher } from 'svelte';
   import type { SortingState } from '@tanstack/table-core';
-  import SortIcon from '@/assets/icons/SortIcon.svelte';
+  import TableHeader from './TableHeader.svelte';
+  import TableCell from './TableCell.svelte';
+  import type { TableProps, TableFetchOptions, TableFetchResponse } from './Tabletypes';
 
   const dispatch = createEventDispatcher();
-  // Props with TypeScript types
+
+  // Props
   export let columns: ColumnDef<any, any>[] = [];
-  export let fetchData: (options: {
-    pagination: { pageIndex: number; pageSize: number };
-    filters: { searchTerm: string };
-    sorting: SortingState;
-  }) => Promise<{ data: any[]; totalItems: number; pageCount: number }>;
+  export let fetchData: (options: TableFetchOptions) => Promise<TableFetchResponse>;
   export let initialPageSize = 10;
   export let initialPageIndex = 0;
   export let initialSearchTerm = '';
   export let isLoading = false;
+  export let customLoading = false;
+  export let loadingComponent = null;
+  export let emptyStateComponent = null;
+  export let rowClassName = '';
+  export let cellClassName = '';
+  export let headerClassName = '';
+  export let containerClassName = '';
+  export let showSearch = true;
+  export let showPagination = true;
 
   // Internal state
   let data: any[] = [];
   let totalItems = 0;
   let pageCount = 0;
   let sorting: SortingState = [];
-  let activeDropdownId: string | null = null; // Add this to track active dropdown
+  let activeDropdownId: string | null = null;
 
-  // Helper function for sort icons
-  function getSortIcon(sortDirection: string | false): string {
-    if (!data.length) return 'opacity-0';
-    if (sortDirection === 'asc') return 'opacity-100';
-    if (sortDirection === 'desc') return 'opacity-100';
-    return 'opacity-60 group-hover:opacity-100';
-  }
-
-  // Close dropdown when clicking outside
-  function handleClickOutside(event: MouseEvent) {
-    if (activeDropdownId && !(event.target as HTMLElement).closest('[data-action="toggle-menu"]')) {
-      activeDropdownId = null;
-    }
-  }
-
-  // Reactive pagination and filters
+  // Reactive state
   $: pagination = {
     pageIndex: initialPageIndex,
     pageSize: initialPageSize,
@@ -50,31 +43,7 @@
     searchTerm: initialSearchTerm,
   };
 
-  // Load data function
-  async function loadData() {
-    try {
-      isLoading = true;
-      const result = await fetchData({ pagination, filters, sorting });
-      data = result.data;
-      totalItems = result.totalItems;
-      pageCount = Math.ceil(totalItems / pagination.pageSize);
-
-      dispatch('stateChange', {
-        pagination,
-        filters,
-        sorting,
-        totalItems,
-        pageCount,
-      });
-    } catch (error) {
-      console.error('Error loading data:', error);
-      dispatch('error', error);
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  // Create table instance
+  // Table instance
   $: table = createSvelteTable({
     data,
     columns,
@@ -97,12 +66,42 @@
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // Load data function
+  async function loadData() {
+    try {
+      isLoading = true;
+      const result = await fetchData({ pagination, filters, sorting });
+      data = result.data;
+      totalItems = result.totalItems;
+      pageCount = result.pageCount || Math.ceil(totalItems / pagination.pageSize);
+
+      dispatch('stateChange', {
+        pagination,
+        filters,
+        sorting,
+        totalItems,
+        pageCount,
+      });
+    } catch (error) {
+      console.error('Error loading data:', error);
+      dispatch('error', error);
+    } finally {
+      isLoading = false;
+    }
+  }
+
   // Watch for changes to reload data
   $: pagination, filters, sorting, loadData();
 
+  // Handle outside clicks for dropdowns
+  function handleClickOutside(event: MouseEvent) {
+    if (activeDropdownId && !(event.target as HTMLElement).closest('[data-action="toggle-menu"]')) {
+      activeDropdownId = null;
+    }
+  }
+
   onMount(() => {
     loadData();
-    // Add global click listener to close dropdowns when clicking outside
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
@@ -110,98 +109,145 @@
   });
 </script>
 
-<div class="relative w-full">
-  {#if isLoading}
-    <div class="bg-surface-800 bg-opacity-50 absolute inset-0 flex items-center justify-center">
-      <div
-        class="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-500"
-      />
+<div class={`table-wrapper ${containerClassName}`}>
+  {#if isLoading && !customLoading}
+    <div class="loading-overlay">
+      {#if loadingComponent}
+        <svelte:component this={loadingComponent} />
+      {:else}
+        <div class="loading-spinner" />
+      {/if}
     </div>
   {/if}
 
-  <table class="w-full table-fixed border-collapse">
-    <thead>
-      {#each $table.getHeaderGroups() as headerGroup}
-        <tr>
-          {#each headerGroup.headers as header}
-            <th
-              class="font-inter text-fs-ds-12 leading-lh-ds-150 border-surface-600 border-b p-3 text-left font-medium text-neutral-400"
-            >
-              {#if header.isPlaceholder}
-                <span></span>
-              {:else}
-                <div
-                  class="flex cursor-pointer items-center gap-2"
-                  on:click={() => header.column.toggleSorting()}
-                  on:keydown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      header.column.toggleSorting();
-                    }
-                  }}
-                  role="button"
-                  tabindex="0"
-                >
-                  <span>{header.column.columnDef.header}</span>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        {#each $table.getHeaderGroups() as headerGroup}
+          <tr>
+            {#each headerGroup.headers as header}
+              <TableHeader {header} dataLength={data.length} className={headerClassName} />
+            {/each}
+          </tr>
+        {/each}
+      </thead>
 
-                  {#if header.column.getCanSort()}
-                    <span
-                      class={`transition-opacity duration-150 ${data.length > 0 ? getSortIcon(header.column.getIsSorted()) : 'opacity-0'}`}
-                    >
-                      <SortIcon />
-                    </span>
-                  {/if}
-                </div>
-              {/if}
-            </th>
-          {/each}
-        </tr>
-      {/each}
-    </thead>
+      <tbody>
+        {#each $table.getRowModel().rows as row}
+          <tr
+            class={`table-row ${rowClassName}`}
+            on:click={(e) => {
+              dispatch('rowClick', row.original);
+              dispatch('click', e);
+            }}
+          >
+            {#each row.getVisibleCells() as cell}
+              <TableCell {cell} className={cellClassName} on:click />
+            {/each}
+          </tr>
+        {/each}
 
-    <tbody>
-      {#each $table.getRowModel().rows as row}
-        <tr
-          class="group hover:bg-surface-700 transition-colors duration-150"
-          on:click={(e) => {
-            dispatch('rowClick', row.original);
-            dispatch('click', e);
-          }}
-        >
-          {#each row.getVisibleCells() as cell}
-            <td
-              class="border-surface-600 font-inter text-fs-ds-12 leading-lh-ds-130 font-regular cursor-pointer border-b p-3 text-left text-neutral-50"
-              on:click={() => {
-                dispatch('RowClick', row.original);
-              }}
-            >
-              {#if typeof cell.column.columnDef.cell === 'function'}
-                {#if typeof cell.column.columnDef.cell(cell) === 'object'}
-                  {#if cell.column.columnDef.cell(cell).Component}
-                    <svelte:component
-                      this={cell.column.columnDef.cell(cell).Component}
-                      {...cell.column.columnDef.cell(cell).props}
-                    />
-                  {:else}
-                    {@html cell.column.columnDef.cell(cell)}
-                  {/if}
-                {:else}
-                  {@html cell.column.columnDef.cell(cell)}
-                {/if}
+        {#if $table.getRowModel().rows.length === 0}
+          <tr>
+            <td colspan={columns.length} class="empty-state">
+              {#if emptyStateComponent}
+                <svelte:component this={emptyStateComponent} />
               {:else}
-                {cell.getValue()}
+                No data available
               {/if}
             </td>
-          {/each}
-        </tr>
-      {/each}
-
-      {#if $table.getRowModel().rows.length === 0}
-        <tr>
-          <td colspan={columns.length} class="p-8 text-center text-neutral-400">
-            No data available
-          </td>
-        </tr>
-      {/if}
-    </tbody>
-  </table>
+          </tr>
+        {/if}
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<style>
+  .table-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10;
+  }
+
+  .loading-spinner {
+    height: 1.5rem;
+    width: 1.5rem;
+    border-radius: 9999px;
+    border: 2px solid rgb(209 213 219);
+    border-top-color: rgb(59 130 246);
+    animation: spin 1s linear infinite;
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4a4a4a #1a1a1a;
+  }
+
+  .table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .table-row {
+    transition: background-color 150ms;
+  }
+
+  .table-row:hover {
+    background-color: rgb(55 65 81);
+  }
+
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    color: rgb(156 163 175);
+  }
+
+  @media (max-width: 1270px) {
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 1270px;
+    }
+  }
+
+  /* Scrollbar styles */
+  .table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 4px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb:hover {
+    background: #666;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

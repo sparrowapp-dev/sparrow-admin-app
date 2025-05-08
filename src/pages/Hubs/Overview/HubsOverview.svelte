@@ -442,6 +442,7 @@
     {
       accessorKey: 'hubUrl',
       header: 'Hub URL',
+      enableSorting: false,
       cell: ({ getValue, row }) => ({
         Component: HubUrl,
         props: { Value: getValue(), row: row },
@@ -452,7 +453,7 @@
       header: 'Hub Plan',
       cell: ({}) => {
         return `
-        <div class="px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
+        <div class=" px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
         
         `;
       },
@@ -482,7 +483,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },
@@ -494,7 +495,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },
@@ -614,7 +615,7 @@
       {isLoading}
       on:paginationChange={handlePaginationChange}
       on:searchChange={handleSearchChange}
-      on:RowClick={handleRowClick}
+      on:rowClick={handleRowClick}
     />
 
     <TablePagination
