@@ -3,30 +3,8 @@
   import { getCoreRowModel, getSortedRowModel } from '@tanstack/svelte-table';
   import { onMount, createEventDispatcher } from 'svelte';
   import type { SortingState } from '@tanstack/table-core';
-  import EditIcon from '@/assets/icons/EditIcon.svelte';
-  import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
-  import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import SortIcon from '@/assets/icons/SortIcon.svelte';
-  import Copy from '@/assets/icons/Copy.svelte';
-  import Check from '@/assets/icons/Check.svelte';
-  import Tooltip from '../Tooltip/Tooltip.svelte';
-  // ...existing imports...
 
-  // Add copyState to track copy status for each row
-  let copyState: { [key: string]: boolean } = {};
-
-  // Add copy function
-  async function handleCopy(url: string, rowId: string) {
-    try {
-      await navigator.clipboard.writeText(url);
-      copyState[rowId] = true;
-      setTimeout(() => {
-        copyState[rowId] = false;
-      }, 2000);
-    } catch (error) {
-      console.error('Copy failed:', error);
-    }
-  }
   const dispatch = createEventDispatcher();
   // Props with TypeScript types
   export let columns: ColumnDef<any, any>[] = [];
@@ -53,15 +31,6 @@
     if (sortDirection === 'asc') return 'opacity-100';
     if (sortDirection === 'desc') return 'opacity-100';
     return 'opacity-60 group-hover:opacity-100';
-  }
-
-  // Toggle dropdown function
-  function toggleDropdown(hubId: string) {
-    if (activeDropdownId === hubId) {
-      activeDropdownId = null; // Close if already open
-    } else {
-      activeDropdownId = hubId; // Open this dropdown
-    }
   }
 
   // Close dropdown when clicking outside
@@ -204,126 +173,20 @@
               on:click={() => {
                 dispatch('RowClick', row.original);
               }}
-              >{#if cell.column.id === 'hubUrl'}
-                <div class="group/url relative flex items-center gap-2">
-                  <span class="truncate text-neutral-300">
-                    {cell.getValue() || `https://sparrow.app/hub/${row.original._id}`}
-                  </span>
-                  <button
-                    class="relative p-1 text-neutral-400 opacity-0 transition-all
-                       duration-150 group-hover/url:opacity-100 hover:text-neutral-50"
-                    on:click|stopPropagation={() =>
-                      handleCopy(
-                        cell.getValue() || `https://sparrow.app/hub/${row.original._id}`,
-                        row.original._id,
-                      )}
-                    title="Click to copy URL"
-                  >
-                    <Tooltip
-                      text={`${copyState[row.original._id] ? 'Copied' : 'Click to copy'}`}
-                      position="top"
-                      mode="hover"
-                      size="sm"
-                    >
-                      <div class="hover:bg-surface-300 p-0.5 transition-all duration-150">
-                        {#if copyState[row.original._id]}
-                          <div class="hover:bg-surface-300">
-                            <Check />
-                          </div>
-                        {:else}
-                          <Copy />
-                        {/if}
-                      </div>
-                    </Tooltip>
-                    <!-- <span
-                      class="tooltip bg-surface-100 text-fs-ds-12 pointer-events-none absolute -top-8 left-1/2
-                         -translate-x-1/2 rounded-md px-2 py-1
-                         whitespace-nowrap text-neutral-50 opacity-0
-                         transition-opacity duration-150 group-hover/url:opacity-100"
-                    >
-                      Click to copy
-                    </span> -->
-                  </button>
-                </div>
-              {:else if cell.column.id === 'actions'}
-                <div class="relative flex items-center justify-end gap-4">
-                  <button
-                    class="font-inter text-fs-ds-12 font-regular leading-lh-ds-130 cursor-pointer
-                           text-blue-300 opacity-0 transition-opacity duration-200
-                           group-hover:opacity-100 hover:underline focus:opacity-100 focus:outline-none"
-                    data-action="launch"
-                    on:click={() => {
-                      dispatch('launch');
-                    }}
-                    data-hub-id={row.original._id}
-                  >
-                    Launch in Sparrow
-                  </button>
-
-                  <div class="relative">
-                    <button
-                      class="cursor-pointer rounded-md p-2 text-neutral-300 transition-colors
-                             duration-200 hover:text-neutral-50"
-                      on:click|stopPropagation={() => toggleDropdown(row.original._id)}
-                      data-action="toggle-menu"
-                      data-hub-id={row.original._id}
-                      aria-label="More actions"
-                    >
-                      {#if typeof row.original.renderThreeDotsIcon === 'function'}
-                        {@html row.original.renderThreeDotsIcon()}
-                      {:else}
-                        ⋮
-                      {/if}
-                    </button>
-
-                    {#if activeDropdownId === row.original._id}
-                      <div
-                        class="bg-surface-600 absolute right-0 z-50 mt-2 w-48 rounded-md shadow-lg"
-                      >
-                        <div class="flex flex-col gap-1 py-1">
-                          <button
-                            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2
-                                   px-2 py-1 text-neutral-50 transition-colors duration-150"
-                            data-action="ManageHub"
-                            data-hub-id={row.original._id}
-                            on:click|stopPropagation={() => {
-                              dispatch('ManageHub', row.original);
-                              activeDropdownId = null;
-                            }}
-                          >
-                            <EditIcon />Manage Hub
-                          </button>
-                          <button
-                            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2 px-2
-                                   py-1 text-neutral-50 transition-colors duration-150"
-                            data-action="manage-members"
-                            data-hub-id={row.original._id}
-                            on:click|stopPropagation={() => {
-                              dispatch('manageMembers', row.original);
-                              activeDropdownId = null;
-                            }}
-                          >
-                            <ManageMembersIcon />Manage Members
-                          </button>
-                          <button
-                            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2 px-2
-                                   py-1 text-neutral-50 transition-colors duration-150"
-                            data-action="upgrade"
-                            data-hub-id={row.original._id}
-                            on:click|stopPropagation={() => {
-                              dispatch('upgradeHub', row.original);
-                              activeDropdownId = null;
-                            }}
-                          >
-                            <UpgradeStandardIcon />Upgrade to Standard
-                          </button>
-                        </div>
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-              {:else if typeof cell.column.columnDef.cell === 'function'}
-                {@html cell.column.columnDef.cell(cell)}
+            >
+              {#if typeof cell.column.columnDef.cell === 'function'}
+                {#if typeof cell.column.columnDef.cell(cell) === 'object'}
+                  {#if cell.column.columnDef.cell(cell).Component}
+                    <svelte:component
+                      this={cell.column.columnDef.cell(cell).Component}
+                      {...cell.column.columnDef.cell(cell).props}
+                    />
+                  {:else}
+                    {@html cell.column.columnDef.cell(cell)}
+                  {/if}
+                {:else}
+                  {@html cell.column.columnDef.cell(cell)}
+                {/if}
               {:else}
                 {cell.getValue()}
               {/if}

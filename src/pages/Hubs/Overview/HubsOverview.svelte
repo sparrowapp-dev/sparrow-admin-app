@@ -320,6 +320,8 @@
   import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
   import Copy from '@/assets/icons/Copy.svelte';
   import { navigate } from 'svelte-routing';
+  import HubUrl from '@/components/TableComponents/HubUrl.svelte';
+  import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
   interface Workspace {
     id: string;
     name: string;
@@ -338,6 +340,7 @@
   interface Hub {
     _id: string;
     name: string;
+    hubUrl: string;
     workspaceStats: {
       total: number;
       private: number;
@@ -444,7 +447,14 @@
       header: 'Sparrow Hubs',
       enableSorting: true,
     },
-    { id: 'hubUrl', header: 'Hub URL', enableSorting: false, accessorKey: 'hubUrl' },
+    {
+      accessorKey: 'hubUrl',
+      header: 'Hub URL',
+      cell: ({ getValue, row }) => ({
+        Component: HubUrl,
+        props: { Value: getValue(), row: row },
+      }),
+    },
     {
       id: 'Plans',
       header: 'Hub Plan',
@@ -501,6 +511,10 @@
       id: 'actions',
       header: '',
       enableSorting: false,
+      cell: ({ row }) => ({
+        Component: HubsDropdown,
+        props: { row: row },
+      }),
     },
   ];
 
