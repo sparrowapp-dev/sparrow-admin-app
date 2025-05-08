@@ -10,7 +10,7 @@
   export let points: Point[] = [];
 </script>
 
-<section class="bg-surface-600 w-[32%] rounded-[8px] p-6 xl:min-w-[550px]">
+<section class="bg-surface-600 w-[32%] rounded-[8px] p-6">
   <div class="flex justify-between">
     <div class="flex flex-col gap-1">
       <div class="flex flex-col gap-2">
