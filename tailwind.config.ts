@@ -161,6 +161,7 @@ const config: Config = {
         'surface-700': '#14181f',
         'surface-800': '#101318',
         'surface-900': '#0b0c0f',
+        'surface-1000': '#8A9299',
       },
     },
   },
