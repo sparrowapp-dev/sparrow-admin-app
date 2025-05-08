@@ -46,26 +46,24 @@
       activeDropdownId = hubId; // Open this dropdown
     }
   }
-  function handleManageHub(event: CustomEvent<Hub>) {
-    //needs to be chabged
-    const hub = event.detail;
+  function handleManageHub(event: Hub) {
+    const hub = event;
     navigate(`/hubs/settings/${hub._id}`);
   }
-  function handleManageMembers(event: CustomEvent<Hub>) {
-    //needs to be changed
-    const hub = event.detail;
+  function handleManageMembers(event: Hub) {
+    const hub = event;
     navigate(`/hubs/members/${hub._id}`);
   }
-  function handleUpgrade(event: CustomEvent<Hub>) {}
+  function handleUpgrade(event: Hub) {}
 </script>
 
 <div class="relative flex items-center justify-end gap-4">
   <button
-    class="font-inter text-fs-ds-12 font-regular leading-lh-ds-130 cursor-pointer
-             text-blue-300 opacity-0 transition-opacity duration-200
-             group-hover:opacity-100 hover:underline focus:opacity-100 focus:outline-none"
+    class="font-inter text-fs-ds-12 font-regular leading-lh-ds-130 z-10
+             cursor-pointer text-blue-300 opacity-0 transition-opacity
+             duration-200 group-hover:opacity-100 hover:underline"
     data-action="launch"
-    on:click={() => handleLaunch}
+    on:click|stopPropagation={handleLaunch}
     data-hub-id={row.original._id}
   >
     Launch in Sparrow

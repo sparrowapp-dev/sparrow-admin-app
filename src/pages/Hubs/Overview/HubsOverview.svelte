@@ -330,7 +330,6 @@
     createdAt: string;
     updatedAt: string;
   }
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   interface Contributor {
     id: string;
     role: string;
@@ -434,13 +433,6 @@
         },
       ]
     : [];
-  function renderSvelteIcon(IconComponent: typeof SvelteComponent): string {
-    const div = document.createElement('div');
-    new IconComponent({ target: div });
-    return div.innerHTML;
-  }
-  let activeDropdownId: string | null = null;
-  // Define table columns
   const columns = [
     {
       accessorKey: 'name',
@@ -566,22 +558,9 @@
       pageIndex: 0,
     };
   }
-  function handleManageHub(event: CustomEvent<Hub>) {
-    //needs to be chabged
-    const hub = event.detail;
-    navigate(`/hubs/settings/${hub._id}`);
-  }
-  function handleManageMembers(event: CustomEvent<Hub>) {
-    //needs to be changed
-    const hub = event.detail;
-    navigate(`/hubs/members/${hub._id}`);
-  }
   function handleRowClick(event: CustomEvent<Hub>) {
     const hub = event.detail;
-    navigate(`/hubs/workspaces/${hub._id}`);
-  }
-  function handleLaunch() {
-    window.open(`${launchUrl}`, '_blank');
+    navigate(`/hubs/workspace/${hub._id}`);
   }
 </script>
 
@@ -635,10 +614,7 @@
       {isLoading}
       on:paginationChange={handlePaginationChange}
       on:searchChange={handleSearchChange}
-      on:ManageHub={handleManageHub}
-      on:manageMembers={handleManageMembers}
       on:RowClick={handleRowClick}
-      on:launch={handleLaunch}
     />
 
     <TablePagination
