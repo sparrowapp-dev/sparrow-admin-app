@@ -109,7 +109,7 @@
   });
 </script>
 
-<div class={`table-wrapper ${containerClassName}`}>
+<div class="table-outer-wrapper">
   {#if isLoading && !customLoading}
     <div class="loading-overlay">
       {#if loadingComponent}
@@ -120,54 +120,73 @@
     </div>
   {/if}
 
-  <div class="table-container">
-    <table class="table">
-      <thead>
-        {#each $table.getHeaderGroups() as headerGroup}
-          <tr>
-            {#each headerGroup.headers as header}
-              <TableHeader {header} dataLength={data.length} className={headerClassName} />
-            {/each}
-          </tr>
-        {/each}
-      </thead>
+  <div class={`table-wrapper ${containerClassName}`}>
+    <div class="table-scroll-container">
+      <table class="table">
+        <thead>
+          {#each $table.getHeaderGroups() as headerGroup}
+            <tr>
+              {#each headerGroup.headers as header}
+                <TableHeader {header} dataLength={data.length} className={headerClassName} />
+              {/each}
+            </tr>
+          {/each}
+        </thead>
 
-      <tbody>
-        {#each $table.getRowModel().rows as row}
-          <tr
-            class={`table-row ${rowClassName}`}
-            on:click={(e) => {
-              dispatch('rowClick', row.original);
-              dispatch('click', e);
-            }}
-          >
-            {#each row.getVisibleCells() as cell}
-              <TableCell {cell} className={cellClassName} on:click />
-            {/each}
-          </tr>
-        {/each}
+        <tbody>
+          {#each $table.getRowModel().rows as row}
+            <tr
+              class={`table-row ${rowClassName}`}
+              on:click={(e) => {
+                dispatch('rowClick', row.original);
+                dispatch('click', e);
+              }}
+            >
+              {#each row.getVisibleCells() as cell}
+                <TableCell {cell} className={cellClassName} on:click />
+              {/each}
+            </tr>
+          {/each}
 
-        {#if $table.getRowModel().rows.length === 0}
-          <tr>
-            <td colspan={columns.length} class="empty-state">
-              {#if emptyStateComponent}
-                <svelte:component this={emptyStateComponent} />
-              {:else}
-                No data available
-              {/if}
-            </td>
-          </tr>
-        {/if}
-      </tbody>
-    </table>
+          {#if $table.getRowModel().rows.length === 0}
+            <tr>
+              <td colspan={columns.length} class="empty-state">
+                {#if emptyStateComponent}
+                  <svelte:component this={emptyStateComponent} />
+                {:else}
+                  No data available
+                {/if}
+              </td>
+            </tr>
+          {/if}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <style>
-  .table-wrapper {
+  .table-outer-wrapper {
     position: relative;
     width: 100%;
     overflow: hidden;
+  }
+
+  .table-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .table-scroll-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #4a4a4a #1a1a1a;
   }
 
   .loading-overlay {
@@ -189,15 +208,9 @@
     animation: spin 1s linear infinite;
   }
 
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #4a4a4a #1a1a1a;
-  }
-
   .table {
     width: 100%;
+    min-width: 1270px;
     table-layout: fixed;
     border-collapse: collapse;
   }
@@ -216,32 +229,21 @@
     color: rgb(156 163 175);
   }
 
-  @media (max-width: 1270px) {
-    .table-container {
-      overflow-x: auto;
-    }
-
-    .table {
-      min-width: 1270px;
-    }
-  }
-
-  /* Scrollbar styles */
-  .table-container::-webkit-scrollbar {
+  .table-scroll-container::-webkit-scrollbar {
     height: 8px;
   }
 
-  .table-container::-webkit-scrollbar-track {
+  .table-scroll-container::-webkit-scrollbar-track {
     background: #1a1a1a;
     border-radius: 4px;
   }
 
-  .table-container::-webkit-scrollbar-thumb {
+  .table-scroll-container::-webkit-scrollbar-thumb {
     background: #4a4a4a;
     border-radius: 4px;
   }
 
-  .table-container::-webkit-scrollbar-thumb:hover {
+  .table-scroll-container::-webkit-scrollbar-thumb:hover {
     background: #666;
   }
 
