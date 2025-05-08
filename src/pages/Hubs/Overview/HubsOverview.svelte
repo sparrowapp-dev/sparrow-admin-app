@@ -290,7 +290,7 @@
     const days = Math.floor(hours / 24);
     const months = Math.floor(days / 30);
     const years = Math.floor(months / 12);
-
+    const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
     if (years > 0) {
       return `${years} ${years === 1 ? 'year' : 'years'} ago`;
     } else if (months > 0) {
@@ -328,7 +328,7 @@
     createdAt: string;
     updatedAt: string;
   }
-
+  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   interface Contributor {
     id: string;
     role: string;
@@ -503,43 +503,7 @@
       enableSorting: false,
     },
   ];
-  // Update the handleTableAction function to handle CustomEvent
-  function handleTableAction(event: CustomEvent<MouseEvent>) {
-    const target = event.detail.target as HTMLElement;
-    const action = target.closest('[data-action]')?.getAttribute('data-action');
-    const hubId = target.closest('[data-hub-id]')?.getAttribute('data-hub-id');
-    if (!action || !hubId) return;
-    console.log(action);
-    switch (action) {
-      case 'launch':
-        window.open(`https://sparrow.app/hub/${hubId}`, '_blank');
-        break;
-      case 'toggle-menu':
-        // Toggle dropdown more explicitly
-        if (activeDropdownId === hubId) {
-          activeDropdownId = null;
-        } else {
-          activeDropdownId = hubId;
-        }
 
-        break;
-      case 'ManageHub':
-        activeDropdownId = null;
-        break;
-      case 'delete':
-        // Handle delete action
-        activeDropdownId = null;
-        break;
-    }
-  }
-
-  function handleClickOutside(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('[data-action="toggle-menu"]')) {
-      activeDropdownId = null;
-    }
-  }
-  // Fetch data from API
   async function fetchTableData({ pagination, filters, sorting }) {
     isLoading = true;
     try {
@@ -598,6 +562,13 @@
     const hub = event.detail;
     navigate(`/hubs/members/${hub._id}`);
   }
+  function handleRowClick(event: CustomEvent<Hub>) {
+    const hub = event.detail;
+    navigate(`/hubs/workspaces/${hub._id}`);
+  }
+  function handleLaunch() {
+    window.open(`${launchUrl}`, '_blank');
+  }
 </script>
 
 <section class="bg-surface-900 flex min-h-screen w-full flex-col gap-6 p-4">
@@ -650,9 +621,10 @@
       {isLoading}
       on:paginationChange={handlePaginationChange}
       on:searchChange={handleSearchChange}
-      on:click={handleTableAction}
       on:ManageHub={handleManageHub}
       on:manageMembers={handleManageMembers}
+      on:RowClick={handleRowClick}
+      on:launch={handleLaunch}
     />
 
     <TablePagination

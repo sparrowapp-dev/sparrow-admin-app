@@ -200,7 +200,10 @@
         >
           {#each row.getVisibleCells() as cell}
             <td
-              class="border-surface-600 font-inter text-fs-ds-12 leading-lh-ds-130 font-regular border-b p-3 text-left text-neutral-50"
+              class="border-surface-600 font-inter text-fs-ds-12 leading-lh-ds-130 font-regular cursor-pointer border-b p-3 text-left text-neutral-50"
+              on:click={() => {
+                dispatch('RowClick', row.original);
+              }}
               >{#if cell.column.id === 'hubUrl'}
                 <div class="group/url relative flex items-center gap-2">
                   <span class="truncate text-neutral-300">
@@ -249,6 +252,9 @@
                            text-blue-300 opacity-0 transition-opacity duration-200
                            group-hover:opacity-100 hover:underline focus:opacity-100 focus:outline-none"
                     data-action="launch"
+                    on:click={() => {
+                      dispatch('launch');
+                    }}
                     data-hub-id={row.original._id}
                   >
                     Launch in Sparrow
