@@ -51,7 +51,7 @@ const error = (message: string, obj?: NotifySetting) => showToast('error', messa
 const info = (message: string, obj?: NotifySetting) => showToast('info', message, obj);
 const warning = (message: string, obj?: NotifySetting) => showToast('warning', message, obj);
 
-export const notifications = {
+export const notification = {
   success,
   error,
   info,
