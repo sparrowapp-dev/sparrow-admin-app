@@ -5,7 +5,10 @@
   export let className = '';
 </script>
 
-<td class={`group border-surface-600 border-b p-2 text-left text-neutral-50 ${className}`} on:click>
+<td
+  class={`group border-surface-600 text-fs-ds-12 leading-lh-ds-150 border-b p-2 text-left font-medium text-neutral-50 ${className}`}
+  on:click
+>
   {#if typeof cell.column.columnDef.cell === 'function'}
     {#if typeof cell.column.columnDef.cell(cell) === 'object'}
       {#if cell.column.columnDef.cell(cell).Component}

@@ -314,11 +314,6 @@
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  import ThreeDotsVerticalIcon from '@/assets/icons/ThreeDotsVerticalIcon.svelte';
-  import EditIcon from '@/assets/icons/EditIcon.svelte';
-  import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
-  import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
-  import Copy from '@/assets/icons/Copy.svelte';
   import { navigate } from 'svelte-routing';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
