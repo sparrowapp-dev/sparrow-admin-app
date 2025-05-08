@@ -65,9 +65,9 @@
   }
 </script>
 
-<div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+<div class="relative mt-4 flex flex-wrap items-center justify-between gap-4">
   <div class="flex items-center justify-between gap-4">
-    <div class="text-sm text-gray-500">
+    <div class="text-fs-ds-12 leading-lh-ds-130 font-regular text-inter text-[#8A9299]">
       Showing {totalItems === 0 ? 0 : pageIndex * pageSize + 1} - {Math.min(
         (pageIndex + 1) * pageSize,
         totalItems,
@@ -79,12 +79,23 @@
         value={pageSize}
         on:change={handlePageSizeChange}
         disabled={isLoading}
-        class="cursor-pointer rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        class="bg-surface-600 text-fs-ds-12 font-inter leading-lh-ds-150 cursor-pointer rounded-sm border border-gray-700 px-3 py-2 font-medium text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Items per page"
       >
         {#each pageSizeOptions as option}
           <option value={option}>
-            {option} per page
+            {option} per page<svg
+              width="10"
+              height="6"
+              viewBox="0 0 10 6"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.95681 0C1.14912 0 0.674663 0.90803 1.13591 1.57107L3.76854 5.35548C4.36532 6.21335 5.63448 6.21335 6.23126 5.35548L8.8639 1.57106C9.32514 0.908027 8.85068 0 8.04299 0H1.95681Z"
+                fill="white"
+              />
+            </svg>
           </option>
         {/each}
       </select>
@@ -93,7 +104,7 @@
 
   <div class="flex items-center gap-1">
     <button
-      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-gray-300 bg-white text-sm transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm text-sm text-white transition-all hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       on:click={() => goToPage(0)}
       disabled={!canPreviousPage || isLoading}
       aria-label="First page"
@@ -102,7 +113,7 @@
     </button>
 
     <button
-      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-gray-300 bg-white text-sm transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm text-sm text-white transition-all hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       on:click={() => goToPage(pageIndex - 1)}
       disabled={!canPreviousPage || isLoading}
       aria-label="Previous page"
@@ -110,25 +121,27 @@
       ‹
     </button>
 
-    {#each pageRange as page}
+    <!-- {#each pageRange as page}
       {#if page === '...'}
-        <span class="inline-flex h-8 w-8 items-center justify-center text-sm text-white">...</span>
+        <span class="text-surface-1000 inline-flex h-8 w-8 items-center justify-center text-sm"
+          >...</span
+        >
       {:else}
         <button
-          class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-gray-300 bg-white text-sm transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 {page ===
-          pageIndex
-            ? 'border-blue-600 bg-blue-600 text-blue-400'
-            : ''}"
+          class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50
+          {page === pageIndex
+            ? 'border-blue-600 bg-blue-600 text-white'
+            : 'border-gray-700  text-white hover:bg-gray-700'}"
           on:click={() => goToPage(page)}
           disabled={isLoading}
         >
           {page + 1}
         </button>
       {/if}
-    {/each}
+    {/each} -->
 
     <button
-      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-gray-300 bg-white text-sm transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm text-sm text-white transition-all hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       on:click={() => goToPage(pageIndex + 1)}
       disabled={!canNextPage || isLoading}
       aria-label="Next page"
@@ -137,7 +150,7 @@
     </button>
 
     <button
-      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm border border-gray-300 bg-white text-sm transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm text-sm text-white transition-all hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       on:click={() => goToPage(pageCount - 1)}
       disabled={!canNextPage || isLoading}
       aria-label="Last page"

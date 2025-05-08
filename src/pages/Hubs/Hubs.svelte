@@ -6,6 +6,7 @@
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
+  import HubsOverview from './Overview/HubsOverview.svelte';
 
   let dropdownOptions: Array<any>;
 
@@ -44,12 +45,8 @@
       </div>
     </div>
   {:else}
-    <!-- If no child path matched, render main page -->
-    <div class="p-2 text-gray-600">Select a Hub section to continue.</div>
-    <nav class="p-2">
-      <Link to="/hubs/workspace/123">Workspace</Link> |
-      <Link to="/hubs/settings/abc">Settings</Link> |
-      <Link to="/hubs/members/test">Members</Link>
-    </nav>
+    <div class="">
+      <HubsOverview />
+    </div>
   {/if}
 </div>
