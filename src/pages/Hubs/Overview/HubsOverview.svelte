@@ -314,12 +314,9 @@
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  import ThreeDotsVerticalIcon from '@/assets/icons/ThreeDotsVerticalIcon.svelte';
-  import EditIcon from '@/assets/icons/EditIcon.svelte';
-  import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
-  import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
-  import Copy from '@/assets/icons/Copy.svelte';
   import { navigate } from 'svelte-routing';
+  import HubUrl from '@/components/TableComponents/HubUrl.svelte';
+  import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
   interface Workspace {
     id: string;
     name: string;
@@ -328,7 +325,6 @@
     createdAt: string;
     updatedAt: string;
   }
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   interface Contributor {
     id: string;
     role: string;
@@ -338,6 +334,7 @@
   interface Hub {
     _id: string;
     name: string;
+    hubUrl: string;
     workspaceStats: {
       total: number;
       private: number;
@@ -431,26 +428,27 @@
         },
       ]
     : [];
-  function renderSvelteIcon(IconComponent: typeof SvelteComponent): string {
-    const div = document.createElement('div');
-    new IconComponent({ target: div });
-    return div.innerHTML;
-  }
-  let activeDropdownId: string | null = null;
-  // Define table columns
   const columns = [
     {
       accessorKey: 'name',
       header: 'Sparrow Hubs',
       enableSorting: true,
     },
-    { id: 'hubUrl', header: 'Hub URL', enableSorting: false, accessorKey: 'hubUrl' },
+    {
+      accessorKey: 'hubUrl',
+      header: 'Hub URL',
+      enableSorting: false,
+      cell: ({ getValue, row }) => ({
+        Component: HubUrl,
+        props: { Value: getValue(), row: row },
+      }),
+    },
     {
       id: 'Plans',
       header: 'Hub Plan',
       cell: ({}) => {
         return `
-        <div class="px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
+        <div class=" px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
         
         `;
       },
@@ -480,7 +478,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },
@@ -492,7 +490,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },
@@ -501,6 +499,10 @@
       id: 'actions',
       header: '',
       enableSorting: false,
+      cell: ({ row }) => ({
+        Component: HubsDropdown,
+        props: { row: row },
+      }),
     },
   ];
 
@@ -552,22 +554,9 @@
       pageIndex: 0,
     };
   }
-  function handleManageHub(event: CustomEvent<Hub>) {
-    //needs to be chabged
-    const hub = event.detail;
-    navigate(`/hubs/settings/${hub._id}`);
-  }
-  function handleManageMembers(event: CustomEvent<Hub>) {
-    //needs to be changed
-    const hub = event.detail;
-    navigate(`/hubs/members/${hub._id}`);
-  }
   function handleRowClick(event: CustomEvent<Hub>) {
     const hub = event.detail;
-    navigate(`/hubs/workspaces/${hub._id}`);
-  }
-  function handleLaunch() {
-    window.open(`${launchUrl}`, '_blank');
+    navigate(`/hubs/workspace/${hub._id}`);
   }
 </script>
 
@@ -621,10 +610,7 @@
       {isLoading}
       on:paginationChange={handlePaginationChange}
       on:searchChange={handleSearchChange}
-      on:ManageHub={handleManageHub}
-      on:manageMembers={handleManageMembers}
-      on:RowClick={handleRowClick}
-      on:launch={handleLaunch}
+      on:rowClick={handleRowClick}
     />
 
     <TablePagination
