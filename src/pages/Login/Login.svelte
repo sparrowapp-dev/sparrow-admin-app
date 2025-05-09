@@ -8,10 +8,9 @@
   <SparrowBirdBg />
 
   <h1 class="font-fw-ds-500 font-inter text-fs-ds-16 mt-5 max-w-xl text-neutral-200">
-    404 – Page Not Found
+    This application requires a redirect URL from Sparrow.
   </h1>
   <p class="font-fw-ds-400 font-inter text-fs-ds-14 max-w-xl text-neutral-400">
-    The page you’re looking for doesn’t exist or has been moved. Please check the URL or go back to
-    the main application.
+    Please navigate from the Sparrow application to log in properly.
   </p>
 </div>

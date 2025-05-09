@@ -210,7 +210,6 @@
 
   .table {
     width: 100%;
-    min-width: 1270px;
     table-layout: fixed;
     border-collapse: collapse;
   }
@@ -220,7 +219,7 @@
   }
 
   .table-row:hover {
-    background-color: rgb(55 65 81);
+    background-color: #181c26;
   }
 
   .empty-state {
