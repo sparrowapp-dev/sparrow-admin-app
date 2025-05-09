@@ -482,7 +482,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },
@@ -494,7 +494,7 @@
       cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-300" title="${new Date(date).toLocaleString()}">
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
         ${relativeTime}
       </span>`;
       },

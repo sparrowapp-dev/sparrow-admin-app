@@ -21,11 +21,14 @@
           {value}
         </div>
       </div>
-      <div class="flex flex-row gap-1">
+      <div class="flex flex-row">
         {#if points.length > 0}
-          {#each points as point}
+          {#each points as point, i}
             <div
-              class="font-roboto text-fs-ds-12 border-r-neutral-300 leading-4 font-light text-neutral-300"
+              class="font-roboto text-fs-ds-12 flex items-center leading-4 font-light text-neutral-300 {i !==
+              points.length - 1
+                ? 'mr-2 h-4 border-r border-r-neutral-300 pr-1'
+                : ''}"
             >
               {point.value}:{point.count}
             </div>

@@ -19,7 +19,7 @@
 </script>
 
 <div class="group/url relative flex items-center gap-2">
-  <span class="truncate text-neutral-300">
+  <span class="truncate text-neutral-50">
     {Value || `https://sparrow.app/hub/${row.original._id}`}
   </span>
   <button
