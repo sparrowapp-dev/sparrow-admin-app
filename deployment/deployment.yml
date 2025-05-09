@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: sparrowadmin-app
+  name: sparrowadmin-app
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: sparrowadmin-app
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: sparrowadmin-app
+    spec:
+      containers:
+        - image: sparrowprod.azurecr.io/sparrowadmin-app:_BUILD__ID_
+          name: sparrowadmin-app
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 600Mi
+            limits:
+              cpu: 500m
+              memory: 700Mi
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sparrowadmin-app
+  labels:
+    run: sparrowadmin-app
+spec:
+  type: ClusterIP
+  selector:
+    app: sparrowadmin-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+ 
