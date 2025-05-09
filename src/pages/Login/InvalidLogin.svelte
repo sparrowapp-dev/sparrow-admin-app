@@ -8,10 +8,9 @@
   <SparrowBirdBg />
 
   <h1 class="font-fw-ds-500 font-inter text-fs-ds-16 mt-5 max-w-xl text-neutral-200">
-    404 – Page Not Found
+    Your session has expired or the login credentials are invalid.
   </h1>
   <p class="font-fw-ds-400 font-inter text-fs-ds-14 max-w-xl text-neutral-400">
-    The page you’re looking for doesn’t exist or has been moved. Please check the URL or go back to
-    the main application.
+    Please return to the main app and log in again.
   </p>
 </div>

@@ -23,8 +23,8 @@
     {Value || `https://sparrow.app/hub/${row.original._id}`}
   </span>
   <button
-    class="relative p-1 text-neutral-400 opacity-0 transition-all
-         duration-150 group-hover/url:opacity-100 hover:text-neutral-50"
+    class="relative cursor-pointer p-1 text-neutral-400 opacity-0
+         transition-all duration-150 group-hover/url:opacity-100 hover:text-neutral-50"
     on:click|stopPropagation={() =>
       handleCopy(Value || `https://sparrow.app/hub/${row.original._id}`, row.original._id)}
     title="Click to copy URL"
@@ -33,7 +33,7 @@
       text={`${copyState[row.original._id] ? 'Copied' : 'Click to copy'}`}
       position="top"
       mode="hover"
-      size="sm"
+      size="xs"
     >
       <div class="hover:bg-surface-300 p-0.5 transition-all duration-150">
         {#if copyState[row.original._id]}
