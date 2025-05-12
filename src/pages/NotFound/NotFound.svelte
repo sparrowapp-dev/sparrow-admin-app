@@ -1,5 +1,16 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { navigate } from 'svelte-routing';
   import SparrowBirdBg from '@/assets/icons/SparrowBirdBg.svelte';
+
+  onMount(() => {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!accessToken && !refreshToken) {
+      navigate('/login');
+    }
+  });
 </script>
 
 <div

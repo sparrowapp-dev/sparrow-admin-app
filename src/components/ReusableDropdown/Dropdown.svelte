@@ -33,7 +33,7 @@
     searchMode = false;
     searchTerm = '';
     selected = option.label;
-    onSelect(option.value); // Emit full value (the team object)
+    onSelect(option.value);
   }
 
   function getDynamicCssClasses(plan: string) {
@@ -105,7 +105,10 @@
         {:else}
           {#each filteredOptions as option, index}
             <button
-              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 text-neutral-50"
+              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected ===
+              option.label
+                ? 'text-blue-300'
+                : 'text-neutral-50'}"
               on:click={() => selectOption(option)}
             >
               <Tooltip

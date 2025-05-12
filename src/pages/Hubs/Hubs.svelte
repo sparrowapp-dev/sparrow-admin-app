@@ -8,18 +8,36 @@
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
   import HubsOverview from './Overview/HubsOverview.svelte';
 
-  let dropdownOptions: Array<any>;
+  interface Team {
+    teamId: string;
+    teamName: string;
+    role: string;
+    workspaces: any[];
+    users: any[];
+  }
+
+  interface ApiResponse {
+    data: Team[];
+  }
+
+  interface DropdownOption {
+    label: string;
+    value: Team;
+    plan: string | null;
+  }
+
+  let dropdownOptions: Array<DropdownOption> = [];
 
   const location = useLocation();
   // queries
-  const { data, isFetching, isError } = createQuery(() => hubsService.getAllHubs());
+  const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() => hubsService.getAllHubs());
 
   $: {
-    if ($data && $data?.length > 0) {
-      dropdownOptions = $data.map((team) => ({
-        label: team?.teamName,
+    if ($data && $data?.data?.length > 0) {
+      dropdownOptions = $data.data.map((team) => ({
+        label: team?.teamName || '',
         value: team,
-        plan: team?.plan || null,
+        plan: null,
       }));
     } else {
       dropdownOptions = [];
