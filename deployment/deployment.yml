@@ -22,7 +22,7 @@ spec:
         app: sparrowadmin-app
     spec:
       containers:
-        - image: sparrowprod.azurecr.io/sparrowadmin-app:_BUILD__ID_
+        - image: sparrowprod.azurecr.io/sparrow-admin-app:_BUILD__ID_
           name: sparrowadmin-app
           imagePullPolicy: Always
           ports:
