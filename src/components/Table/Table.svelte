@@ -123,15 +123,17 @@
   <div class={`table-wrapper ${containerClassName}`}>
     <div class="table-scroll-container">
       <table class="table">
-        <thead>
-          {#each $table.getHeaderGroups() as headerGroup}
-            <tr>
-              {#each headerGroup.headers as header}
-                <TableHeader {header} dataLength={data.length} className={headerClassName} />
-              {/each}
-            </tr>
-          {/each}
-        </thead>
+        {#if data.length > 0}
+          <thead>
+            {#each $table.getHeaderGroups() as headerGroup}
+              <tr>
+                {#each headerGroup.headers as header}
+                  <TableHeader {header} dataLength={data.length} className={headerClassName} />
+                {/each}
+              </tr>
+            {/each}
+          </thead>
+        {/if}
 
         <tbody>
           {#each $table.getRowModel().rows as row}
@@ -148,14 +150,14 @@
             </tr>
           {/each}
 
-          {#if $table.getRowModel().rows.length === 0}
+          {#if $table.getRowModel().rows.length === 0 && !isLoading}
             <tr>
-              <td colspan={columns.length} class="empty-state">
-                {#if emptyStateComponent}
-                  <svelte:component this={emptyStateComponent} />
-                {:else}
-                  No data available
-                {/if}
+              <td colspan={columns.length} class="px-4 py-8 text-center" style="height: 100%;">
+                <div class="flex min-h-[331px] w-full items-start justify-center">
+                  <p class="font-inter text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-400">
+                    No Results Found
+                  </p>
+                </div>
               </td>
             </tr>
           {/if}
@@ -166,86 +168,6 @@
 </div>
 
 <style>
-  .table-outer-wrapper {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .table-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .table-scroll-container {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: #4a4a4a #1a1a1a;
-  }
-
-  .loading-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 10;
-  }
-
-  .loading-spinner {
-    height: 1.5rem;
-    width: 1.5rem;
-    border-radius: 9999px;
-    border: 2px solid rgb(209 213 219);
-    border-top-color: rgb(59 130 246);
-    animation: spin 1s linear infinite;
-  }
-
-  .table {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
-
-  .table-row {
-    transition: background-color 150ms;
-  }
-
-  .table-row:hover {
-    background-color: #181c26;
-  }
-
-  .empty-state {
-    padding: 2rem;
-    text-align: center;
-    color: rgb(156 163 175);
-  }
-
-  .table-scroll-container::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-track {
-    background: #1a1a1a;
-    border-radius: 4px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
-    border-radius: 4px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: #666;
-  }
-
   @keyframes spin {
     to {
       transform: rotate(360deg);
