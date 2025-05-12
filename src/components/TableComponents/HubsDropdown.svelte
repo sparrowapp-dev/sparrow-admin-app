@@ -91,9 +91,9 @@
     {#if isOpen}
       <div
         bind:this={dropdownEl}
-        class={`bg-surface-600 absolute right-0 z-50 w-48 rounded-md shadow-lg ${openUp ? 'bottom-full mb-2' : 'mt-2'}`}
+        class={`bg-surface-600 absolute right-0 z-50 w-48 rounded-md shadow-lg ${openUp ? 'bottom-full mb-2' : 'mt-2'} text-fs-ds-12 font-regular leading-lh-ds-130 text-neutral-50`}
       >
-        <div class="flex flex-col gap-1 py-1">
+        <div class="bg-surface-600 flex flex-col gap-1 py-1">
           <button
             class="hover:bg-surface-300 flex w-full items-center gap-2 px-2 py-1 text-neutral-50"
             on:click={() => handleManageHub(row.original)}
@@ -122,26 +122,3 @@
     {/if}
   </div>
 </div>
-
-<style>
-  h2 {
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .bg-surface-600 {
-    background-color: #2f2f2f; /* Adjust as per your theme */
-  }
-
-  .hover\:bg-surface-300:hover {
-    background-color: #3f3f3f; /* Adjust as per your theme */
-  }
-
-  .text-neutral-50 {
-    color: #fafafa;
-  }
-
-  .text-neutral-300 {
-    color: #d4d4d4;
-  }
-</style>
