@@ -20,7 +20,6 @@
       open = !open;
 
       if (open) {
-        // Determine dropdown direction after a short delay to ensure DOM is updated
         setTimeout(determineDropdownDirection, 0);
       }
     }
@@ -29,27 +28,22 @@
   function determineDropdownDirection() {
     if (!dropdownRef || !triggerRef) return;
 
-    // Get viewport height and trigger's position
     const viewportHeight = window.innerHeight;
     const triggerRect = triggerRef.getBoundingClientRect();
     const dropdownHeight = dropdownRef.offsetHeight * 2;
 
-    // Calculate space below and above the trigger
     const spaceBelow = viewportHeight - triggerRect.bottom;
     const spaceAbove = triggerRect.top;
 
-    // Determine dropdown direction
     dropdownDirection = spaceBelow >= dropdownHeight || spaceBelow > spaceAbove ? 'down' : 'up';
   }
 
   function selectOption(option) {
     open = false;
-    // Always dispatch both events for flexibility
     dispatch('select', option);
     dispatch('change', option);
   }
 
-  // Close dropdown when clicking outside
   function handleClickOutside(event) {
     if (
       dropdownRef &&
@@ -60,23 +54,23 @@
       open = false;
     }
   }
-
-  // Add click outside listener
   import { onMount, onDestroy } from 'svelte';
   onMount(() => {
     document.addEventListener('click', handleClickOutside);
   });
 
-  // Remove listener on destroy
   onDestroy(() => {
     document.removeEventListener('click', handleClickOutside);
   });
 </script>
 
-<div class="relative" bind:this={dropdownRef}>
+<div
+  class="text-fs-ds-12 leading-lh-ds-150 relative font-medium text-neutral-100"
+  bind:this={dropdownRef}
+>
   <button
     bind:this={triggerRef}
-    class="bg-surface-600 hover:bg-surface-500 flex min-w-[133px] cursor-pointer items-center justify-between rounded-sm border border-gray-700 px-3 py-2 text-sm font-medium text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+    class="bg-surface-600 hover:bg-surface-400 flex min-w-[133px] cursor-pointer items-center justify-between rounded-sm border border-gray-700 px-3 py-2 font-medium text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     on:click={toggleDropdown}
     {disabled}
   >
@@ -102,13 +96,13 @@
 
   {#if open}
     <ul
-      class="dropdown bg-surface-600 absolute z-10 w-full rounded-md border border-gray-700 py-1 text-sm text-white shadow-lg
+      class="dropdown bg-surface-600 absolute z-10 w-full rounded-md px-1 py-1 shadow-lg
         {dropdownDirection === 'down' ? 'top-full mt-1' : 'bottom-full mb-1'}"
     >
       {#each options as option}
-        <li>
+        <li class="">
           <button
-            class="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-gray-700 {selected ===
+            class="hover:bg-surface-400 flex w-full cursor-pointer items-center justify-between rounded-sm px-2 py-1 text-left {selected ===
             option
               ? 'text-blue-300'
               : ''}"
