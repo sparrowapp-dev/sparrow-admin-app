@@ -12,21 +12,25 @@
   import { useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import { onDestroy, onMount } from 'svelte';
+  import { getRelativeTime } from '@/utils/TimeFunction';
+  import VisibilityCell from '../../../components/TableComponents/VisibilityCell.svelte';
+    import WorkspaceDropdown from '@/components/TableComponents/WorkspaceDropdown.svelte';
 
-  let params: string | undefined;
   const location = useLocation();
-  let unsubscribe;
 
   // State management
   let showModal = false;
+  let params: string | undefined;
+  let unsubscribe;
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
   let sorting: SortingState = [];
 
+  // table columns
   const columns = [
     {
       accessorKey: 'name',
-      header: 'Workspace Name',
+      header: 'Workspaces',
       enableSorting: true,
     },
     {
@@ -41,25 +45,45 @@
     },
     {
       accessorKey: 'visibility',
-      header: 'Type',
+      header: 'Visibility',
       enableSorting: true,
-      cell: ({ getValue }) => `
-        <div class="px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">
-          ${getValue()}
-        </div>
-      `,
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created',
-      enableSorting: true,
-      cell: ({ getValue }) => new Date(getValue()).toLocaleDateString(),
+      cell: ({ getValue }) => ({
+        Component: VisibilityCell,
+        props: { Value: getValue() },
+      }),
     },
     {
       accessorKey: 'updatedAt',
       header: 'Last Updated',
       enableSorting: true,
-      cell: ({ getValue }) => new Date(getValue()).toLocaleDateString(),
+      cell: ({ getValue }) => {
+        const date = getValue();
+        const relativeTime = getRelativeTime(date);
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
+        ${relativeTime}
+      </span>`;
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Created',
+      enableSorting: true,
+      cell: ({ getValue }) => {
+        const date = getValue();
+        const relativeTime = getRelativeTime(date);
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
+        ${relativeTime}
+      </span>`;
+      },
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => ({
+        Component: WorkspaceDropdown,
+        props: { row: row },
+      }),
     },
   ];
 
@@ -82,6 +106,7 @@
     return hubsService.getHubWorkspaces(queryParams);
   });
 
+  // refetch data when params change
   $: if (params) {
     refetch();
   }
@@ -103,23 +128,23 @@
     unsubscribe?.();
   });
 
-  // Event handlers
+  // event handler for sorting change
   function handleSortingChange(event: CustomEvent<SortingState>) {
     sorting = event.detail;
     refetch();
   }
-
+  // event handler for search input change
   function handleSearchChange(event: CustomEvent<string>) {
     filters = { ...filters, searchTerm: event.detail };
     pagination = { ...pagination, pageIndex: 0 };
     refetch();
   }
-
+  // event handler for page change
   function handlePageChange(event: CustomEvent<number>) {
     pagination = { ...pagination, pageIndex: event.detail };
     refetch();
   }
-
+  // event handler for page size change
   function handlePageSizeChange(event: CustomEvent<number>) {
     pagination = {
       pageSize: event.detail,
@@ -129,10 +154,10 @@
   }
 
   // Reactive statements
-  $: totalItems = $workspacesData?.totalCount || 0;
+  $: totalItems = $workspacesData?.data?.totalCount || 0;
   $: data = {
-    teamName: $workspacesData?.hubName || 'Loading...',
-    workspaces: $workspacesData?.hubs || [],
+    teamName: $workspacesData?.data?.hubName || 'Loading...',
+    workspaces: $workspacesData?.data?.hubs || [],
   };
 </script>
 
@@ -145,12 +170,13 @@
     All your Hub’s workspaces in one place, manage access, rename, or dive into details with ease.
   </p>
 
-  <div class="table-container bg-surface-900">
-    <div class="table-header">
+  <div class="bg-surface-900">
+    <div class="flex items-center justify-between py-6">
       <TableSearch
         value={filters.searchTerm}
         on:search={handleSearchChange}
         isLoading={$isFetching}
+        placeholder="Search Workspace"
       />
       <Button
         variant="filled-primary"
@@ -192,20 +218,3 @@
     </Modal>
   {/if}
 </section>
-
-<style>
-  .table-container {
-    width: 100%;
-    padding: 1.5rem;
-    border-radius: 8px;
-  }
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-</style>

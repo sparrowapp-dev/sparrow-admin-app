@@ -80,7 +80,7 @@
                 {#if emptyStateComponent}
                   <svelte:component this={emptyStateComponent} />
                 {:else}
-                  No data available
+                  No results found.
                 {/if}
               </td>
             </tr>

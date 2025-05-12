@@ -6,6 +6,7 @@
   import LaunchSparrow2 from '@/assets/icons/LaunchSparrow2.svelte';
   import BellIcon from '@/assets/icons/BellIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
+  import { userName } from '@/store/auth';
 </script>
 
 <div
@@ -53,7 +54,7 @@
       </Tooltip>
       <button
         class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
-        >F</button
+        >{$userName?.charAt(0)}</button
       >
     </div>
   </div>

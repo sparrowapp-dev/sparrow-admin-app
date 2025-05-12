@@ -35,12 +35,12 @@ export class HubsService {
 
     const url = `/admin/all-hubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const res = await makeRequest('GET', url);
-    return res?.data?.data;
+    return res?.data;
   }
 
   public async gethubsummary(): Promise<any[]> {
     const res = await makeRequest('GET', '/admin/hubs-summary');
-    return res?.data?.data;
+    return res?.data;
   }
 
   public async getHubWorkspaces(params: WorkspaceQueryParams): Promise<any> {
@@ -56,7 +56,7 @@ export class HubsService {
 
     const url = `/admin/hub-workspaces?${queryParams.toString()}`;
     const res = await makeRequest('GET', url);
-    return res?.data?.data;
+    return res?.data;
   }
 }
 
