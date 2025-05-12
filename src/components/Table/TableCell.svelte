@@ -1,20 +1,20 @@
 <script lang="ts">
-  import type { Cell } from '@tanstack/svelte-table';
+  import type { CellContext } from '@tanstack/svelte-table'; // Import CellContext instead of Cell
 
-  export let cell: Cell<any, any>;
+  export let cell: CellContext<any, any>; // Update the type here
   export let className = '';
 </script>
 
 <td
-  class={`group font-inter border-surface-600 text-fs-ds-12 leading-lh-ds-150 font-fw-ds-400 cursor-pointer border-b p-2 text-left text-neutral-50 ${className}`}
+  class={`group font-inter border-surface-600 text-fs-ds-12 leading-lh-ds-150 font-fw-ds-400 cursor-pointer  border-b p-2 text-left text-neutral-50 ${className}`}
   on:click
 >
   {#if typeof cell.column.columnDef.cell === 'function'}
     {#if typeof cell.column.columnDef.cell(cell) === 'object'}
-      {#if cell.column.columnDef.cell(cell).Component}
+      {#if cell.column.columnDef.cell(cell)?.Component}
         <svelte:component
-          this={cell.column.columnDef.cell(cell).Component}
-          {...cell.column.columnDef.cell(cell).props}
+          this={cell.column.columnDef.cell(cell)?.Component}
+          {...cell.column.columnDef.cell(cell)?.props}
         />
       {:else}
         {@html cell.column.columnDef.cell(cell)}

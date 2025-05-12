@@ -281,30 +281,8 @@
   }
 </script> -->
 <script lang="ts">
-  function getRelativeTime(date: string | number | Date): string {
-    const now = new Date();
-    const then = new Date(date);
-    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const months = Math.floor(days / 30);
-    const years = Math.floor(months / 12);
-    const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
-    if (years > 0) {
-      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
-    } else if (months > 0) {
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
-    } else if (days > 0) {
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-    } else if (hours > 0) {
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-    } else if (minutes > 0) {
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-    } else {
-      return 'just now';
-    }
-  }
+  import type { CellContext } from '@tanstack/svelte-table'; // Import CellContext instead of Cell
+  import { getRelativeTime } from '@/utils/TimeFunction';
   import { onMount } from 'svelte';
   import { hubsService } from '@/services/hubs.service';
   import Hubsicon from '@/assets/icons/Hubsicon.svelte';
@@ -317,87 +295,47 @@
   import { navigate } from 'svelte-routing';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
+  import { notification } from '@/components/Toast';
+  import { Hub, HubsResponse } from '@/interface/HubsOverview';
 
-  interface Workspace {
-    id: string;
-    name: string;
-    type: 'PRIVATE' | 'PUBLIC';
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  }
-  interface Contributor {
-    id: string;
-    role: string;
-    email: string;
-  }
-
-  interface Hub {
-    _id: string;
-    name: string;
-    hubUrl: string;
-    workspaceStats: {
-      total: number;
-      private: number;
-      public: number;
-    };
-    workspaces: Workspace[];
-    contributors: {
-      total: number;
-      details: Contributor[];
-    };
-    createdAt: string;
-    updatedAt: string;
-  }
-
-  interface HubsResponse {
-    totalpages: number;
-    currentPage: number;
-    totalCount: number;
-    limit: number;
-    hubs: Hub[];
-    sortBy: 'createdAt' | 'updatedAt' | 'name';
-    sortOrder: 'asc' | 'desc';
-  }
   let tableComponent;
-  let isLoading = false;
+  let isLoading = true;
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
   let totalItems = 0;
   let summaryData: any = null;
   let hubsData: any = [];
   let toggleDropdown = false;
-  // Load initial summary data
+
   onMount(async () => {
     try {
-      summaryData = await hubsService.gethubsummary();
+      const fetchData = await hubsService.gethubsummary();
+      summaryData = fetchData.data;
       await fetchTableData({ pagination, filters });
     } catch (error) {
       console.error('Failed to load initial data:', error);
     }
   });
-  onMount(() => {
-    // ...existing onMount code...
 
+  onMount(() => {
     document.addEventListener('copyUrl', ((e: CustomEvent) => {
       copyToClipboard(e.detail);
     }) as EventListener);
 
     return () => {
-      // ...existing cleanup code...
       document.removeEventListener('copyUrl', ((e: CustomEvent) => {
         copyToClipboard(e.detail);
       }) as EventListener);
     };
   });
+
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(
       () => {
-        // Could add a toast notification here
-        console.log('URL copied to clipboard');
+        notification.success('URL successfully copied');
       },
       (err) => {
-        console.error('Failed to copy URL:', err);
+        notification.error('Failed to copy URL');
       },
     );
   }
@@ -429,17 +367,19 @@
         },
       ]
     : [];
+
   const columns = [
     {
       accessorKey: 'name',
       header: 'Sparrow Hubs',
       enableSorting: true,
+      enableSortingRemoval: false,
     },
     {
       accessorKey: 'hubUrl',
       header: 'Hub URL',
       enableSorting: false,
-      cell: ({ getValue, row }) => ({
+      cell: ({ getValue, row }: CellContext<any, any>) => ({
         Component: HubUrl,
         props: { Value: getValue(), row: row },
       }),
@@ -447,10 +387,9 @@
     {
       id: 'Plans',
       header: 'Hub Plan',
-      cell: ({}) => {
+      cell: () => {
         return `
         <div class=" px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
-        
         `;
       },
     },
@@ -458,7 +397,7 @@
       accessorKey: 'workspaceStats',
       header: 'Workspaces',
       enableSorting: false,
-      cell: ({ getValue }) => {
+      cell: ({ getValue }: CellContext<any, any>) => {
         const stats = getValue();
         return `${stats.private} Private, ${stats.public} Public`;
       },
@@ -466,8 +405,8 @@
     {
       accessorKey: 'contributors',
       header: 'Contributors',
-      enableSorting: false,
-      cell: ({ getValue }) => {
+      enableSortingRemoval: false,
+      cell: ({ getValue }: CellContext<any, any>) => {
         const contributors = getValue();
         return contributors.total;
       },
@@ -476,7 +415,8 @@
       accessorKey: 'createdAt',
       header: 'Created',
       enableSorting: true,
-      cell: ({ getValue }) => {
+      enableSortingRemoval: false,
+      cell: ({ getValue }: CellContext<any, any>) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
         return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
@@ -488,7 +428,8 @@
       accessorKey: 'updatedAt',
       header: 'Last Updated',
       enableSorting: true,
-      cell: ({ getValue }) => {
+      enableSortingRemoval: false,
+      cell: ({ getValue }: CellContext<any, any>) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
         return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
@@ -500,14 +441,22 @@
       id: 'actions',
       header: '',
       enableSorting: false,
-      cell: ({ row }) => ({
+      cell: ({ row }: CellContext<any, any>) => ({
         Component: HubsDropdown,
         props: { row: row },
       }),
     },
   ];
 
-  async function fetchTableData({ pagination, filters, sorting }) {
+  async function fetchTableData({
+    pagination,
+    filters,
+    sorting,
+  }: {
+    pagination: any;
+    filters: any;
+    sorting: any;
+  }) {
     isLoading = true;
     try {
       const response: HubsResponse = await hubsService.getAllUserHubs({
@@ -517,12 +466,11 @@
         sortBy: sorting?.[0]?.id || 'createdAt',
         sortOrder: sorting?.[0]?.desc ? 'desc' : 'asc',
       });
-      hubsData = response.hubs;
-      totalItems = response.totalCount;
-
+      hubsData = response.data.hubs;
+      totalItems = response.data.totalCount || 0;
       return {
-        data: response.hubs,
-        totalItems: response.totalCount,
+        data: response.data.hubs,
+        totalItems: response.data.totalCount,
       };
     } catch (error) {
       console.error('Error fetching hubs:', error);
@@ -555,6 +503,7 @@
       pageIndex: 0,
     };
   }
+
   function handleRowClick(event: CustomEvent<Hub>) {
     const hub = event.detail;
     navigate(`/hubs/workspace/${hub._id}`);
