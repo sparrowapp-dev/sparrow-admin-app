@@ -5,7 +5,6 @@
   import NotFound from '@/pages/NotFound/NotFound.svelte';
   import PrivateRoute from './PrivateRoute.svelte';
   import Login from '@/pages/Login/Login.svelte';
-  import InvalidLogin from '@/pages/Login/InvalidLogin.svelte';
 
   // URL passed from parent component
   export let url: string = '';
@@ -13,9 +12,8 @@
 
 <Router>
   <!--auth callback -->
-  <Route path="/auth-callback" component={AuthCallback} />
-  <Route path="/" component={Login} />
-  <Route path="/login" component={InvalidLogin} />
+  <Route path="/" component={AuthCallback} />
+  <Route path="/login" component={Login} />
 
   <!-- Protected routes -->
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
