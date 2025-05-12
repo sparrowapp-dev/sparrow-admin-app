@@ -282,32 +282,7 @@
 </script> -->
 <script lang="ts">
   import type { CellContext } from '@tanstack/svelte-table'; // Import CellContext instead of Cell
-
-  function getRelativeTime(date: string | number | Date): string {
-    const now = new Date();
-    const then = new Date(date);
-    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const months = Math.floor(days / 30);
-    const years = Math.floor(months / 12);
-    const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
-    if (years > 0) {
-      return `${years} ${years === 1 ? 'year' : 'years'} ago`;
-    } else if (months > 0) {
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
-    } else if (days > 0) {
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-    } else if (hours > 0) {
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-    } else if (minutes > 0) {
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-    } else {
-      return 'just now';
-    }
-  }
-
+  import { getRelativeTime } from '@/utils/TimeFunction';
   import { onMount } from 'svelte';
   import { hubsService } from '@/services/hubs.service';
   import Hubsicon from '@/assets/icons/Hubsicon.svelte';
@@ -321,51 +296,7 @@
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
   import { notification } from '@/components/Toast';
-
-  interface Workspace {
-    id: string;
-    name: string;
-    type: 'PRIVATE' | 'PUBLIC';
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  }
-
-  interface Contributor {
-    id: string;
-    role: string;
-    email: string;
-  }
-
-  interface Hub {
-    _id: string;
-    name: string;
-    hubUrl: string;
-    workspaceStats: {
-      total: number;
-      private: number;
-      public: number;
-    };
-    workspaces: Workspace[];
-    contributors: {
-      total: number;
-      details: Contributor[];
-    };
-    createdAt: string;
-    updatedAt: string;
-  }
-
-  interface HubsResponse {
-    data: {
-      totalpages: number;
-      currentPage: number;
-      totalCount: number;
-      limit: number;
-      hubs: Hub[];
-      sortBy: 'createdAt' | 'updatedAt' | 'name';
-      sortOrder: 'asc' | 'desc';
-    };
-  }
+  import { Hub, HubsResponse } from '@/interface/HubsOverview';
 
   let tableComponent;
   let isLoading = true;
