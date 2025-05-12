@@ -8,7 +8,7 @@ interface HubQueryParams {
 }
 export class HubsService {
   public async getAllHubs(): Promise<any[]> {
-    const res = await makeRequest('GET', '/hubs');
+    const res = await makeRequest('GET', '/admin/hubs');
     return res?.data;
   }
   public async getAllUserHubs(params?: HubQueryParams): Promise<any> {
@@ -20,19 +20,12 @@ export class HubsService {
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-    const url = `/hubs/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `/admin/all-hubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
   public async gethubsummary(): Promise<any[]> {
-    const res = await makeRequest('GET', '/hubs/hubs-summary');
-    return res?.data;
-  }
-  public async gethubnamesuggestion(params?: any): Promise<any[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.search) queryParams.append('search', params.search);
-    const url = `/hubs/search-hub-names${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const res = await makeRequest('GET', url);
+    const res = await makeRequest('GET', '/admin/hubs-summary');
     return res?.data;
   }
 }

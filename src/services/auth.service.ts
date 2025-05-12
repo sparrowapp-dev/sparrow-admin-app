@@ -3,7 +3,7 @@ import type { HttpClientResponseInterface } from './api.common';
 
 export class AuthService {
   public async handleAuthCallback(token: string): Promise<HttpClientResponseInterface> {
-    const res = await makeRequest('GET', `/auth/callback?token=${token}`);
+    const res = await makeRequest('GET', `/admin/api/auth/callback?token=${token}`);
     return res?.data;
   }
 }

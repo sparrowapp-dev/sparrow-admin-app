@@ -317,6 +317,7 @@
   import { navigate } from 'svelte-routing';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
+
   interface Workspace {
     id: string;
     name: string;
