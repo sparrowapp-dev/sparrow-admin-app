@@ -23,11 +23,14 @@
       </div>
       <div class="flex flex-row gap-1">
         {#if points.length > 0}
-          {#each points as point}
+          {#each points as point, i}
             <div
-              class="font-roboto text-fs-ds-12 border-r-neutral-300 leading-4 font-light text-neutral-300"
+              class="font-roboto text-fs-ds-12 inline-flex items-center leading-4 font-light text-neutral-300"
             >
-              {point.value}:{point.count}
+              <span>{point.value}:{point.count}</span>
+              {#if i !== points.length - 1}
+                <div class="ml-1 h-[60%] border-r border-r-neutral-300" />
+              {/if}
             </div>
           {/each}
         {/if}
