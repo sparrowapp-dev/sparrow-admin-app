@@ -57,7 +57,7 @@ function decodeJwt(token: string | null) {
     return null;
   }
 }
-// Derived store for decoded token
+
 // Derived stores for specific token data
 export const decodedToken = derived(accessToken, ($accessToken) => decodeJwt($accessToken));
 export const userId = derived(decodedToken, ($token) => $token?._id);
