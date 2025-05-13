@@ -4,7 +4,7 @@
   import { createEventDispatcher } from 'svelte';
   import type { SortingState } from '@tanstack/table-core';
   import TableHeader from './TableHeader.svelte';
-  import TableCell from './TableCell.svelte';
+  import TableCellV2 from './TableCellV2.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -67,24 +67,19 @@
 
         <tbody>
           {#each $table.getRowModel().rows as row}
-            <tr class={`table-row ${rowClassName}`} on:click={() => handleRowClick(row)}>
+            <tr
+              class="group/row hover:bg-surface-800 border-surface-600 border-b transition-colors duration-150 {rowClassName}"
+              on:click={() => handleRowClick(row)}
+            >
               {#each row.getVisibleCells() as cell}
-                <TableCell {cell} className={cellClassName} />
+                <TableCellV2
+                  {cell}
+                  className={cellClassName}
+                  showOnHover={cell.column.id === 'launch'}
+                />
               {/each}
             </tr>
           {/each}
-
-          {#if $table.getRowModel().rows.length === 0}
-            <tr>
-              <td colspan={columns.length} class="empty-state">
-                {#if emptyStateComponent}
-                  <svelte:component this={emptyStateComponent} />
-                {:else}
-                  No results found.
-                {/if}
-              </td>
-            </tr>
-          {/if}
         </tbody>
       </table>
     </div>
@@ -138,14 +133,6 @@
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-  }
-
-  .table-row {
-    transition: background-color 150ms;
-  }
-
-  .table-row:hover {
-    background-color: #181c26;
   }
 
   .empty-state {

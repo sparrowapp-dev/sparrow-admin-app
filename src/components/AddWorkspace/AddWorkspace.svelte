@@ -4,8 +4,11 @@
   import Input from '@/ui/Input/Input.svelte';
   import Textarea from '@/ui/Textarea/Textarea.svelte';
   import { notification } from '../Toast';
+  import { hubsService } from '@/services/hubs.service';
 
   export let onClose: () => void;
+  export let hubId: any;
+  export let onSuccess: () => void;
 
   // Form data with TypeScript interface
   interface FormData {
@@ -24,7 +27,7 @@
   };
 
   let errors: FormErrors = {};
-  let submitted = false;
+  let isLoading = false;
 
   // Validate form fields
   function validateForm(): boolean {
@@ -39,14 +42,24 @@
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit() {
-    submitted = true;
+  async function handleSubmit() {
+    if (!validateForm()) return;
 
-    if (validateForm()) {
-      console.log('Form submitted:', formData);
-      notification.success('asd');
-      // Process form data here
+    try {
+      isLoading = true;
+      const response = await hubsService.createWorkspace({
+        id: hubId,
+        name: formData.workspaceName.trim(),
+        description: formData.summary.trim(),
+      });
+      const workspaceName = response?.data.name ?? formData.workspaceName.trim();
+      notification.success(`"${workspaceName}" workspace is created successfully.`);
+      onSuccess();
       onClose();
+    } catch (error: any) {
+      notification.error('Failed to create new workspace. Please try again.');
+    } finally {
+      isLoading = false;
     }
   }
 </script>
@@ -87,7 +100,8 @@
 
     <div class="mt-6 flex w-full items-center justify-end gap-3">
       <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
-      <Button variant="filled-primary" size="medium" type="submit">Save</Button>
+      <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>Save</Button
+      >
     </div>
   </form>
 </div>

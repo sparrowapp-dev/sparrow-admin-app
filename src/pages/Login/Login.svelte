@@ -6,7 +6,7 @@
   onMount(() => {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
-    debugger;
+
     if (accessToken && refreshToken) {
       // User is already authenticated, redirect to main app
       navigate('/hubs');

@@ -54,7 +54,7 @@
       </div>
 
       <!-- Nested Route Content -->
-      <div class="overflow-auto p-4">
+      <div class="overflow-auto p-4 w-[100%]">
         <Router>
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />
