@@ -1,373 +1,95 @@
-<!-- <script lang="ts">
-  import Hubsicon from '@/assets/icons/Hubsicon.svelte';
-  import OverviewCards from './OverviewCards.svelte';
-  import WorkspaceIcon2 from '@/assets/icons/WorkspaceIcon2.svelte';
-  import ContributionIcon from '@/assets/icons/ContributionIcon.svelte';
-  import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import Table from '@/components/Table/Table.svelte';
-  import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  const tableData = {
-    totalpages: 1,
-    currentPage: 1,
-    totalCount: 3,
-    limit: 10,
-    hubs: [
-      {
-        _id: '6819c4612fcdf46d96b184d0',
-        name: 'hub 2',
-        workspaceStats: {
-          total: 0,
-          private: 0,
-          public: 0,
-        },
-        workspaces: [],
-        contributors: {
-          total: 1,
-          details: [
-            {
-              id: '6819c4122fcdf46d96b184c4',
-              role: 'owner',
-              email: 'arnab.samanta@techdome.net.in',
-            },
-          ],
-        },
-        createdAt: '2025-05-06T08:12:17.070Z',
-        updatedAt: '2025-05-06T08:12:17.070Z',
-      },
-      {
-        _id: '6819c45b2fcdf46d96b184cf',
-        name: 'hub 1',
-        workspaceStats: {
-          total: 2,
-          private: 1,
-          public: 1,
-        },
-        workspaces: [
-          {
-            id: '6819c4e02fcdf46d96b184d3',
-            name: 'My Workspace',
-            type: 'PRIVATE',
-            description: '',
-            createdAt: '2025-05-06T08:14:24.253Z',
-            updatedAt: '2025-05-06T08:14:24.253Z',
-          },
-          {
-            id: '6819c4eb2fcdf46d96b184d6',
-            name: 'My Workspace 2',
-            type: 'PUBLIC',
-            description: '',
-            createdAt: '2025-05-06T08:14:35.029Z',
-            updatedAt: '2025-05-06T08:14:35.029Z',
-          },
-        ],
-        contributors: {
-          total: 2,
-          details: [
-            {
-              id: '6819c4122fcdf46d96b184c4',
-              role: 'owner',
-              email: 'arnab.samanta@techdome.net.in',
-            },
-            {
-              id: '6819c5362fcdf46d96b184d8',
-              role: 'admin',
-              email: 'loveumearnab.2812000@gmail.com',
-            },
-          ],
-        },
-        createdAt: '2025-05-06T08:12:11.233Z',
-        updatedAt: '2025-05-06T08:12:11.233Z',
-      },
-      {
-        _id: '6819c4122fcdf46d96b184c5',
-        name: "samanta's Hub",
-        workspaceStats: {
-          total: 2,
-          private: 2,
-          public: 0,
-        },
-        workspaces: [
-          {
-            id: '6819c4162fcdf46d96b184c7',
-            name: 'My Workspace',
-            type: 'PRIVATE',
-            description: '',
-            createdAt: '2025-05-06T08:11:02.315Z',
-            updatedAt: '2025-05-06T08:11:02.315Z',
-          },
-          {
-            id: '6819c4432fcdf46d96b184cd',
-            name: 'My Workspace 2',
-            type: 'PRIVATE',
-            description: '',
-            createdAt: '2025-05-06T08:11:47.302Z',
-            updatedAt: '2025-05-06T08:11:47.302Z',
-          },
-        ],
-        contributors: {
-          total: 1,
-          details: [
-            {
-              id: '6819c4122fcdf46d96b184c4',
-              role: 'owner',
-              email: 'arnab.samanta@techdome.net.in',
-            },
-          ],
-        },
-        createdAt: '2025-05-06T08:10:58.761Z',
-        updatedAt: '2025-05-06T08:10:58.761Z',
-      },
-    ],
-  };
-  const data = {
-    totalHubs: 3,
-    workspaces: {
-      total: 4,
-      private: 3,
-      public: 1,
-    },
-    totalContributors: {
-      admins: 4,
-      members: 0,
-      total: 4,
-    },
-  };
-  const cardsData = [
-    {
-      title: 'Total Hubs',
-      value: data.totalHubs,
-      icon: Hubsicon,
-    },
-    {
-      title: 'Workspaces',
-      value: data.workspaces.total,
-      icon: WorkspaceIcon2,
-      subData: [
-        { value: 'Private', count: data.workspaces.private },
-        { value: 'Public', count: data.workspaces.public },
-      ],
-    },
-    {
-      title: 'Contributors',
-      value: data.totalContributors.total,
-      icon: ContributionIcon,
-      subData: [
-        { value: 'Admins', count: data.totalContributors.admins },
-        { value: 'Members', count: data.totalContributors.members },
-      ],
-    },
-  ];
-  const mockUsers = Array.from({ length: 100 }, (_, i) => {
-    const id = i + 1;
-    const statuses = ['Active', 'Inactive', 'Pending'];
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    const randomDate = new Date(Date.now() - Math.random() * 31536000000); // Random date within last year
-
-    return {
-      id,
-      name: `User ${id}`,
-      email: `user${id}@example.com`,
-      status: randomStatus,
-      createdAt: randomDate.toISOString(),
-    };
-  });
-  let tableComponent;
-  let isLoading = false;
-  let pagination = { pageIndex: 0, pageSize: 10 };
-  let filters = { searchTerm: '' };
-  let totalItems = 0;
-
-  // Define your columns
-  const columns = [
-    {
-      accessorKey: 'id',
-      header: 'ID',
-      size: 100,
-    },
-    {
-      accessorKey: 'name',
-      header: 'Name',
-    },
-    {
-      accessorKey: 'email',
-      header: 'Email',
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ getValue }) => {
-        const status = getValue();
-        return `<span class="status status-${status.toLowerCase()}">${status}</span>`;
-      },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created At',
-      cell: ({ getValue }) => {
-        const date = new Date(getValue());
-        return date.toLocaleDateString();
-      },
-    },
-  ];
-
-  // Mock data fetching function that mimics an API
-  async function fetchTableData({ pagination, filters }) {
-    isLoading = true;
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    try {
-      // Filter data based on search term
-      let filteredData = [...mockUsers];
-
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
-        filteredData = filteredData.filter(
-          (user) =>
-            user.name.toLowerCase().includes(searchLower) ||
-            user.email.toLowerCase().includes(searchLower) ||
-            user.status.toLowerCase().includes(searchLower),
-        );
-      }
-
-      // Get total count before pagination
-      const total = filteredData.length;
-
-      // Apply pagination
-      const start = pagination.pageIndex * pagination.pageSize;
-      const end = start + pagination.pageSize;
-      const paginatedData = filteredData.slice(start, end);
-
-      totalItems = total;
-
-      return {
-        data: paginatedData,
-        totalItems: total,
-      };
-    } catch (error) {
-      console.error('Error with mock data:', error);
-      return { data: [], totalItems: 0 };
-    } finally {
-      isLoading = false;
-    }
-  }
-
-  // Handle pagination change
-  function handlePaginationChange(event) {
-    pagination = event.detail;
-  }
-
-  // Handle search change
-  function handleSearchChange(event) {
-    filters.searchTerm = event.detail;
-  }
-
-  // Handle page change from pagination component
-  function handlePageChange(event) {
-    pagination = {
-      ...pagination,
-      pageIndex: event.detail,
-    };
-  }
-
-  // Handle page size change from pagination component
-  function handlePageSizeChange(event) {
-    pagination = {
-      ...pagination,
-      pageSize: event.detail,
-      pageIndex: 0, // Reset to first page when changing page size
-    };
-  }
-</script> -->
 <script lang="ts">
-  import type { CellContext } from '@tanstack/svelte-table'; // Import CellContext instead of Cell
+  import type { CellContext } from '@tanstack/svelte-table';
+  import { createQuery } from '@/services/api.common';
+  import type { SortingState } from '@tanstack/table-core';
   import { getRelativeTime } from '@/utils/TimeFunction';
   import { onMount } from 'svelte';
   import { hubsService } from '@/services/hubs.service';
+  import { navigate } from 'svelte-routing';
+  import { notification } from '@/components/Toast';
+  import type { Hub } from '@/interface/HubsOverview';
+
+  // Components
   import Hubsicon from '@/assets/icons/Hubsicon.svelte';
-  import OverviewCards from './OverviewCards.svelte';
   import WorkspaceIcon2 from '@/assets/icons/WorkspaceIcon2.svelte';
   import ContributionIcon from '@/assets/icons/ContributionIcon.svelte';
+  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
+  import OverviewCards from './OverviewCards.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import Table from '@/components/Table/Table.svelte';
+  import TableV2 from '@/components/Table/TableV2.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  import { navigate } from 'svelte-routing';
+  import Button from '@/ui/Button/Button.svelte';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
-  import { notification } from '@/components/Toast';
-  import { Hub, HubsResponse } from '@/interface/HubsOverview';
+  import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
 
-  let tableComponent;
-  let isLoading = true;
+  // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
-  let totalItems = 0;
-  let summaryData: any = null;
-  let hubsData: any = [];
-  let toggleDropdown = false;
+  let sorting: SortingState = [];
+  let showModal = false;
 
-  onMount(async () => {
-    try {
-      const fetchData = await hubsService.gethubsummary();
-      summaryData = fetchData.data;
-      await fetchTableData({ pagination, filters });
-    } catch (error) {
-      console.error('Failed to load initial data:', error);
-    }
+  // Queries
+  const { data: summaryData, isFetching: isSummaryLoading } = createQuery(async () => {
+    return hubsService.gethubsummary();
   });
 
-  onMount(() => {
-    document.addEventListener('copyUrl', ((e: CustomEvent) => {
-      copyToClipboard(e.detail);
-    }) as EventListener);
-
-    return () => {
-      document.removeEventListener('copyUrl', ((e: CustomEvent) => {
-        copyToClipboard(e.detail);
-      }) as EventListener);
-    };
+  const {
+    data: hubsData,
+    isFetching,
+    refetch,
+  } = createQuery(async () => {
+    return hubsService.getAllUserHubs({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      search: filters.searchTerm,
+      sortBy: sorting[0]?.id || 'createdAt',
+      sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
+    });
   });
 
-  function copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text).then(
-      () => {
-        notification.success('URL successfully copied');
-      },
-      (err) => {
-        notification.error('Failed to copy URL');
-      },
-    );
+  // Event Handlers
+  function handleSearchChange(event: CustomEvent<string>) {
+    filters = { ...filters, searchTerm: event.detail };
+    pagination = { ...pagination, pageIndex: 0 };
+    refetch();
   }
 
-  $: cardsData = summaryData
-    ? [
-        {
-          title: 'Total Hubs',
-          value: summaryData.totalHubs,
-          icon: Hubsicon,
-        },
-        {
-          title: 'Workspaces',
-          value: summaryData.workspaces.total,
-          icon: WorkspaceIcon2,
-          subData: [
-            { value: 'Private', count: summaryData.workspaces.private },
-            { value: 'Public', count: summaryData.workspaces.public },
-          ],
-        },
-        {
-          title: 'Contributors',
-          value: summaryData.totalContributors.total,
-          icon: ContributionIcon,
-          subData: [
-            { value: 'Admins', count: summaryData.totalContributors.admins },
-            { value: 'Members', count: summaryData.totalContributors.members },
-          ],
-        },
-      ]
-    : [];
+  function handlePageChange(event: CustomEvent<number>) {
+    pagination = { ...pagination, pageIndex: event.detail };
+    refetch();
+  }
 
+  function handlePageSizeChange(event: CustomEvent<number>) {
+    pagination = { pageSize: event.detail, pageIndex: 0 };
+    refetch();
+  }
+
+  function handleSortingChange(event: CustomEvent<SortingState>) {
+    sorting = event.detail;
+    refetch();
+  }
+
+  function handleRowClick(event: CustomEvent<Hub>) {
+    const hub = event.detail;
+    navigate(`/hubs/workspace/${hub._id}`);
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => notification.success('URL successfully copied'))
+      .catch(() => notification.error('Failed to copy URL'));
+  }
+
+  // Copy URL Event Listener
+  onMount(() => {
+    const copyHandler = (e: CustomEvent) => copyToClipboard(e.detail);
+    document.addEventListener('copyUrl', copyHandler as EventListener);
+    return () => document.removeEventListener('copyUrl', copyHandler as EventListener);
+  });
+
+  // Table Columns
   const columns = [
     {
       accessorKey: 'name',
@@ -381,7 +103,7 @@
       enableSorting: false,
       cell: ({ getValue, row }: CellContext<any, any>) => ({
         Component: HubUrl,
-        props: { Value: getValue(), row: row },
+        props: { Value: getValue(), row },
       }),
     },
     {
@@ -406,22 +128,17 @@
       accessorKey: 'contributors',
       header: 'Contributors',
       enableSortingRemoval: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
-        const contributors = getValue();
-        return contributors.total;
-      },
+      cell: ({ getValue }) => getValue().total,
     },
     {
       accessorKey: 'createdAt',
       header: 'Created',
       enableSorting: true,
       enableSortingRemoval: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
+      cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
-        ${relativeTime}
-      </span>`;
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
       },
     },
     {
@@ -429,13 +146,23 @@
       header: 'Last Updated',
       enableSorting: true,
       enableSortingRemoval: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
+      cell: ({ getValue }) => {
         const date = getValue();
         const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
-        ${relativeTime}
-      </span>`;
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
       },
+    },
+    {
+      id: 'launch',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => ({
+        Component: WorkspaceLaunch,
+        props: {
+          workspaceId: row.original.id,
+          showOnHover: true,
+        },
+      }),
     },
     {
       id: 'actions',
@@ -443,86 +170,53 @@
       enableSorting: false,
       cell: ({ row }: CellContext<any, any>) => ({
         Component: HubsDropdown,
-        props: { row: row },
+        props: { row },
       }),
     },
   ];
 
-  async function fetchTableData({
-    pagination,
-    filters,
-    sorting,
-  }: {
-    pagination: any;
-    filters: any;
-    sorting: any;
-  }) {
-    isLoading = true;
-    try {
-      const response: HubsResponse = await hubsService.getAllUserHubs({
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        search: filters.searchTerm,
-        sortBy: sorting?.[0]?.id || 'createdAt',
-        sortOrder: sorting?.[0]?.desc ? 'desc' : 'asc',
-      });
-      hubsData = response.data.hubs;
-      totalItems = response.data.totalCount || 0;
-      return {
-        data: response.data.hubs,
-        totalItems: response.data.totalCount,
-      };
-    } catch (error) {
-      console.error('Error fetching hubs:', error);
-      return { data: [], totalItems: 0 };
-    } finally {
-      isLoading = false;
-    }
-  }
+  // Reactive Statements
+  $: cardsData = $summaryData?.data
+    ? [
+        {
+          title: 'Total Hubs',
+          value: $summaryData.data.totalHubs,
+          icon: Hubsicon,
+        },
+        {
+          title: 'Workspaces',
+          value: $summaryData.data.workspaces.total,
+          icon: WorkspaceIcon2,
+          subData: [
+            { value: 'Private', count: $summaryData.data.workspaces.private },
+            { value: 'Public', count: $summaryData.data.workspaces.public },
+          ],
+        },
+        {
+          title: 'Contributors',
+          value: $summaryData.data.totalContributors.total,
+          icon: ContributionIcon,
+          subData: [
+            { value: 'Admins', count: $summaryData.data.totalContributors.admins },
+            { value: 'Members', count: $summaryData.data.totalContributors.members },
+          ],
+        },
+      ]
+    : [];
 
-  function handlePaginationChange(event) {
-    pagination = event.detail;
-  }
-
-  function handleSearchChange(event) {
-    filters.searchTerm = event.detail;
-    pagination.pageIndex = 0;
-  }
-
-  function handlePageChange(event) {
-    pagination = {
-      ...pagination,
-      pageIndex: event.detail,
-    };
-  }
-
-  function handlePageSizeChange(event) {
-    pagination = {
-      ...pagination,
-      pageSize: event.detail,
-      pageIndex: 0,
-    };
-  }
-
-  function handleRowClick(event: CustomEvent<Hub>) {
-    const hub = event.detail;
-    navigate(`/hubs/workspace/${hub._id}`);
-  }
+  $: totalItems = $hubsData?.data?.totalCount || 0;
 </script>
 
 <section class="bg-surface-900 flex min-h-screen w-full flex-col gap-6 p-4">
+  <!-- Overview Cards Section -->
   <div class="flex flex-col gap-4 p-4">
     <div class="flex flex-col gap-2">
-      <div>
-        <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
-          Overview
-        </h1>
-      </div>
-      <div>
-        <h2 class="font-inter font-regular text-fs-ds-14 leading-lh-ds-143 text-neutral-100">
-          Manage and monitor all your Sparrow Hubs
-        </h2>
-      </div>
+      <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
+        Overview
+      </h1>
+      <h2 class="font-inter font-regular text-fs-ds-14 leading-lh-ds-143 text-neutral-100">
+        Manage and monitor all your Sparrow Hubs
+      </h2>
     </div>
     <div class="flex flex-row justify-between">
       {#each cardsData as card}
@@ -535,42 +229,60 @@
       {/each}
     </div>
   </div>
+
+  <!-- Hubs Table Section -->
   <div class="flex flex-col gap-2 px-4">
     <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
     <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-400">
-      All your Hub’s in one place, manage access, manage members, or dive into details with ease.
+      All your Hub's in one place, manage access, manage members, or dive into details with ease.
     </h2>
   </div>
+
   <div class="table-container bg-surface-900 min-h-full">
     <div class="table-header">
       <TableSearch
         value={filters.searchTerm}
-        on:search={(event) => handleSearchChange({ detail: event.detail })}
-        {isLoading}
+        on:search={handleSearchChange}
+        isLoading={$isFetching}
       />
+      <Button
+        variant="filled-primary"
+        size="small"
+        iconLeft={true}
+        on:click={() => (showModal = true)}
+      >
+        <svelte:fragment slot="iconLeft">
+          <PlusIcon />
+        </svelte:fragment>
+        New Hub
+      </Button>
     </div>
 
-    <Table
-      bind:this={tableComponent}
-      {columns}
-      fetchData={fetchTableData}
-      initialPageSize={pagination.pageSize}
-      initialPageIndex={pagination.pageIndex}
-      initialSearchTerm={filters.searchTerm}
-      {isLoading}
-      on:paginationChange={handlePaginationChange}
-      on:searchChange={handleSearchChange}
-      on:rowClick={handleRowClick}
-    />
+    {#if totalItems === 0 && !$isFetching}
+      <div class="flex flex-col items-center justify-center py-16">
+        <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+      </div>
+    {:else}
+      <TableV2
+        {columns}
+        data={$hubsData?.data?.hubs || []}
+        isLoading={$isFetching}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        on:sortingChange={handleSortingChange}
+        on:rowClick={handleRowClick}
+      />
 
-    <TablePagination
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      {isLoading}
-      on:pageChange={handlePageChange}
-      on:pageSizeChange={handlePageSizeChange}
-    />
+      <TablePagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        isLoading={$isFetching}
+        on:pageChange={handlePageChange}
+        on:pageSizeChange={handlePageSizeChange}
+      />
+    {/if}
   </div>
 </section>
 
