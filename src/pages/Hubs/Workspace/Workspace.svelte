@@ -15,7 +15,10 @@
   import { getRelativeTime } from '@/utils/TimeFunction';
   import VisibilityCell from '../../../components/TableComponents/VisibilityCell.svelte';
   import WorkspaceDropdown from '@/components/TableComponents/WorkspaceDropdown.svelte';
-
+  import SparrowBirdBg from '@/assets/icons/SparrowBirdBg.svelte';
+  import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
+  import DropdownWorkspaceIcon from '@/assets/icons/DropdownWorkspaceIcon.svelte';
+  import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
   const location = useLocation();
 
   // State management
@@ -25,6 +28,25 @@
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
   let sorting: SortingState = [];
+  let selected = {
+    value: '',
+    label: 'All Workspaces',
+  };
+
+  const options = [
+    {
+      value: 'PRIVATE',
+      label: 'Private',
+    },
+    {
+      value: 'PUBLIC',
+      label: 'Public',
+    },
+    {
+      value: '',
+      label: 'All Workspaces',
+    },
+  ];
 
   // table columns
   const columns = [
@@ -64,6 +86,7 @@
       </span>`;
       },
     },
+
     {
       accessorKey: 'createdAt',
       header: 'Created',
@@ -75,6 +98,18 @@
         ${relativeTime}
       </span>`;
       },
+    },
+    {
+      id: 'launch',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => ({
+        Component: WorkspaceLaunch,
+        props: {
+          workspaceId: row.original.id,
+          showOnHover: true,
+        },
+      }),
     },
     {
       id: 'actions',
@@ -100,7 +135,7 @@
       search: filters.searchTerm,
       sortBy: sorting[0]?.id || 'createdAt',
       sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
-      workspaceType: '',
+      workspaceType: selected?.value,
     };
 
     return hubsService.getHubWorkspaces(queryParams);
@@ -152,12 +187,22 @@
     };
     refetch();
   }
+  // Refresh the table data
+  function handleWorkspaceCreated() {
+    refetch();
+  }
+
+  function handleSelect(event) {
+    selected = event.detail;
+    refetch();
+  }
 
   // Reactive statements
   $: totalItems = $workspacesData?.data?.totalCount || 0;
   $: data = {
     teamName: $workspacesData?.data?.hubName || 'Loading...',
     workspaces: $workspacesData?.data?.hubs || [],
+    isNewHub: $workspacesData?.data?.isNewHub || false,
   };
 </script>
 
@@ -172,12 +217,24 @@
 
   <div class="bg-surface-900">
     <div class="flex items-center justify-between py-6">
-      <TableSearch
-        value={filters.searchTerm}
-        on:search={handleSearchChange}
-        isLoading={$isFetching}
-        placeholder="Search Workspace"
-      />
+      <div class="flex items-center gap-4">
+        <TableSearch
+          value={filters.searchTerm}
+          on:search={handleSearchChange}
+          isLoading={$isFetching}
+          placeholder="Search Workspace"
+        />
+        <DropdownNoSearch
+          {options}
+          bind:selected
+          placeholder="Select option"
+          leftIcon={DropdownWorkspaceIcon}
+          variant="primary"
+          width="w-48"
+          on:select={handleSelect}
+        />
+      </div>
+
       <Button
         variant="filled-primary"
         size="small"
@@ -191,30 +248,51 @@
       </Button>
     </div>
 
-    <TableV2
-      {columns}
-      data={data.workspaces}
-      isLoading={$isFetching}
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      on:sortingChange={handleSortingChange}
-      on:rowClick={(e) => console.log('Row clicked:', e.detail)}
-    />
+    {#if totalItems === 0 && !data?.isNewHub && !$isFetching}
+      <div class="flex flex-col items-center justify-center py-16">
+        <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+      </div>
+    {:else if data?.isNewHub}
+      <div
+        class="bg-surface-900 mt-[10rem] flex flex-col items-center justify-center px-4 text-center"
+      >
+        <SparrowBirdBg />
 
-    <TablePagination
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      isLoading={$isFetching}
-      on:pageChange={handlePageChange}
-      on:pageSizeChange={handlePageSizeChange}
-    />
+        <p class="font-fw-ds-300 font-inter text-fs-ds-12 max-w-xl text-neutral-400">
+          Welcome to Sparrow! Let’s create your first workspace to unlock powerful tools and bring
+          your team together in one organized space.
+        </p>
+      </div>
+    {:else}
+      <TableV2
+        {columns}
+        data={data.workspaces}
+        isLoading={$isFetching}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        on:sortingChange={handleSortingChange}
+        on:rowClick={(e) => console.log('Row clicked:', e.detail)}
+      />
+
+      <TablePagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        isLoading={$isFetching}
+        on:pageChange={handlePageChange}
+        on:pageSizeChange={handlePageSizeChange}
+      />
+    {/if}
   </div>
 
   {#if showModal}
     <Modal on:close={() => (showModal = false)}>
-      <AddWorkspace onClose={() => (showModal = false)} />
+      <AddWorkspace
+        onClose={() => (showModal = false)}
+        hubId={params}
+        onSuccess={handleWorkspaceCreated}
+      />
     </Modal>
   {/if}
 </section>

@@ -2,13 +2,14 @@
   import { onMount } from 'svelte';
   import { setTokens } from '@/store/auth';
   import { authService } from '@/services/auth.service';
+  import { LOGIN_REDIRECT_URL } from '@/constants/environment';
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
 
     if (!token) {
-      window.location.href = '/login';
+      window.location.href = LOGIN_REDIRECT_URL;
       return;
     }
 
