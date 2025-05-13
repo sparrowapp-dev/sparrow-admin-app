@@ -64,16 +64,7 @@
 </script>
 
 <div class="relative flex items-center justify-end gap-4">
-  <button
-    class="font-inter text-fs-ds-12 font-regular leading-lh-ds-130 z-10
-           cursor-pointer text-blue-300 opacity-0 transition-opacity
-           duration-200 group-hover:opacity-100 hover:underline"
-    data-action="launch"
-    on:click|stopPropagation={handleLaunch}
-    data-hub-id={row.original._id}
-  >
-    Launch in Sparrow
-  </button>
+
   <div class="relative">
     <button
       bind:this={triggerEl}
