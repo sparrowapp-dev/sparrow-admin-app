@@ -7,7 +7,7 @@
   import { hubsService } from '@/services/hubs.service';
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
   import HubsOverview from './Overview/HubsOverview.svelte';
-
+  import WorkSpaceOverview from './WorkSpaceOverview/WorkSpaceOverview.svelte';
   interface Team {
     teamId: string;
     teamName: string;
@@ -30,7 +30,9 @@
 
   const location = useLocation();
   // queries
-  const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() => hubsService.getAllHubs());
+  const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
+    hubsService.getAllHubs(),
+  );
 
   $: {
     if ($data && $data?.data?.length > 0) {
@@ -54,11 +56,12 @@
       </div>
 
       <!-- Nested Route Content -->
-      <div class="overflow-auto p-4">
+      <div class="w-full overflow-auto p-4">
         <Router>
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />
           <Route path="members/:id" component={Members} />
+          <Route path="workspace-details/:id" component={WorkSpaceOverview} />
         </Router>
       </div>
     </div>

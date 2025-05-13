@@ -14,7 +14,7 @@
   import { onDestroy, onMount } from 'svelte';
   import { getRelativeTime } from '@/utils/TimeFunction';
   import VisibilityCell from '../../../components/TableComponents/VisibilityCell.svelte';
-    import WorkspaceDropdown from '@/components/TableComponents/WorkspaceDropdown.svelte';
+  import WorkspaceDropdown from '@/components/TableComponents/WorkspaceDropdown.svelte';
 
   const location = useLocation();
 
