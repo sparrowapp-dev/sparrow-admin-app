@@ -18,6 +18,7 @@
   import SparrowBirdBg from '@/assets/icons/SparrowBirdBg.svelte';
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import DropdownWorkspaceIcon from '@/assets/icons/DropdownWorkspaceIcon.svelte';
+  import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
   const location = useLocation();
 
   // State management
@@ -85,6 +86,7 @@
       </span>`;
       },
     },
+
     {
       accessorKey: 'createdAt',
       header: 'Created',
@@ -96,6 +98,18 @@
         ${relativeTime}
       </span>`;
       },
+    },
+    {
+      id: 'launch',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => ({
+        Component: WorkspaceLaunch,
+        props: {
+          workspaceId: row.original.id,
+          showOnHover: true,
+        },
+      }),
     },
     {
       id: 'actions',
