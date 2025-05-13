@@ -20,7 +20,7 @@ interface WorkspaceQueryParams {
 
 export class HubsService {
   public async getAllHubs(): Promise<{ data: any[] }> {
-    const res = await makeRequest('GET', '/admin/hubs');
+    const res = await makeRequest('GET', '/api/admin/hubs');
     return res?.data;
   }
 
@@ -33,13 +33,13 @@ export class HubsService {
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-    const url = `/admin/all-hubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `/api/admin/all-hubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
 
   public async gethubsummary(): Promise<any[]> {
-    const res = await makeRequest('GET', '/admin/hubs-summary');
+    const res = await makeRequest('GET', '/api/admin/hubs-summary');
     return res?.data;
   }
 
@@ -54,7 +54,7 @@ export class HubsService {
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
     if (params.workspaceType) queryParams.append('workspaceType', params.workspaceType);
 
-    const url = `/admin/hub-workspaces?${queryParams.toString()}`;
+    const url = `/api/admin/hub-workspaces?${queryParams.toString()}`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
