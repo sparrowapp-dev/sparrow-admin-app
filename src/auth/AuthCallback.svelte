@@ -7,7 +7,7 @@
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
-    debugger;
+
     if (!token) {
       window.location.href = LOGIN_REDIRECT_URL;
       return;

@@ -18,6 +18,12 @@ interface WorkspaceQueryParams {
   workspaceType?: 'PUBLIC' | 'PRIVATE' | 'ALL';
 }
 
+interface CreateWorkspaceDto {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 export class HubsService {
   public async getAllHubs(): Promise<{ data: any[] }> {
     const res = await makeRequest('GET', '/api/admin/hubs');
@@ -56,6 +62,11 @@ export class HubsService {
 
     const url = `/api/admin/hub-workspaces?${queryParams.toString()}`;
     const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+
+  public async createWorkspace(data: CreateWorkspaceDto): Promise<any> {
+    const res = await makeRequest('POST', '/api/admin/create-workspace', data);
     return res?.data;
   }
 }

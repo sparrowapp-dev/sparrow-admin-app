@@ -74,17 +74,7 @@
             </tr>
           {/each}
 
-          {#if $table.getRowModel().rows.length === 0}
-            <tr>
-              <td colspan={columns.length} class="empty-state">
-                {#if emptyStateComponent}
-                  <svelte:component this={emptyStateComponent} />
-                {:else}
-                  No results found.
-                {/if}
-              </td>
-            </tr>
-          {/if}
+  
         </tbody>
       </table>
     </div>
