@@ -133,7 +133,7 @@
 </script>
 
 <div
-  class="{position}relative inline-block"
+  class="relative inline-block"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
