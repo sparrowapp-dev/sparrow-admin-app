@@ -10,6 +10,7 @@
   import MakeitPublic from '@/assets/icons/MakeitPublic.svelte';
 
   export let topdata;
+  export let openModal;
   const stats = [
     { label: 'Total Contributors', value: topdata.totalContributors },
     { label: 'Total Collections', value: topdata.totalCollections },
@@ -46,26 +47,27 @@
   function closeDropdown() {
     isOpen = false;
   }
+  function handleInvite() {
+    openModal('openInviteModal');
+  }
 
   // Dropdown action handlers
   function handleEditWorkspace() {
     // Add your edit workspace functionality here
-    console.log('Edit workspace clicked');
+    openModal('editWorkspace');
     closeDropdown();
   }
 
   function launchinSparrow() {
-    // Add your duplicate workspace functionality here
-
     closeDropdown();
   }
   function handleMakeItPublic() {
+    openModal('makeItPublic');
     closeDropdown();
   }
 
   function handleDeleteWorkspace() {
-    // Add your delete workspace functionality here
-    console.log('Delete workspace clicked');
+    openModal('deleteWorkSpace');
     closeDropdown();
   }
 
@@ -95,6 +97,7 @@
         </div>
         <div class="flex gap-2">
           <button
+            on:click={handleInvite}
             class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex cursor-pointer items-center gap-0.5 rounded-sm bg-blue-400 px-2 py-1 text-neutral-50"
             ><Inviteicon /> Invite Collaborators</button
           >

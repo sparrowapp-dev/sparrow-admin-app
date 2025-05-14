@@ -1,77 +1,41 @@
 <script lang="ts">
-  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
+  // ─── COMPONENTS ──────────────────────────────────────
+  import ResourceIcons from '@/assets/icons/ResourceIcons.svelte';
+
   import TableV2 from '@/components/Table/TableV2.svelte';
-  import VisibilityCell from '@/components/TableComponents/VisibilityCell.svelte';
-  import WorkspaceDropdown from '@/components/TableComponents/WorkspaceDropdown.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import { createQuery } from '@/services/api.common';
-  import { hubsService } from '@/services/hubs.service';
-  import Button from '@/ui/Button/Button.svelte';
-  import { getRelativeTime } from '@/utils/TimeFunction';
-  import { CellContext, SortingState } from '@tanstack/svelte-table';
-  import { onDestroy, onMount } from 'svelte';
-  import { useLocation } from 'svelte-routing';
-  import { derived } from 'svelte/store';
-  import { members, ResourceData } from './dummyData';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
   import RolesDropdown from './RolesDropdown.svelte';
+  import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
+  import Button from '@/ui/Button/Button.svelte';
 
+  // ─── UTILITIES ───────────────────────────────────────
+  import { getRelativeTime } from '@/utils/TimeFunction';
+
+  // ─── ROUTING & SVELTE CORE ───────────────────────────
+  import { onMount, onDestroy } from 'svelte';
+  import { derived } from 'svelte/store';
+  import { useLocation } from 'svelte-routing';
+
+  // ─── DATA ────────────────────────────────────────────
+  import type { CellContext, SortingState } from '@tanstack/svelte-table';
+
+  // ─── PROPS ───────────────────────────────────────────
+  export let data;
+  export let onRefresh: (args: {
+    tab: 'Resources' | 'Members';
+    pagination: typeof pagination;
+    filters: typeof filters;
+    sorting: SortingState;
+    resourceType: string;
+  }) => void;
+  export let isLoading: boolean = false;
+
+  // ─── ROUTE PARAM ─────────────────────────────────────
   const location = useLocation();
-  let selectedTab: 'Resources' | 'Members' = 'Resources';
-  let showModal = false;
   let params: string | undefined;
-  let unsubscribe;
-  let pagination = { pageIndex: 0, pageSize: 10 };
-  let filters = { searchTerm: '' };
-  let sorting: SortingState = [];
-  let loading = true;
-  // Function to fetch data based on selected tab
-  const fetchTabData = async (tab: 'Resources' | 'Members', queryParams: any) => {
-    // Simulate API delay (e.g. 2 seconds)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    loading = false;
-    // In the future, replace these conditionals with actual API calls
-    if (tab === 'Resources') {
-      // return hubsService.getHubResources(queryParams);
-      return ResourceData;
-    } else {
-      // return hubsService.getHubMembers(queryParams);
-      return members;
-    }
-  };
-
-  const {
-    data: workspacesData,
-    isFetching,
-    refetch,
-  } = createQuery(async () => {
-    loading = true;
-    const queryParams: any = {
-      hubId: params,
-      page: pagination.pageIndex + 1,
-      limit: pagination.pageSize,
-      search: filters.searchTerm,
-      sortBy: sorting[0]?.id || 'createdAt',
-      sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
-      workspaceType: '',
-    };
-
-    // Call the function that fetches data based on the selected tab
-    return fetchTabData(selectedTab, queryParams);
-  });
-
-  // refetch data when params change
-  $: if (params) {
-    refetch();
-  }
-
-  // refetch data when selectedTab changes
-  $: if (selectedTab) {
-    // Reset pagination when changing tabs
-    pagination = { ...pagination, pageIndex: 0 };
-    refetch();
-  }
+  let unsubscribe: (() => void) | undefined;
 
   const extractedParam = derived(location, ($location) => {
     const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
@@ -90,7 +54,57 @@
     unsubscribe?.();
   });
 
-  // Update columns based on selected tab
+  // ─── STATE ───────────────────────────────────────────
+  let selectedTab: 'Resources' | 'Members' = 'Resources';
+  let showModal = false;
+
+  let pagination = { pageIndex: 0, pageSize: 10 };
+  let filters = { searchTerm: '' };
+  let sorting: SortingState = [];
+
+  const options = [
+    { value: 'COLLECTIONS', label: 'Collections' },
+    { value: 'TESTFLOWS', label: 'Test Flows' },
+    { value: 'ENVIRONMENTS', label: 'Environments' },
+    { value: '', label: 'All Resources' },
+  ];
+
+  let selected = { value: '', label: 'All Workspaces' };
+
+  // ─── DATA REFETCH TRIGGER ────────────────────────────
+  function triggerRefresh() {
+    onRefresh({
+      tab: selectedTab,
+      pagination,
+      filters,
+      sorting,
+      resourceType: selected.value,
+    });
+  }
+
+  // ─── REACTIVE UPDATES ────────────────────────────────
+  $: if (params) {
+    triggerRefresh();
+  }
+
+  $: if (selectedTab) {
+    pagination.pageIndex = 0;
+    triggerRefresh();
+  }
+
+  $: totalItems = data?.totalCount || 0;
+
+  $: processedData =
+    selectedTab === 'Resources'
+      ? {
+          teamName: data?.hubName || 'Loading...',
+          workspaces: data?.hubs || [],
+        }
+      : {
+          teamName: 'Members',
+          workspaces: data || [],
+        };
+
   $: columns =
     selectedTab === 'Resources'
       ? [
@@ -102,12 +116,10 @@
           {
             accessorKey: 'name',
             header: 'Name',
-            enableSorting: false,
           },
           {
             accessorKey: 'keystats',
             header: 'Key Stats',
-            enableSorting: false,
           },
           {
             accessorKey: 'updatedAt',
@@ -116,82 +128,63 @@
             cell: ({ getValue }) => {
               const date = getValue();
               const relativeTime = getRelativeTime(date);
-              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
-        ${relativeTime}
-      </span>`;
+              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
             },
           },
           {
             accessorKey: 'createdBy',
             header: 'Created by',
-            enableSorting: false,
           },
         ]
       : [
           {
             accessorKey: 'user',
             header: 'Users',
-            enableSorting: false,
           },
           {
             accessorKey: 'Email',
             header: 'Email',
-            enableSorting: false,
           },
           {
             accessorKey: 'roles',
             header: 'Roles',
-            enableSorting: false,
             cell: ({ row }: CellContext<any, any>) => ({
               Component: RolesDropdown,
-              props: { row: row },
+              props: { row },
             }),
           },
         ];
 
-  // Function to handle tab change
+  // ─── EVENT HANDLERS ──────────────────────────────────
   function handleTabChange(tab: 'Resources' | 'Members') {
     selectedTab = tab;
   }
 
   function handleSortingChange(event: CustomEvent<SortingState>) {
     sorting = event.detail;
-    refetch();
+    triggerRefresh();
   }
 
   function handleSearchChange(event: CustomEvent<string>) {
-    filters = { ...filters, searchTerm: event.detail };
-    pagination = { ...pagination, pageIndex: 0 };
-    refetch();
+    filters.searchTerm = event.detail;
+    pagination.pageIndex = 0;
+    triggerRefresh();
   }
 
-  // event handler for page change
   function handlePageChange(event: CustomEvent<number>) {
-    pagination = { ...pagination, pageIndex: event.detail };
-    refetch();
+    pagination.pageIndex = event.detail;
+    triggerRefresh();
   }
 
-  // event handler for page size change
   function handlePageSizeChange(event: CustomEvent<number>) {
-    pagination = {
-      pageSize: event.detail,
-      pageIndex: 0,
-    };
-    refetch();
+    pagination = { pageSize: event.detail, pageIndex: 0 };
+    triggerRefresh();
   }
 
-  // Reactive statements for data processing
-  $: totalItems = $workspacesData?.data?.totalCount || 0;
-  $: data =
-    selectedTab === 'Resources'
-      ? {
-          teamName: $workspacesData?.data?.hubName || 'Loading...',
-          workspaces: $workspacesData?.data?.hubs || [],
-        }
-      : {
-          teamName: 'Members',
-          workspaces: $workspacesData?.data || [],
-        };
+  function handleSelect(event: CustomEvent<{ value: string; label: string }>) {
+    selected = event.detail;
+    triggerRefresh();
+  }
 </script>
 
 <div class="flex flex-col gap-6">
@@ -217,26 +210,25 @@
       <TableSearch
         value={filters.searchTerm}
         on:search={handleSearchChange}
-        isLoading={$isFetching}
+        {isLoading}
         placeholder="Search Workspace"
-      />
-      <Button
-        variant="filled-primary"
-        size="small"
-        iconLeft={true}
-        on:click={() => (showModal = true)}
-      >
-        <svelte:fragment slot="iconLeft">
-          <PlusIcon />
-        </svelte:fragment>
-        New Workspace
-      </Button>
+      />{#if selectedTab === 'Resources'}
+        <DropdownNoSearch
+          {options}
+          bind:selected
+          placeholder="Select option"
+          leftIcon={ResourceIcons}
+          variant="primary"
+          width="w-48"
+          on:select={handleSelect}
+        />
+      {/if}
     </div>
 
     <TableV2
       {columns}
-      data={data.workspaces}
-      isLoading={loading}
+      data={processedData.workspaces}
+      {isLoading}
       pageIndex={pagination.pageIndex}
       pageSize={pagination.pageSize}
       {totalItems}
@@ -248,7 +240,7 @@
       pageIndex={pagination.pageIndex}
       pageSize={pagination.pageSize}
       {totalItems}
-      isLoading={$isFetching}
+      {isLoading}
       on:pageChange={handlePageChange}
       on:pageSizeChange={handlePageSizeChange}
     />

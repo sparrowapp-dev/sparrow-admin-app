@@ -1,5 +1,7 @@
 export const topdata = {
   title: 'Eric',
+  summary:
+    "You are viewing details for the workspace 'Eric’s Workspace'. This workspace contains API collections, test flows, and environments that are organized for collaborative development and testing.",
   totalContributors: 10,
   totalCollections: 25,
   totalTestFLows: 3,
