@@ -3,16 +3,43 @@
   import GiftIcon from '@/assets/icons/GiftIcon.svelte';
   import Dropdown from '../ReusableDropdown/Dropdown.svelte';
   import { Link, navigate } from 'svelte-routing';
+  import { createQuery } from '@/services/api.common';
+  import { hubsService } from '@/services/hubs.service';
 
   interface Team {
     teamId: string;
     teamName: string;
     plan: string;
+    role: string;
+    workspaces: any[];
+    users: any[];
   }
 
-  export let data: Array<any>;
+  interface ApiResponse {
+    data: Team[];
+  }
+
   let dropdownOpen = false;
   let selectOption: Team | null = null;
+  let dropdownOptions: Array<any>;
+
+  // Move API call here
+  const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
+    hubsService.getAllHubs(),
+  );
+
+  // Transform data into dropdown options
+  $: {
+    if ($data && $data?.data?.length > 0) {
+      dropdownOptions = $data.data.map((team) => ({
+        label: team?.teamName || '',
+        value: team,
+        plan: null,
+      }));
+    } else {
+      dropdownOptions = [];
+    }
+  }
 
   //navigate when a selection is made
   function handleSelection(val: any) {
@@ -24,11 +51,11 @@
   }
 
   // reactively update selected value if id is present in query
-  $: if (!selectOption && data.length > 0) {
+  $: if (!selectOption && dropdownOptions.length > 0) {
     const match = location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
     const currentId = match?.[1];
 
-    const foundTeam = data.find((team) => team?.value?.teamId === currentId);
+    const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);
 
     if (foundTeam) {
       selectOption = foundTeam?.value;
@@ -43,7 +70,7 @@
         bind:open={dropdownOpen}
         icon={GiftIcon}
         label={selectOption?.teamName ? selectOption?.teamName : 'Select your Hub'}
-        options={data}
+        options={dropdownOptions}
         onSelect={handleSelection}
       />
     </div>
