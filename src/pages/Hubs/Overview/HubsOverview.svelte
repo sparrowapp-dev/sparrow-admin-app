@@ -28,7 +28,7 @@
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
-  let sorting: SortingState = [];
+  let sorting: SortingState = [{ id: 'createdAt', desc: true }];
   let showModal = false;
 
   // Queries
