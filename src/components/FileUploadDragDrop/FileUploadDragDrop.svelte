@@ -126,7 +126,7 @@
     </div>
   {:else}
     <div
-      class="bg-surface-400 flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-md border-1 border-dashed"
+      class="bg-surface-400 flex active:border-blue-300 h-40 w-full cursor-pointer flex-col items-center justify-center rounded-md border-1 border-dashed"
       class:border-blue-300={dragActive && !error}
       class:border-surface-100={!dragActive && !error}
       class:border-red-300={error}
