@@ -209,7 +209,7 @@
     </Tooltip>
     <!-- Audit Icon -->
     <Tooltip
-      text="Audit"
+      text="Audit Logs"
       position="right"
       mode="controlled"
       show={focusedPath === '/audit' || hoveredPath === '/audit'}
