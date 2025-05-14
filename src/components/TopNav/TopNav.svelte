@@ -33,10 +33,12 @@
           <span><LaunchSparrow2 /> </span></button
         ></a
       >
-      <button
-        class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
-        >Help & Support</button
+      <a
+        href="mailto:contactus@sparrowapp.dev?subject=Sparrow Admin Support"
+        class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-600 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center transition-colors focus-visible:outline-2 focus-visible:outline-blue-300"
       >
+        Help & Support
+      </a>
       <a href="https://docs.sparrowapp.dev/" target="_blank">
         <button
           class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
