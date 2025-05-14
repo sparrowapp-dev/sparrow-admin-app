@@ -45,10 +45,23 @@
     return Object.keys(newErrors).length === 0;
   }
 
+  // Clear error when user types
+  function clearError(fieldName: string) {
+    if (errors[fieldName]) {
+      errors = {
+        ...errors,
+        [fieldName]: '',
+      };
+    }
+  }
+
   function handleFileChange(event: CustomEvent) {
     const { file, preview } = event.detail;
     formData.logoFile = file;
     logoPreview = preview;
+
+    // Clear any logo-related errors if needed
+    clearError('logoFile');
   }
 
   async function handleSubmit() {
@@ -111,6 +124,7 @@
       hasError={!!errors.hubName}
       errorMessage={errors.hubName || ''}
       bind:value={formData.hubName}
+      on:input={() => clearError('hubName')}
     />
 
     <Textarea
@@ -121,6 +135,7 @@
       minHeight={96}
       charLimit={100}
       placeholder="Write a short summary about your hub"
+      on:input={() => clearError('summary')}
     />
 
     <FileUploadDragDrop
