@@ -101,7 +101,7 @@
 
 <!-- Dropdown trigger -->
 <div class="relative flex items-center justify-end">
-  <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs" display="fixed">
+  <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
     <button
       bind:this={triggerEl}
       class="hover:bg-surface-300 cursor-pointer rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
