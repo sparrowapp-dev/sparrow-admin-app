@@ -3,8 +3,6 @@
   import Workspace from './Workspace/Workspace.svelte';
   import Settings from './Settings/Settings.svelte';
   import Members from './Members/Members.svelte';
-  import { createQuery } from '@/services/api.common';
-  import { hubsService } from '@/services/hubs.service';
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
   import HubsOverview from './Overview/HubsOverview.svelte';
   import WorkSpaceOverview from './WorkSpaceOverview/WorkSpaceOverview.svelte';
@@ -50,13 +48,13 @@
 <div>
   {#if $location.pathname.startsWith('/hubs/workspace') || $location.pathname.startsWith('/hubs/settings') || $location.pathname.startsWith('/hubs/members')}
     <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-      <!-- Sidebar -->
+      <!-- Sidebar - no longer passing data prop -->
       <div class="max-w-[266px] min-w-[266px]">
-        <HubsSideNav data={dropdownOptions ?? []} />
+        <HubsSideNav />
       </div>
 
       <!-- Nested Route Content -->
-      <div class="w-full overflow-auto p-4">
+      <div class="w-[100%] overflow-auto p-4">
         <Router>
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />

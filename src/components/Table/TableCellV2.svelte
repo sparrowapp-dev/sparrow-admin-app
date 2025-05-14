@@ -4,6 +4,10 @@
   export let cell: CellContext<any, any>;
   export let className = '';
   export let showOnHover = false;
+  export let maxWidth = '200px';
+
+  // Get cell value as string for title attribute
+  $: cellValue = typeof cell.getValue() === 'string' ? cell.getValue() : '';
 </script>
 
 <td
@@ -22,22 +26,25 @@
       ${showOnHover ? 'opacity-0 transition-opacity duration-150 group-hover/row:opacity-100' : ''}
       ${className}
     `}
+  style={`max-width: ${maxWidth};`}
   on:click
 >
-  {#if typeof cell.column.columnDef.cell === 'function'}
-    {#if typeof cell.column.columnDef.cell(cell) === 'object'}
-      {#if cell.column.columnDef.cell(cell)?.Component}
-        <svelte:component
-          this={cell.column.columnDef.cell(cell)?.Component}
-          {...cell.column.columnDef.cell(cell)?.props}
-        />
+  <div class="overflow-hidden text-ellipsis whitespace-nowrap" title={cellValue}>
+    {#if typeof cell.column.columnDef.cell === 'function'}
+      {#if typeof cell.column.columnDef.cell(cell) === 'object'}
+        {#if cell.column.columnDef.cell(cell)?.Component}
+          <svelte:component
+            this={cell.column.columnDef.cell(cell)?.Component}
+            {...cell.column.columnDef.cell(cell)?.props}
+          />
+        {:else}
+          {@html cell.column.columnDef.cell(cell)}
+        {/if}
       {:else}
         {@html cell.column.columnDef.cell(cell)}
       {/if}
     {:else}
-      {@html cell.column.columnDef.cell(cell)}
+      {cell.getValue()}
     {/if}
-  {:else}
-    {cell.getValue()}
-  {/if}
+  </div>
 </td>

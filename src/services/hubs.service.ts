@@ -69,6 +69,15 @@ export class HubsService {
     const res = await makeRequest('POST', '/api/admin/create-workspace', data);
     return res?.data;
   }
+
+  public async createHub(data: FormData): Promise<any> {
+    const res = await makeRequest('POST', '/api/admin/create-hub', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

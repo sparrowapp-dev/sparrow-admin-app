@@ -22,11 +22,13 @@
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
   import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
+  import Modal from '@/components/Modal/Modal.svelte';
+  import AddHubs from '@/components/AddHubs/AddHubs.svelte';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
-  let sorting: SortingState = [];
+  let sorting: SortingState = [{ id: 'createdAt', desc: true }];
   let showModal = false;
 
   // Queries
@@ -284,6 +286,11 @@
       />
     {/if}
   </div>
+  {#if showModal}
+    <Modal on:close={() => (showModal = false)}>
+      <AddHubs onClose={() => (showModal = false)} />
+    </Modal>
+  {/if}
 </section>
 
 <style>

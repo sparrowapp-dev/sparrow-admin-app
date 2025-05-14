@@ -42,6 +42,16 @@
     return Object.keys(newErrors).length === 0;
   }
 
+  // Clear error when user types
+  function clearError(fieldName: string) {
+    if (errors[fieldName]) {
+      errors = {
+        ...errors,
+        [fieldName]: '',
+      };
+    }
+  }
+
   async function handleSubmit() {
     if (!validateForm()) return;
 
@@ -64,12 +74,10 @@
   }
 </script>
 
-<div class="bg-surface-600 rounded-2xl p-6">
-  <div class="flex items-center justify-between">
+<div class="bg-surface-600 rounded-lg p-6">
+  <div class="flex items-start justify-between">
     <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Add Workspace</h2>
-    <div on:click={onClose} class="cursor-pointer">
-      <CloseIcon />
-    </div>
+    <button type="button" class="cursor-pointer" on:click={onClose}> <CloseIcon /> </button>
   </div>
 
   <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
@@ -86,6 +94,7 @@
       hasError={!!errors.workspaceName}
       errorMessage={errors.workspaceName || ''}
       bind:value={formData.workspaceName}
+      on:input={() => clearError('workspaceName')}
     />
 
     <Textarea

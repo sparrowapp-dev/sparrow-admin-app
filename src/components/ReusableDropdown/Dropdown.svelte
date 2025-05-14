@@ -117,29 +117,38 @@
                 mode="hover"
                 size="xs"
               >
-                <span>{option.label}</span>
+                <!-- Add max-width and truncation to prevent long text from breaking layout -->
+                <span class="block max-w-[100px] truncate text-left" title={option.label}>
+                  {option.label}
+                </span>
               </Tooltip>
 
-              {#if selected === option.label}
-                <span>
-                  <svg
-                    width="12"
-                    height="9"
-                    viewBox="0 0 12 9"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+              <div class="ml-2 flex-shrink-0">
+                {#if selected === option.label}
+                  <span>
+                    <svg
+                      width="12"
+                      height="9"
+                      viewBox="0 0 12 9"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
+                        fill="#6894F9"
+                      />
+                    </svg>
+                  </span>
+                {:else if showPlans && option.plan}
+                  <span
+                    class="rounded-[2x] border px-1 py-0.5 whitespace-nowrap {getDynamicCssClasses(
+                      option.plan,
+                    )}"
                   >
-                    <path
-                      d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
-                      fill="#6894F9"
-                    />
-                  </svg>
-                </span>
-              {:else if showPlans && option.plan}
-                <span class="rounded-[2x] border px-1 py-0.5 {getDynamicCssClasses(option.plan)}">
-                  {option.plan}
-                </span>
-              {/if}
+                    {option.plan}
+                  </span>
+                {/if}
+              </div>
             </button>
           {/each}
         {/if}
