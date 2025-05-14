@@ -42,6 +42,16 @@
     return Object.keys(newErrors).length === 0;
   }
 
+  // Clear error when user types
+  function clearError(fieldName: string) {
+    if (errors[fieldName]) {
+      errors = {
+        ...errors,
+        [fieldName]: '',
+      };
+    }
+  }
+
   async function handleSubmit() {
     if (!validateForm()) return;
 
@@ -84,6 +94,7 @@
       hasError={!!errors.workspaceName}
       errorMessage={errors.workspaceName || ''}
       bind:value={formData.workspaceName}
+      on:input={() => clearError('workspaceName')}
     />
 
     <Textarea

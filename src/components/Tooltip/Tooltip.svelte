@@ -9,6 +9,7 @@
   export let mode = 'hover'; // "hover" or "controlled"
   export let hideDelay = 0; // Delay in ms before hiding tooltip (for controlled mode)
   export let showDelay = 0; // Delay in ms before showing tooltip (for hover mode)
+  export let display = 'relative';
 
   // Internal state for hover mode
   let isHovered = false;
@@ -133,7 +134,7 @@
 </script>
 
 <div
-  class="relative inline-block"
+  class="{display} inline-block"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >

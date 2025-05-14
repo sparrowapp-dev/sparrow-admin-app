@@ -116,7 +116,6 @@
                 position={index === 0 ? 'bottom' : 'top'}
                 mode="hover"
                 size="xs"
-                maxWidth="180px"
               >
                 <!-- Add max-width and truncation to prevent long text from breaking layout -->
                 <span class="block max-w-[100px] truncate text-left" title={option.label}>
