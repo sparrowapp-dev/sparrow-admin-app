@@ -3,7 +3,7 @@
   import EditIconWhite from '@/assets/icons/EditIconWhite.svelte';
   import FileUploadIcon from '@/assets/icons/FileUploadIcon.svelte';
   import Image from '@/assets/icons/Image.svelte';
-  import DeleteIcon from '@/assets/icons/DeleteIcon.svelte';
+  import Delete from '@/assets/icons/Delete.svelte';
 
   export let label = 'Upload File';
   export let hint = 'Upload your image (max 2MB, square format). Supported: .jpg, .jpeg, .png.';
@@ -33,7 +33,7 @@
 
     // Check file type
     if (!acceptedTypes.includes(file.type)) {
-      error = `Invalid file type. Allowed: ${acceptedTypes.map((t) => t.split('/')[1]).join(', ')}`;
+      error = `This file type is not supported. Please reupload in any of the following file formats: .jpg, .jpeg, .png .`;
       dispatch('error', error);
       return;
     }
@@ -120,13 +120,13 @@
           on:click={handleDelete}
           title="Delete"
         >
-          <DeleteIcon />
+          <Delete />
         </button>
       </div>
     </div>
   {:else}
     <div
-      class="bg-surface-400 flex active:border-blue-300 h-40 w-full cursor-pointer flex-col items-center justify-center rounded-md border-1 border-dashed"
+      class="bg-surface-400 flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-md border-1 border-dashed active:border-blue-300"
       class:border-blue-300={dragActive && !error}
       class:border-surface-100={!dragActive && !error}
       class:border-red-300={error}
