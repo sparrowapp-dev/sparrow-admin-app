@@ -24,6 +24,20 @@ interface CreateWorkspaceDto {
   description?: string;
 }
 
+interface MemberQueryParams {
+  hubId: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+interface InviteQueryParams {
+  hubId: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 export class HubsService {
   public async getAllHubs(): Promise<{ data: any[] }> {
     const res = await makeRequest('GET', '/api/admin/hubs');
@@ -96,6 +110,40 @@ export class HubsService {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return res?.data;
+  }
+
+  public async getHubMembers(params: MemberQueryParams): Promise<any> {
+    if (!params.hubId) {
+      return Promise.resolve({ data: { members: [], totalCount: 0, hubName: '' } });
+    }
+
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('hubId', params.hubId);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search !== undefined) queryParams.append('search', params.search);
+
+    const url = `/api/admin/hub-members?${queryParams.toString()}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+
+  public async getHubInvites(params: InviteQueryParams): Promise<any> {
+    if (!params.hubId) {
+      return Promise.resolve({ data: { invites: [], totalCount: 0 } });
+    }
+
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('hubId', params.hubId);
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search !== undefined) queryParams.append('search', params.search);
+
+    const url = `/api/admin/hub-invites?${queryParams.toString()}`;
+    const res = await makeRequest('GET', url);
     return res?.data;
   }
 }

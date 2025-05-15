@@ -37,6 +37,11 @@
   let params: any;
   let showModal = false;
 
+  // Add error tracking object
+  let errors = {
+    name: '',
+  };
+
   // Extract hub ID from URL
   const extractedParam = derived(location, ($location) => {
     const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
@@ -78,10 +83,35 @@
     }
   }
 
+  // Validate hub name field
+  function validateHubName(name: string): boolean {
+    if (!name.trim()) {
+      errors.name = 'Hub name is required';
+      return false;
+    }
+
+    errors.name = '';
+    return true;
+  }
+
+  // Clear error when typing
+  function clearError(field: string) {
+    if (errors[field]) {
+      errors[field] = '';
+    }
+  }
+
   // Save changes function - only send the modified field
   async function saveChanges(field: string, value: any) {
     // Don't save if the value hasn't changed
     if (originalData[field] === value) return;
+
+    // For name field, validate before saving
+    if (field === 'name') {
+      if (!validateHubName(value)) {
+        return; // Don't proceed if validation fails
+      }
+    }
 
     try {
       isSaving = true;
@@ -129,6 +159,15 @@
       console.error('Error saving hub settings:', error);
     } finally {
       isSaving = false;
+    }
+  }
+
+  // Special handler for hub name blur to ensure validation
+  function handleHubNameBlur() {
+    // First validate
+    if (validateHubName(hubData.name)) {
+      // Only save if validation passes
+      saveChanges('name', hubData.name);
     }
   }
 
@@ -194,7 +233,7 @@
   <div class="flex flex-col gap-8 md:flex-row md:gap-0">
     <!-- Left column -->
     <div class="flex flex-col gap-6 md:w-1/2 md:pr-6">
-      <!-- Hub name -->
+      <!-- Hub name with required field validation -->
       <div>
         <Input
           label="Hub Name"
@@ -202,7 +241,11 @@
           name="hubName"
           bind:value={hubData.name}
           placeholder="Enter hub name"
-          on:blur={() => saveChanges('name', hubData.name)}
+          required={true}
+          hasError={!!errors.name}
+          errorMessage={errors.name}
+          on:input={() => clearError('name')}
+          on:blur={handleHubNameBlur}
         />
       </div>
 
