@@ -151,7 +151,7 @@
         }
       }
 
-      notification.success('Hub details updated');
+      notification.success('Hub details updated successfully.');
     } catch (error) {
       // Revert to original value on error
       hubData[field] = originalData[field];
@@ -190,9 +190,9 @@
 </script>
 
 <section class="w-full">
-  <div class="flex items-end justify-between">
+  <div class="flex items-center justify-between">
     <h1
-      class="font-inter text-fs-ds-28 font-fw-ds-500 w-1/4 truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"
+      class="font-inter text-fs-ds-20 font-fw-ds-500 max-w-[350px] truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"
     >
       {hubData.name}
     </h1>
