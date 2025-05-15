@@ -9,6 +9,7 @@
   export let placeholder = 'Search';
   export let debounceMs = 600;
   export let isLoading = false;
+  export let width = 'max-w-[220px]'; // New width prop with default value
 
   // Local state
   let inputValue = value;
@@ -54,7 +55,7 @@
   });
 </script>
 
-<form class="w-full max-w-[220px]" on:submit={handleSubmit}>
+<form class="w-full {width}" on:submit={handleSubmit}>
   <div class="relative flex items-center justify-between">
     <div class="absolute left-3 text-neutral-300">
       <Search />

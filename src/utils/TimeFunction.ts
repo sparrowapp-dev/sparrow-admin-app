@@ -7,7 +7,7 @@ export function getRelativeTime(date: string | number | Date): string {
   const days = Math.floor(hours / 24);
   const months = Math.floor(days / 30);
   const years = Math.floor(months / 12);
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
+
   if (years > 0) {
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
   } else if (months > 0) {
@@ -19,6 +19,6 @@ export function getRelativeTime(date: string | number | Date): string {
   } else if (minutes > 0) {
     return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
   } else {
-    return 'just now';
+    return 'Just now';
   }
 }
