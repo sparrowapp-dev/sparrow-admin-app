@@ -200,7 +200,7 @@
   // Reactive statements
   $: totalItems = $workspacesData?.data?.totalCount || 0;
   $: data = {
-    teamName: $workspacesData?.data?.hubName || 'Loading...',
+    teamName: $workspacesData?.data?.hubName || '',
     workspaces: $workspacesData?.data?.hubs || [],
     isNewHub: $workspacesData?.data?.isNewHub || false,
   };
