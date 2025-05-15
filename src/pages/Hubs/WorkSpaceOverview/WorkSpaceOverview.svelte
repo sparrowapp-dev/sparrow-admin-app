@@ -6,13 +6,14 @@
   import PopupModal from './PopupModal.svelte';
 
   // ─── DATA & SERVICES ────────────────────────────────
-  import { members, ResourceData, topdata } from './dummyData';
+  import { topdata } from './dummyData';
   import { createQuery } from '@/services/api.common';
 
   // ─── SVELTE LIFECYCLE & STORES ──────────────────────
   import { onDestroy, onMount } from 'svelte';
   import { derived } from 'svelte/store';
-  import { useLocation } from 'svelte-routing';
+  import { navigate, useLocation } from 'svelte-routing';
+  import { hubsService } from '@/services/hubs.service';
 
   // ─── STATE VARIABLES ────────────────────────────────
   let showModal = false;
@@ -56,8 +57,18 @@
   }
 
   // ─── CALLBACKS ───────────────────────────────────────
-  function handleWorkspaceCreated() {
-    console.log('Workspace created');
+  function handleOnSuccess() {
+    if (modalVariants.isEditWorkspaceModalOpen) {
+      TopDatarefetch();
+    }
+    if (modalVariants.isMakeItPublicModalOpen) {
+      TopDatarefetch();
+    }
+    if (modalVariants.isInviteModal) {
+    }
+    if (modalVariants.isDeleteWorkspaceModalOpen) {
+      navigate(`/hubs/workspace/${hubId}`);
+    }
   }
 
   function handleRefresh(newState: Partial<typeof queryState>) {
@@ -68,22 +79,48 @@
   // ─── ROUTE PARAM HANDLING ────────────────────────────
   const location = useLocation();
   let params: string | undefined;
+  let hubId: string | undefined;
   let unsubscribe: (() => void) | undefined;
 
-  const extractedParam = derived(location, ($location) => {
-    const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
-    return match?.[1];
+  const extractedParams = derived(location, ($location) => {
+    const match = $location.pathname.match(/\/hubs\/workspace-details\/([^\/]+)\/([^\/]+)/);
+    return {
+      workspaceId: match?.[1],
+      hubId: match?.[2],
+    };
+  });
+  // onMount(() => {
+  //   unsubscribe = extractedParam.subscribe((id) => {
+  //     if (id && id !== params) {
+  //       params = id;
+  //       refetch();
+  //       TopDatarefetch();
+  //     }
+  //   });
+  // });
+  onMount(() => {
+    unsubscribe = extractedParams.subscribe(({ workspaceId: wId, hubId: hId }) => {
+      if (wId && wId !== params) {
+        params = wId;
+        hubId = hId;
+        refetch();
+        TopDatarefetch();
+      }
+    });
+  });
+  onDestroy(() => {
+    unsubscribe?.();
   });
 
   // ─── QUERY STATE ─────────────────────────────────────
   let queryState: {
-    tab: 'Resources' | 'Members';
+    tab: 'resources' | 'members';
     pagination: { pageIndex: number; pageSize: number };
     filters: { searchTerm: string };
     sorting: { id: string; desc?: boolean }[];
     resourceType: string;
   } = {
-    tab: 'Resources',
+    tab: 'resources',
     pagination: { pageIndex: 0, pageSize: 10 },
     filters: { searchTerm: '' },
     sorting: [],
@@ -91,10 +128,6 @@
   };
 
   // ─── DATA FETCHING ───────────────────────────────────
-  const fetchTabData = async (tab: 'Resources' | 'Members', queryParams: any) => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return tab === 'Resources' ? ResourceData : members;
-  };
 
   const {
     data: workspacesData,
@@ -102,36 +135,35 @@
     refetch,
   } = createQuery(async () => {
     const queryParams = {
-      hubId: params,
+      workspaceId: params,
+      hubId: hubId,
       page: queryState.pagination.pageIndex + 1,
       limit: queryState.pagination.pageSize,
       search: queryState.filters.searchTerm,
       sortBy: queryState.sorting[0]?.id || 'createdAt',
       sortOrder: queryState.sorting[0]?.desc ? 'desc' : 'asc',
       workspaceType: queryState.resourceType,
+      tab: queryState.tab,
+      resources: queryState.resourceType,
     };
 
-    return fetchTabData(queryState.tab, queryParams);
+    return hubsService.getWorkspaceDetails(queryParams);
   });
 
-  // ─── LIFECYCLE HOOKS ─────────────────────────────────
-  onMount(() => {
-    unsubscribe = extractedParam.subscribe((id) => {
-      if (id && id !== params) {
-        params = id;
-        refetch();
-      }
-    });
-  });
+  const {
+    data: topData,
+    isFetching: isTopDataFetching,
+    refetch: TopDatarefetch,
+  } = createQuery(async () => {
+    const queryParams = { workspaceId: params, hubId: hubId };
 
-  onDestroy(() => {
-    unsubscribe?.();
+    return hubsService.getWorkspaceSummary(queryParams);
   });
 </script>
 
 <section class="font-inter w-full text-neutral-50">
   <div class="flex flex-col gap-6">
-    <TopWorkspace {topdata} {openModal} />
+    <TopWorkspace topdata={$topData?.data} {openModal} isLoading={$isTopDataFetching} />
     <BottomWorkspace
       data={$workspacesData?.data}
       onRefresh={handleRefresh}
@@ -142,9 +174,11 @@
     <Modal on:close={closeAllModals}>
       <PopupModal
         onClose={closeAllModals}
-        data={topdata}
-        onSuccess={handleWorkspaceCreated}
+        data={$topData.data}
+        onSuccess={handleOnSuccess}
         {modalVariants}
+        {params}
+        {hubId}
       />
     </Modal>
   {/if}

@@ -1,18 +1,13 @@
 <script lang="ts">
-  import EditIcon from '@/assets/icons/EditIcon.svelte';
-  import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
-  import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
-  import { navigate } from 'svelte-routing';
   import { onMount, onDestroy } from 'svelte';
   import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
   import Check from '@/assets/icons/Check.svelte';
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
 
   export let row;
-  console.log(row);
-  const isAdmin = row.original.roles === 'Admin';
-  let selectedRole = row.original.roles;
-  const roles = ['Editor', 'Viewer'];
+  const isAdmin = row.original.role === 'admin';
+  let selectedRole = row.original.role;
+  const roles = ['editor', 'viewer'];
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;

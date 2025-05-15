@@ -78,6 +78,77 @@ export class HubsService {
     });
     return res?.data;
   }
+
+  public async getWorkspaceDetails(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+
+    const defaults = {
+      tab: 'resources',
+      page: 1,
+      limit: 10,
+      search: '',
+      resources: 'all',
+      sortBy: 'updatedAt',
+      sortOrder: 'desc',
+    };
+
+    queryParams.append('workspaceId', params.workspaceId);
+
+    queryParams.append('tab', params.tab?.trim() || defaults.tab);
+    queryParams.append('page', params.page?.toString() || defaults.page.toString());
+    queryParams.append('limit', params.limit?.toString() || defaults.limit.toString());
+    queryParams.append('search', params.search?.trim() || defaults.search);
+    queryParams.append('resources', params.resources?.trim() || defaults.resources);
+    queryParams.append('sortBy', params.sortBy?.trim() || defaults.sortBy);
+    queryParams.append('sortOrder', params.sortOrder?.trim() || defaults.sortOrder);
+
+    const url = `/api/admin/workspace-details?${queryParams.toString()}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+  public async getWorkspaceSummary(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('hubId', params.hubId);
+
+    const url = `/api/admin/workspace-summary?${queryParams.toString()}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+
+  public async inviteCollaborators({ data, params }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('hubId', params.hubId);
+    const url = `/api/admin/workspace-details?${queryParams.toString()}`;
+    const res = await makeRequest('POST', url, data);
+    return res?.data;
+  }
+  public async editWorkspace({ data, params }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('hubId', params.hubId);
+    const url = `/api/admin/workspace-details?${queryParams.toString()}`;
+    const res = await makeRequest('PUT', url, data);
+    return res?.data;
+  }
+  public async makeitpublic({ data, params }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('hubId', params.hubId);
+    const url = `/api/admin/workspace-details?${queryParams.toString()}`;
+    const res = await makeRequest('PATCH', url, data);
+    return res?.data;
+  }
+  public async deleteWorkspace({ params }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('hubId', params.hubId);
+    const url = `/api/admin/workspace-details?${queryParams.toString()}`;
+    const res = await makeRequest('DELETE', url);
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

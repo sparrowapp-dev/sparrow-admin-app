@@ -6,7 +6,7 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
 
   export let row;
-
+  export let params;
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;
@@ -63,7 +63,7 @@
 
   function handleManageHub(event, hub) {
     event.stopPropagation();
-    navigate(`/hubs/settings/${hub._id || hub.id}`);
+    navigate(`/hubs/workspace-details/${hub._id || hub.id}/${params}`);
     closeDropdown();
   }
 

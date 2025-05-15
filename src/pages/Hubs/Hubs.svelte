@@ -6,6 +6,8 @@
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
   import HubsOverview from './Overview/HubsOverview.svelte';
   import WorkSpaceOverview from './WorkSpaceOverview/WorkSpaceOverview.svelte';
+  import { createQuery } from '@/services/api.common';
+  import { hubsService } from '@/services/hubs.service';
   interface Team {
     teamId: string;
     teamName: string;
@@ -59,7 +61,7 @@
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />
           <Route path="members/:id" component={Members} />
-          <Route path="workspace-details/:id" component={WorkSpaceOverview} />
+          <Route path="workspace-details/:id/:id" component={WorkSpaceOverview} />
         </Router>
       </div>
     </div>

@@ -7,20 +7,21 @@
   import Button from '@/ui/Button/Button.svelte';
   import Input from '@/ui/Input/Input.svelte';
   import Textarea from '@/ui/Textarea/Textarea.svelte';
-  import EmailInvite from './EmailInvite.svelte';
-  import { topdata } from './dummyData';
-  import { get } from 'svelte/store';
+  import EmailInvite from '../../../components/EmailInvite/EmailInvite.svelte';
+  import InvitePopupHubIcon from '@/assets/icons/InvitePopupHubIcon.svelte';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
   export let onSuccess: () => void;
   export let data: any;
+  export let hubId;
   export let modalVariants: {
     isEditWorkspaceModalOpen: boolean;
     isMakeItPublicModalOpen: boolean;
     isDeleteWorkspaceModalOpen: boolean;
     isInviteModal: boolean;
   };
+  export let params;
 
   // ─── TYPES ────────────────────────────────────────────
   interface FormData {
@@ -46,7 +47,7 @@
       desc: 'Create and modify resources within a workspace.',
     },
     {
-      value: 'Manager',
+      value: 'Viewer',
       desc: 'View resources in a workspace without making changes.',
     },
   ];
@@ -79,10 +80,7 @@
       }
     }
 
-    if (
-      modalVariants.isDeleteWorkspaceModalOpen &&
-      formData.deleteworkspaceName !== formData.workspaceName
-    ) {
+    if (modalVariants.isDeleteWorkspaceModalOpen && formData.deleteworkspaceName !== data?.title) {
       newErrors.deleteNameMismatchError = 'Workspace name does not match.';
     }
 
@@ -93,22 +91,55 @@
   // ─── SUBMIT HANDLER ───────────────────────────────────
   async function handleSubmit() {
     if (!validateForm()) return;
-
     isLoading = true;
 
     try {
-      const response = await hubsService.createWorkspace({
-        id: topdata.id,
-        name: formData.workspaceName.trim(),
-        description: formData.summary.trim(),
-      });
+      // Handle different services based on modal variant
+      if (modalVariants.isEditWorkspaceModalOpen) {
+        // Handle editing workspace
+        const response = await hubsService.editWorkspace({
+          params: { workspaceId: params, hubId: hubId },
+          data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
+        });
+        const updatedName = response?.data?.name ?? formData.workspaceName.trim();
+        notification.success(`"${updatedName}" workspace updated successfully.`);
+      } else if (modalVariants.isMakeItPublicModalOpen) {
+        // Handle making workspace public
+        const response = await hubsService.makeitpublic({
+          params: { workspaceId: params, hubId: hubId },
+          data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
+        });
+        notification.success(`"${formData.workspaceName}" is now public.`);
+      } else if (modalVariants.isDeleteWorkspaceModalOpen) {
+        // Handle deleting workspace
+        const response = await hubsService.deleteWorkspace({
+          params: { workspaceId: params, hubId: hubId },
+        });
+        notification.success(`"${formData.workspaceName}" has been deleted.`);
+      } else if (modalVariants.isInviteModal) {
+        // Handle inviting collaborators
+        const response = await hubsService.inviteCollaborators({
+          params: { workspaceId: params, hubId: hubId },
+          data: { users: formData?.emails, role: formData?.role },
+        });
+        notification.success(`Invitations sent successfully.`);
+      }
 
-      const createdName = response?.data?.name ?? formData.workspaceName.trim();
-      notification.success(`"${createdName}" workspace created successfully.`);
       onSuccess();
       onClose();
     } catch (error: any) {
-      notification.error('Failed to create workspace. Please try again.');
+      // Handle different error messages based on the action
+      if (modalVariants.isEditWorkspaceModalOpen) {
+        notification.error('Failed to update workspace. Please try again.');
+      } else if (modalVariants.isMakeItPublicModalOpen) {
+        notification.error('Failed to make workspace public. Please try again.');
+      } else if (modalVariants.isDeleteWorkspaceModalOpen) {
+        notification.error('Failed to delete workspace. Please try again.');
+      } else if (modalVariants.isInviteModal) {
+        notification.error('Failed to send invitations. Please try again.');
+      } else {
+        notification.error('Failed to create workspace. Please try again.');
+      }
     } finally {
       isLoading = false;
     }
@@ -234,18 +265,18 @@
         <CloseIcon />
       </button>
     </div>
-    <span class="mb-0.5 flex flex-col gap-0.5">
+    <span class="mb-1 flex flex-col gap-0.5">
       <p class="text-fs-ds-14 font-fw-ds-300 font-inter text-neutral-200">
         Enter workspace name to confirm <span class="ml-1 text-red-400">*</span>
       </p>
 
-      <p class="font-inter leading-lh-ds-150 text-fs-ds-12 text-left text-neutral-400">
+      <p class="font-inter leading-lh-ds-150 text-fs-ds-12 pr-2 text-left text-neutral-400">
         Everything in {data.title} Workspace will be permanently removed, all contributors will lose
         access. This action cannot be undone.
       </p></span
     >
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+    <form on:submit|preventDefault={handleSubmit} class="space-y-2">
       <Input
         id="workspaceName"
         name="workspaceName"
@@ -253,36 +284,47 @@
         required={true}
         hasError={!!errors.workspaceName}
         errorMessage={errors.workspaceName || ''}
-        bind:value={formData.workspaceName}
+        bind:value={formData.deleteworkspaceName}
       />
-
-      <div class="mt-6 flex w-full items-center justify-end gap-3">
-        <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
-        <Button variant="filled-tertiary" size="medium" type="submit" disabled={isLoading}>
-          Delete WorkSpace
-        </Button>
+      <div class="flex items-end justify-between">
+        <div class="flex items-center gap-3">
+          <div
+            class="bg-surface-500 border-surface-50 flex h-9 w-9 items-center justify-center rounded-[133.33px] border-[1.33px]"
+          >
+            <span class="font-inter text-fs-ds-14 font-fw-ds-500 text-neutral-50">
+              {data?.hubName?.[0]?.toUpperCase() || ''}
+            </span>
+          </div>
+          <span class="font-inter text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 text-neutral-50"
+            >{data?.hubName}</span
+          >
+        </div>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
+          <Button variant="filled-tertiary" size="medium" type="submit" disabled={isLoading}>
+            Delete WorkSpace
+          </Button>
+        </div>
       </div>
     </form>
 
     <!-- Default Modal (Invite Members) -->
   {:else}
     <div class="flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Invite Members</h2>
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter mb-6 text-neutral-50">
+        Add People to Workspace
+      </h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
         <CloseIcon />
       </button>
     </div>
 
-    <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
-      Invite members to collaborate on this workspace
-    </p>
-
-    <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+    <form on:submit|preventDefault={handleSubmit} class="space-y-4">
       <EmailInvite
         label="Invite by email"
         id="emails"
         placeholder="Enter email ID"
-        maxHeight="200px"
+        maxHeight="76px"
         required={true}
         desc="You can add multiple emails"
         bind:emails={formData.emails}
@@ -297,6 +339,16 @@
         bind:selected={formData.role}
         errorMessage={errors.roleError}
       />
+      <div class="flex items-center gap-1 py-1 pr-1 pl-2">
+        <div
+          class="bg-surface-100 flex h-[24px] w-[24px] items-center justify-center rounded-[100px]"
+        >
+          <InvitePopupHubIcon />
+        </div>
+        <h2 class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
+          {data?.hubName}
+        </h2>
+      </div>
 
       <div class="mt-6 flex w-full items-center justify-end gap-3">
         <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>

@@ -6,7 +6,7 @@
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
-  import RolesDropdown from './RolesDropdown.svelte';
+  import RolesDropdown from '../../../components/RolesDropdown/RolesDropdown.svelte';
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import Button from '@/ui/Button/Button.svelte';
 
@@ -24,7 +24,7 @@
   // ─── PROPS ───────────────────────────────────────────
   export let data;
   export let onRefresh: (args: {
-    tab: 'Resources' | 'Members';
+    tab: 'resources' | 'members';
     pagination: typeof pagination;
     filters: typeof filters;
     sorting: SortingState;
@@ -55,7 +55,7 @@
   });
 
   // ─── STATE ───────────────────────────────────────────
-  let selectedTab: 'Resources' | 'Members' = 'Resources';
+  let selectedTab: 'resources' | 'members' = 'resources';
   let showModal = false;
 
   let pagination = { pageIndex: 0, pageSize: 10 };
@@ -63,10 +63,10 @@
   let sorting: SortingState = [];
 
   const options = [
-    { value: 'COLLECTIONS', label: 'Collections' },
-    { value: 'TESTFLOWS', label: 'Test Flows' },
-    { value: 'ENVIRONMENTS', label: 'Environments' },
-    { value: '', label: 'All Resources' },
+    { value: 'collections', label: 'Collections' },
+    { value: 'testflows', label: 'Test Flows' },
+    { value: 'environments', label: 'Environments' },
+    { value: 'all', label: 'All Resources' },
   ];
 
   let selected = { value: '', label: 'All Workspaces' };
@@ -95,21 +95,20 @@
   $: totalItems = data?.totalCount || 0;
 
   $: processedData =
-    selectedTab === 'Resources'
+    selectedTab === 'resources'
       ? {
-          teamName: data?.hubName || 'Loading...',
-          workspaces: data?.hubs || [],
+          workspaces: data?.resources || [],
         }
       : {
           teamName: 'Members',
-          workspaces: data || [],
+          workspaces: data?.users || [],
         };
 
   $: columns =
-    selectedTab === 'Resources'
+    selectedTab === 'resources'
       ? [
           {
-            accessorKey: 'resources',
+            accessorKey: 'resourceType',
             header: 'Resources',
             enableSorting: true,
           },
@@ -118,7 +117,7 @@
             header: 'Name',
           },
           {
-            accessorKey: 'keystats',
+            accessorKey: 'keyStats',
             header: 'Key Stats',
           },
           {
@@ -142,11 +141,11 @@
             header: 'Users',
           },
           {
-            accessorKey: 'Email',
+            accessorKey: 'email',
             header: 'Email',
           },
           {
-            accessorKey: 'roles',
+            accessorKey: 'role',
             header: 'Roles',
             cell: ({ row }: CellContext<any, any>) => ({
               Component: RolesDropdown,
@@ -156,7 +155,7 @@
         ];
 
   // ─── EVENT HANDLERS ──────────────────────────────────
-  function handleTabChange(tab: 'Resources' | 'Members') {
+  function handleTabChange(tab: 'resources' | 'members') {
     selectedTab = tab;
   }
 
@@ -191,16 +190,16 @@
   <div class="flex gap-2 px-4">
     <button
       class={`text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 font-inter cursor-pointer border-b-2 pb-1
-          ${selectedTab === 'Resources' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}
-      on:click={() => (selectedTab = 'Resources')}
+          ${selectedTab === 'resources' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}
+      on:click={() => (selectedTab = 'resources')}
     >
       Resources
     </button>
 
     <button
       class={`text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 font-inter cursor-pointer border-b-2 pb-1
-          ${selectedTab === 'Members' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}
-      on:click={() => (selectedTab = 'Members')}
+          ${selectedTab === 'members' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}
+      on:click={() => (selectedTab = 'members')}
     >
       Members
     </button>
@@ -212,7 +211,7 @@
         on:search={handleSearchChange}
         {isLoading}
         placeholder="Search Workspace"
-      />{#if selectedTab === 'Resources'}
+      />{#if selectedTab === 'resources'}
         <DropdownNoSearch
           {options}
           bind:selected

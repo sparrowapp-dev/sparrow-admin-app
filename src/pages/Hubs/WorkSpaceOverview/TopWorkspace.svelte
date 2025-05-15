@@ -8,15 +8,21 @@
   import LaunchInSparrow from '@/assets/icons/LaunchInSparrow.svelte';
   import DeleteIcon from '@/assets/icons/DeleteIcon.svelte';
   import MakeitPublic from '@/assets/icons/MakeitPublic.svelte';
+  import Public from '@/assets/icons/Public.svelte';
+  import PublicRight from '@/assets/icons/PublicRight.svelte';
+  import { getRelativeTime } from '@/utils/TimeFunction';
 
   export let topdata;
   export let openModal;
-  const stats = [
-    { label: 'Total Contributors', value: topdata.totalContributors },
-    { label: 'Total Collections', value: topdata.totalCollections },
-    { label: 'Total Test Flows', value: topdata.totalTestFLows },
-    { label: 'Total Environments', value: topdata.totalEnvironments },
-  ];
+  export let isLoading;
+  $: stats = topdata
+    ? [
+        { label: 'Total Contributors', value: topdata.totalContributors },
+        { label: 'Total Collections', value: topdata.totalCollections },
+        { label: 'Total Test Flows', value: topdata.totalTestFLows },
+        { label: 'Total Environments', value: topdata.totalEnvironments },
+      ]
+    : [];
 
   // Dropdown state management
   let isOpen = false;
@@ -88,12 +94,15 @@
       <div class="header flex w-full flex-row items-center justify-between">
         <div class="flex max-h-[20px] items-center gap-3">
           <h2 class="font-inter text-fs-ds-28 leading-lh-ds-120 font-medium text-neutral-50">
-            {topdata.title}'s Workspace
+            {topdata?.title}
           </h2>
-          <span
-            class="text-fs-ds-12 leading-lh-ds-130 font-regular flex flex-row items-center gap-0.5 rounded-[2px] border border-cyan-700 bg-cyan-900 px-0.5 pt-0.5 pl-1 text-cyan-300"
-            >Private <PrivateIcon />
-          </span>
+          {#if topdata?.WorkspaceType === 'PRIVATE'}
+            <span>
+              <PrivateIcon />
+            </span>
+          {:else}
+            <span class="rounded-[2px] border border-green-700 bg-green-900"><PublicRight /></span>
+          {/if}
         </div>
         <div class="flex gap-2">
           <button
@@ -105,7 +114,7 @@
           <div class="relative">
             <div
               bind:this={triggerEl}
-              class="border-surface-50 hover:bg-surface-500 cursor-pointer rounded-sm border p-2"
+              class="border-surface-50 hover:bg-surface-500 cursor-pointer rounded-sm border px-3 py-2.5"
               on:click|stopPropagation={toggleDropdown}
             >
               <ThreeDotsVerticalIcon />
@@ -153,21 +162,21 @@
         </div>
       </div>
       <div class="flex flex-row gap-5">
-        <div class="flex">
+        <div class="flex gap-0.5">
           <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-400">
             Last Updated :
           </p>
           <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {topdata.updatedAt}
+            {getRelativeTime(topdata?.updatedAt)}
           </p>
         </div>
         <div class="ml-1 h-full border-r border-r-neutral-500" />
-        <div class="flex">
+        <div class="flex gap-0.5">
           <div class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-400">
             Updated By :
           </div>
           <div class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {topdata.updatedBy}
+            {topdata?.updatedBy}
           </div>
         </div>
       </div>
@@ -178,8 +187,8 @@
       development and testing.
     </div>
     <div class="grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 lg:grid-cols-4">
-      {#each stats as stat (stat.label)}
-        <StatCard label={stat.label} value={stat.value} />
+      {#each stats as stat (stat?.label)}
+        <StatCard label={stat?.label} value={stat?.value} />
       {/each}
     </div>
   </div>
