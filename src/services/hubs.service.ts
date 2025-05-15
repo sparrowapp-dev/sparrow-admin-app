@@ -50,6 +50,9 @@ export class HubsService {
   }
 
   public async getHubWorkspaces(params: WorkspaceQueryParams): Promise<any> {
+    if (!params.hubId) {
+      return;
+    }
     const queryParams = new URLSearchParams();
 
     queryParams.append('hubId', params.hubId);
@@ -72,6 +75,23 @@ export class HubsService {
 
   public async createHub(data: FormData): Promise<any> {
     const res = await makeRequest('POST', '/api/admin/create-hub', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res?.data;
+  }
+
+  public async getHubDetails(hubId: string): Promise<any> {
+    if (!hubId) {
+      return;
+    }
+    const res = await makeRequest('GET', `/api/admin/get-hub/${hubId}`);
+    return res?.data;
+  }
+
+  public async updateHub(hubId: string, data: FormData): Promise<any> {
+    const res = await makeRequest('PUT', `/api/admin/update-hub/${hubId}`, data, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
