@@ -11,6 +11,9 @@
   import Public from '@/assets/icons/Public.svelte';
   import PublicRight from '@/assets/icons/PublicRight.svelte';
   import { getRelativeTime } from '@/utils/TimeFunction';
+  import ShareIcon from '@/assets/icons/ShareIcon.svelte';
+  import { notification } from '@/components/Toast';
+  import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
 
   export let topdata;
   export let openModal;
@@ -29,7 +32,7 @@
   let openUp = false;
   let triggerEl: HTMLDivElement;
   let dropdownEl: HTMLDivElement;
-
+  let copied = false;
   function toggleDropdown() {
     if (!isOpen) {
       window.dispatchEvent(new CustomEvent('close-all-dropdowns'));
@@ -75,6 +78,20 @@
   function handleDeleteWorkspace() {
     openModal('deleteWorkSpace');
     closeDropdown();
+  }
+  async function copylink() {
+    const shareUrl = `${window.location.origin}/workspaces/samplelink`; // or whatever your share URL is
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      notification.success(`Link copied`);
+      copied = true;
+      setTimeout(() => {
+        copied = false;
+        closeDropdown();
+      }, 2000);
+    } catch (err) {
+      notification.error('Failed to copy the link');
+    }
   }
 
   onMount(() => {
@@ -144,9 +161,17 @@
 
                   <button
                     class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
-                    on:click={handleMakeItPublic}
+                    on:click={() => {
+                      if (topdata.WorkspaceType === 'Private') {
+                        handleMakeItPublic();
+                      } else {
+                        copylink();
+                      }
+                    }}
                   >
-                    <MakeitPublic /> Make it Public
+                    {#if topdata.WorkspaceType === 'Private'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
+                      /> Link Copied
+                    {:else}<ShareIcon /> Share Workspace{/if}
                   </button>
 
                   <button

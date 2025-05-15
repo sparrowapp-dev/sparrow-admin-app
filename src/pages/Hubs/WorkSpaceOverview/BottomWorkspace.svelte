@@ -20,6 +20,8 @@
 
   // ─── DATA ────────────────────────────────────────────
   import type { CellContext, SortingState } from '@tanstack/svelte-table';
+  import { hubsService } from '@/services/hubs.service';
+  import { notification } from '@/components/Toast';
 
   // ─── PROPS ───────────────────────────────────────────
   export let data;
@@ -34,7 +36,7 @@
 
   // ─── ROUTE PARAM ─────────────────────────────────────
   const location = useLocation();
-  let params: string | undefined;
+  export let params: string | undefined;
   let unsubscribe: (() => void) | undefined;
 
   const extractedParam = derived(location, ($location) => {
@@ -147,10 +149,36 @@
           {
             accessorKey: 'role',
             header: 'Roles',
-            cell: ({ row }: CellContext<any, any>) => ({
-              Component: RolesDropdown,
-              props: { row },
-            }),
+            cell: ({ row }: CellContext<any, any>) => {
+              const role = row.original.role;
+              const isAdmin = role === 'admin';
+
+              async function onChange(selected) {
+                try {
+                  const response = await hubsService.changeRoles({
+                    params: { workspaceId: params },
+                    data: { role: selected },
+                  });
+                  notification.success(`Role changed to ${selected.value}`);
+                } catch (error) {
+                  notification.error('Failed to role. Please try again.');
+                }
+              }
+              return {
+                Component: RolesDropdown,
+                props: {
+                  selected: role,
+                  options: [
+                    { value: 'editor', label: 'Editor' },
+                    { value: 'viewer', label: 'Viewer' },
+                  ],
+                  disabled: isAdmin,
+                  onChange: async (newRole: string) => {
+                    await onChange(newRole);
+                  },
+                },
+              };
+            },
           },
         ];
 

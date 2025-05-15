@@ -168,6 +168,7 @@
       data={$workspacesData?.data}
       onRefresh={handleRefresh}
       isLoading={$isFetching}
+      {params}
     />
   </div>
   {#if showModal}

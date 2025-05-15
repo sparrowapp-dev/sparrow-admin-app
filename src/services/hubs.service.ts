@@ -149,6 +149,13 @@ export class HubsService {
     const res = await makeRequest('DELETE', url);
     return res?.data;
   }
+  public async changeRoles({ data, params }) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+
+    const url = `/api/admin/user-role?${queryParams.toString()}`;
+    const res = await makeRequest('PUT', url, data);
+  }
 }
 
 export const hubsService = new HubsService();

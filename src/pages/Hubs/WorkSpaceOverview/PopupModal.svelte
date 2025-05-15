@@ -39,15 +39,15 @@
   // ─── CONSTANTS ────────────────────────────────────────
   const roles = [
     {
-      value: 'Admin',
+      value: 'admin',
       desc: 'Manage workspace resources and members. Add, edit, and remove resources, as well as invite or remove members.',
     },
     {
-      value: 'Editor',
+      value: 'editor',
       desc: 'Create and modify resources within a workspace.',
     },
     {
-      value: 'Viewer',
+      value: 'viewer',
       desc: 'View resources in a workspace without making changes.',
     },
   ];
@@ -102,7 +102,7 @@
           data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
         });
         const updatedName = response?.data?.name ?? formData.workspaceName.trim();
-        notification.success(`"${updatedName}" workspace updated successfully.`);
+        notification.success(`"${updatedName}" Workspace updated successfully.`);
       } else if (modalVariants.isMakeItPublicModalOpen) {
         // Handle making workspace public
         const response = await hubsService.makeitpublic({
@@ -115,14 +115,16 @@
         const response = await hubsService.deleteWorkspace({
           params: { workspaceId: params, hubId: hubId },
         });
-        notification.success(`"${formData.workspaceName}" has been deleted.`);
+        notification.success(
+          `"Workspace "${formData.workspaceName}" has been deleted successfully.`,
+        );
       } else if (modalVariants.isInviteModal) {
         // Handle inviting collaborators
         const response = await hubsService.inviteCollaborators({
           params: { workspaceId: params, hubId: hubId },
           data: { users: formData?.emails, role: formData?.role },
         });
-        notification.success(`Invitations sent successfully.`);
+        notification.success(`Invite sent successfully.`);
       }
 
       onSuccess();
@@ -134,11 +136,11 @@
       } else if (modalVariants.isMakeItPublicModalOpen) {
         notification.error('Failed to make workspace public. Please try again.');
       } else if (modalVariants.isDeleteWorkspaceModalOpen) {
-        notification.error('Failed to delete workspace. Please try again.');
+        notification.error(
+          `Failed to delete "${formData.workspaceName}" workspace. Please try again.`,
+        );
       } else if (modalVariants.isInviteModal) {
-        notification.error('Failed to send invitations. Please try again.');
-      } else {
-        notification.error('Failed to create workspace. Please try again.');
+        notification.error('Failed to send invite. Please try again.');
       }
     } finally {
       isLoading = false;

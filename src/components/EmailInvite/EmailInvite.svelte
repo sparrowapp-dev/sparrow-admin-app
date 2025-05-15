@@ -11,6 +11,7 @@
 
   const dispatch = createEventDispatcher();
   let inputValue = '';
+  let isTyping = false;
   export let emails: string[] = [];
   let inputEl: HTMLInputElement;
   export let errorMessage = '';
@@ -39,7 +40,9 @@
     emails = emails.filter((email) => email !== emailToRemove);
     dispatch('change', { emails });
   };
-
+  const handleBlur = () => {
+    isTyping = false;
+  };
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
@@ -49,6 +52,7 @@
 
   const handleInput = () => {
     errorMessage = ''; // clear error while typing
+    isTyping = true;
   };
 
   onMount(() => {
@@ -72,7 +76,7 @@
   {/if}
 
   <div
-    class={`bg-surface-400 flex flex-wrap gap-2 overflow-y-auto rounded-md  p-2 ${
+    class={`bg-surface-400 flex flex-wrap gap-2 overflow-y-auto rounded-md  p-2 hover:border hover:border-neutral-300 ${isTyping ? 'border border-blue-300' : ''} ${
       errorMessage ? 'border-red-500' : ''
     }`}
     style="max-height: {maxHeight};"
@@ -99,6 +103,7 @@
       on:keydown={handleKeyDown}
       on:input={handleInput}
       bind:this={inputEl}
+      on:blur={handleBlur}
     />
   </div>
 
