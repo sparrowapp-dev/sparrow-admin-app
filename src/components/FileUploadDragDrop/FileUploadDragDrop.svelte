@@ -167,7 +167,7 @@
           on:drop={handleDrop}
           on:click={handleEdit}
         >
-          <div class="scale-75 text-neutral-100">
+          <div class="text-neutral-100">
             <FileUploadIconV2 />
           </div>
         </div>

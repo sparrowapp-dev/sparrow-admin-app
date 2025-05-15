@@ -100,7 +100,7 @@
               ? 'bg-surface-500'
               : ''}"
           >
-            Workspace
+            Workspaces
           </Link>
           <Link
             to={`/hubs/members/${selectOption.teamId}`}

@@ -63,13 +63,13 @@
 
   function handleManageHub(event, hub) {
     event.stopPropagation();
-    navigate(`/hubs/settings/${hub._id || hub.id}`);
+
     closeDropdown();
   }
 
   function handleManageMembers(event, hub) {
     event.stopPropagation();
-    navigate(`/hubs/members/${hub._id || hub.id}`);
+
     closeDropdown();
   }
 
