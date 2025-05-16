@@ -76,7 +76,7 @@
       <button
         type="button"
         class="absolute right-3 cursor-pointer p-1 text-neutral-400
-               hover:text-neutral-300 focus:ring-2 focus:outline-none
+               hover:text-neutral-300
                disabled:cursor-not-allowed disabled:opacity-50"
         on:click={clearSearch}
         disabled={isLoading}

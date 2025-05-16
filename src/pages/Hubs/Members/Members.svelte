@@ -10,13 +10,18 @@
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import { getRelativeTime } from '@/utils/TimeFunction';
+  import Modal from '@/components/Modal/Modal.svelte';
+  import InviteCollaborators from '@/components/InviteCollaborators/InviteCollaborators.svelte';
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
+  import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
   let showModal = false;
   let params: string | undefined;
   let unsubscribe;
-
+  let breadcrumbItems;
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
@@ -63,7 +68,10 @@
       id: 'actions',
       header: '',
       enableSorting: false,
-      cell: ({ getValue }) => ``,
+      cell: ({ row }) => ({
+        Component: MembersDropdown,
+        props: { row: row },
+      }),
     },
   ];
 
@@ -95,7 +103,10 @@
       id: 'actions',
       header: '',
       enableSorting: false,
-      cell: ({ getValue }) => ``,
+      cell: ({ row }) => ({
+        Component: InviteDropdown,
+        props: { row: row },
+      }),
     },
   ];
 
@@ -213,9 +224,16 @@
   $: hubName = $membersData?.data?.hubName || '';
   $: membersCount = $membersData?.data?.totalCount || 0;
   $: invitesCount = $invitesData?.data?.totalCount || 0;
+
+  $: breadcrumbItems = [
+    { label: 'Hubs', path: '/hubs' },
+    { label: hubName, path: `/hubs/workspace/${params}` },
+    { label: 'Members', path: `/hubs/members/${params}` },
+  ];
 </script>
 
 <section class="w-full">
+  <Breadcrumbs items={breadcrumbItems} />
   <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
     {hubName}
   </h1>
@@ -252,7 +270,7 @@
           value={membersFilters.searchTerm}
           on:search={handleMembersSearch}
           isLoading={$isMembersFetching}
-          placeholder="Search user in"
+          placeholder="Search user in {hubName}"
           width="max-w-[300px]"
         />
 
@@ -347,4 +365,14 @@
   {/if}
 
   <!-- Invite Modal -->
+  {#if showModal}
+    <Modal on:close={() => (showModal = false)}>
+      <InviteCollaborators
+        onClose={() => (showModal = false)}
+        hubId={params}
+        {hubName}
+        onSuccess={handleInviteComplete}
+      />
+    </Modal>
+  {/if}
 </section>

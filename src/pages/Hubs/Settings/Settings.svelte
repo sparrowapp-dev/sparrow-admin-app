@@ -17,6 +17,7 @@
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
   import AddWorkspace from '@/components/AddWorkspace/AddWorkspace.svelte';
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
 
   const location = useLocation();
 
@@ -36,6 +37,7 @@
   let isSaving = false;
   let params: any;
   let showModal = false;
+  let breadcrumbItems;
 
   // Add error tracking object
   let errors = {
@@ -187,9 +189,16 @@
       saveChanges('logo', null);
     }
   }
+
+  $: breadcrumbItems = [
+    { label: 'Hubs', path: '/hubs' },
+    { label: hubData.name, path: `/hubs/workspace/${params}` },
+    { label: 'Settings', path: `/hubs/settings/${params}` },
+  ];
 </script>
 
 <section class="w-full">
+  <Breadcrumbs items={breadcrumbItems} />
   <div class="flex items-center justify-between">
     <h1
       class="font-inter text-fs-ds-20 font-fw-ds-500 max-w-[350px] truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"

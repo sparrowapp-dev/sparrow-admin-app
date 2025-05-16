@@ -225,6 +225,13 @@ export class HubsService {
     const res = await makeRequest('GET', url);
     return res?.data;
   }
+
+  // Add this method to your HubsService class
+
+  public async inviteUsers(data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/team/${data.teamId}/user`, data);
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

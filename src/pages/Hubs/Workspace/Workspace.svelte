@@ -19,6 +19,7 @@
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import DropdownWorkspaceIcon from '@/assets/icons/DropdownWorkspaceIcon.svelte';
   import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   const location = useLocation();
 
   // State management
@@ -28,6 +29,7 @@
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
   let sorting: SortingState = [{ id: 'createdAt', desc: true }];
+  let breadcrumbItems;
   let selected = {
     value: '',
     label: 'All Workspaces',
@@ -204,9 +206,15 @@
     workspaces: $workspacesData?.data?.hubs || [],
     isNewHub: $workspacesData?.data?.isNewHub || false,
   };
+
+  $: breadcrumbItems = [
+    { label: 'Hubs', path: '/hubs' },
+    { label: data.teamName, path: `/hubs/workspace/${params}` },
+  ];
 </script>
 
 <section class="w-full">
+  <Breadcrumbs items={breadcrumbItems} />
   <h1
     class="font-inter text-fs-ds-28 font-fw-ds-500 w-1/4 truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"
   >
