@@ -105,7 +105,11 @@
       enableSorting: false,
       cell: ({ row }) => ({
         Component: InviteDropdown,
-        props: { row: row },
+        props: {
+          row: row,
+          hubId: params,
+          refetchInvites,
+        },
       }),
     },
   ];

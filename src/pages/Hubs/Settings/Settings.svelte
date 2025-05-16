@@ -18,6 +18,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import AddWorkspace from '@/components/AddWorkspace/AddWorkspace.svelte';
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import InviteCollaborators from '@/components/InviteCollaborators/InviteCollaborators.svelte';
 
   const location = useLocation();
 
@@ -37,6 +38,7 @@
   let isSaving = false;
   let params: any;
   let showModal = false;
+  let showInviteModal = false;
   let breadcrumbItems;
 
   // Add error tracking object
@@ -206,7 +208,12 @@
       {hubData.name}
     </h1>
     <div class="flex items-center gap-3">
-      <Button variant="filled-secondary" size="small" iconLeft={true}>
+      <Button
+        variant="filled-secondary"
+        size="small"
+        iconLeft={true}
+        on:click={() => (showInviteModal = true)}
+      >
         <svelte:fragment slot="iconLeft">
           <ManageMembersIcon />
         </svelte:fragment>
@@ -330,6 +337,17 @@
   {#if showModal}
     <Modal on:close={() => (showModal = false)}>
       <AddWorkspace onClose={() => (showModal = false)} hubId={params} onSuccess={() => {}} />
+    </Modal>
+  {/if}
+  <!-- Invite Modal -->
+  {#if showInviteModal}
+    <Modal on:close={() => (showInviteModal = false)}>
+      <InviteCollaborators
+        onClose={() => (showInviteModal = false)}
+        hubId={params}
+        hubName={hubData.name}
+        onSuccess={() => {}}
+      />
     </Modal>
   {/if}
 </section>

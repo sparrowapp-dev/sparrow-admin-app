@@ -122,12 +122,12 @@
       // Call the API to invite users
       await hubsService.inviteUsers(payload);
 
-      notification.success(`Invitation${emails.length > 1 ? 's' : ''} sent successfully`);
+      notification.success('Invite sent successfully.');
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error inviting users:', error);
-      notification.error('Failed to send invitations. Please try again.');
+      notification.error('Failed to send invite. Please try again.');
     } finally {
       isSubmitting = false;
     }

@@ -226,10 +226,24 @@ export class HubsService {
     return res?.data;
   }
 
-  // Add this method to your HubsService class
-
   public async inviteUsers(data: any): Promise<any> {
-    const res = await makeRequest('POST', `/api/team/${data.teamId}/user`, data);
+    const res = await makeRequest('POST', `/api/admin/hub/${data.teamId}/invite`, data);
+    return res?.data;
+  }
+
+  public async withdrawInvite(hubId: string, email: string): Promise<any> {
+    const res = await makeRequest(
+      'DELETE',
+      `/api/admin/hub/${hubId}/invite/${encodeURIComponent(email)}`,
+    );
+    return res?.data;
+  }
+
+  public async resendInvite(hubId: string, email: string): Promise<any> {
+    const res = await makeRequest(
+      'POST',
+      `/api/admin/hub/${hubId}/invite/${encodeURIComponent(email)}/resend`,
+    );
     return res?.data;
   }
 }
