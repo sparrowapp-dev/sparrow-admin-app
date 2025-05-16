@@ -69,7 +69,7 @@
 
   function handleManageMembers(event, hub) {
     event.stopPropagation();
-    navigate(`/hubs/members/${hub._id || hub.id}`);
+
     closeDropdown();
   }
 

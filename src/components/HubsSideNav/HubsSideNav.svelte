@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import GiftIcon from '@/assets/icons/GiftIcon.svelte';
   import Dropdown from '../ReusableDropdown/Dropdown.svelte';
-  import { Link, navigate } from 'svelte-routing';
+  import { Link, navigate, useLocation } from 'svelte-routing';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
 
@@ -21,7 +21,21 @@
 
   let dropdownOpen = false;
   let selectOption: Team | null = null;
-  let dropdownOptions: Array<any>;
+  let dropdownOptions: Array<any> = [];
+
+  // Get current location for active link highlighting with proper typing
+  const location: any = useLocation();
+
+  // Get current path safely
+  let currentPath = '';
+  $: if ($location) {
+    currentPath = $location.pathname || '';
+  }
+
+  // Determine which nav section is active
+  $: isWorkspaceActive = currentPath.includes('/workspace/');
+  $: isMembersActive = currentPath.includes('/members/');
+  $: isSettingsActive = currentPath.includes('/settings/');
 
   // Move API call here
   const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
@@ -41,24 +55,27 @@
     }
   }
 
-  //navigate when a selection is made
+  // Navigate when a selection is made
   function handleSelection(val: any) {
     selectOption = val;
 
-    if (selectOption) {
+    if (val?.teamId) {
       navigate(`/hubs/workspace/${val.teamId}`);
     }
   }
 
   // reactively update selected value if id is present in query
-  $: if (!selectOption && dropdownOptions.length > 0) {
-    const match = location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
-    const currentId = match?.[1];
+  $: {
+    if (!selectOption && dropdownOptions.length > 0 && $location) {
+      const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
+      const currentId = match?.[1];
 
-    const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);
-
-    if (foundTeam) {
-      selectOption = foundTeam?.value;
+      if (currentId) {
+        const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);
+        if (foundTeam) {
+          selectOption = foundTeam?.value;
+        }
+      }
     }
   }
 </script>
@@ -79,19 +96,25 @@
         {#if !dropdownOpen}
           <Link
             to={`/hubs/workspace/${selectOption.teamId}`}
-            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50"
+            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 {isWorkspaceActive
+              ? 'bg-surface-500'
+              : ''}"
           >
-            Workspace
+            Workspaces
           </Link>
           <Link
             to={`/hubs/members/${selectOption.teamId}`}
-            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50"
+            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 {isMembersActive
+              ? 'bg-surface-500'
+              : ''}"
           >
             Members
           </Link>
           <Link
             to={`/hubs/settings/${selectOption.teamId}`}
-            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50"
+            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 {isSettingsActive
+              ? 'bg-surface-500'
+              : ''}"
           >
             Settings
           </Link>
