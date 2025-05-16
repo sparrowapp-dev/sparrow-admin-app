@@ -104,10 +104,8 @@
 </script>
 
 <section class="flex w-full flex-col gap-6">
-  <div>Hubs Details</div>
-
   <div class="flex w-full flex-col gap-6">
-    <div class="flex w-full flex-col gap-3 px-4">
+    <div class="flex w-full flex-col gap-3">
       <div class="header flex w-full flex-row items-center justify-between">
         <div class="flex max-h-[20px] items-center gap-3">
           <h2 class="font-inter text-fs-ds-28 leading-lh-ds-120 font-medium text-neutral-50">
@@ -206,12 +204,12 @@
         </div>
       </div>
     </div>
-    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 px-4 text-neutral-400">
+    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 text-neutral-400">
       You are viewing details for the workspace '{topdata?.title}'s Workspace'. This workspace
       contains API collections, test flows, and environments that are organized for collaborative
       development and testing.
     </div>
-    <div class="grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {#each stats as stat (stat?.label)}
         <StatCard label={stat?.label} value={stat?.value} />
       {/each}
