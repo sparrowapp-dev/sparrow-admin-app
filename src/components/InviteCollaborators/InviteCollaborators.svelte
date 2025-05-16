@@ -1,0 +1,234 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import CloseIcon from '@/assets/icons/CloseIcon.svelte';
+  import Button from '@/ui/Button/Button.svelte';
+  import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
+  import RoleDropdown from '../RoleDropdown/RoleDropdown.svelte';
+  import CheckboxDropdown from '../CheckboxDropdown/CheckboxDropdown.svelte';
+  import { notification } from '@/components/Toast';
+  import { hubsService } from '@/services/hubs.service';
+  import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
+
+  export let onClose: () => void;
+  export let hubId: any;
+  export let hubName: string;
+  export let onSuccess: () => void;
+
+  let emails: string[] = [];
+  let selectedRole: { id: string; name: string } = { id: '', name: '' };
+  let selectedWorkspaces: { id: string; name: string }[] = [];
+  let workspaces: { id: string; name: string }[] = [];
+
+  let isSubmitting = false;
+  let emailError = '';
+  let roleError = '';
+  let workspacesError = '';
+  let hasInvalidEmails = false;
+
+  // Reference to the ChipInput component
+  let chipInputComponent;
+
+  // Fetch workspaces for the hub
+  onMount(async () => {
+    try {
+      const response = await hubsService.getHubWorkspaces({
+        hubId,
+        limit: 500,
+      });
+
+      if (response && response.data && response.data.hubs) {
+        workspaces = response?.data?.hubs?.map((ws) => ({
+          id: ws.id,
+          name: ws.name,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspaces:', error);
+    }
+  });
+
+  function handleEmailsChange(event) {
+    emails = event.detail;
+    emailError = '';
+  }
+
+  function handleEmailsValidity(event) {
+    hasInvalidEmails = !event.detail.isValid;
+    if (hasInvalidEmails) {
+      emailError = 'Please check and enter correct email address.';
+    } else {
+      emailError = '';
+    }
+  }
+
+  function handleRoleChange(event) {
+    selectedRole = event.detail;
+    roleError = '';
+    // Clear workspace error when role changes
+    workspacesError = '';
+  }
+
+  function handleWorkspacesChange(event) {
+    selectedWorkspaces = event.detail;
+    workspacesError = '';
+  }
+
+  function validateForm(): boolean {
+    let isValid = true;
+
+    // Validate emails
+    if (emails.length === 0) {
+      emailError = 'Please enter at least one email address';
+      isValid = false;
+    } else if (hasInvalidEmails) {
+      // Check for invalid emails
+      emailError = 'Please check and enter correct email address.';
+      isValid = false;
+    }
+
+    // Validate role selection
+    if (!selectedRole.id) {
+      roleError = 'Please select a role';
+      isValid = false;
+    }
+
+    // Validate workspaces if role is editor or viewer
+    if (selectedRole.id !== 'admin' && selectedRole.id !== '' && selectedWorkspaces.length === 0) {
+      workspacesError = 'Please select at least one workspace';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  async function handleSubmit() {
+    if (!validateForm()) return;
+
+    isSubmitting = true;
+
+    try {
+      // Create the request payload
+      const payload = {
+        users: emails,
+        role: selectedRole.id,
+        teamId: hubId,
+      };
+
+      // Add workspaces if role is not admin
+      if (selectedRole.id !== 'admin') {
+        payload['workspaces'] = selectedWorkspaces;
+      }
+
+      // Call the API to invite users
+      await hubsService.inviteUsers(payload);
+
+      notification.success(`Invitation${emails.length > 1 ? 's' : ''} sent successfully`);
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error('Error inviting users:', error);
+      notification.error('Failed to send invitations. Please try again.');
+    } finally {
+      isSubmitting = false;
+    }
+  }
+</script>
+
+<div class="bg-surface-700 w-full max-w-xl rounded-lg p-6">
+  <div class="mb-4 flex items-start justify-between">
+    <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Add People to Hub</h2>
+    <button
+      type="button"
+      class="cursor-pointer text-neutral-300 hover:text-neutral-100"
+      on:click={onClose}
+    >
+      <CloseIcon />
+    </button>
+  </div>
+
+  <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+    <!-- Email Input -->
+    <div>
+      <label
+        class="text-fs-ds-14 font-fw-ds-400 font-inter mb-1 flex items-center text-neutral-200"
+      >
+        Invite by email
+        <span class="ml-1 text-red-400">*</span>
+      </label>
+      <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">You can add multiple emails.</p>
+      <ChipInput
+        bind:this={chipInputComponent}
+        {emails}
+        on:change={handleEmailsChange}
+        on:validity={handleEmailsValidity}
+        hasError={!!emailError}
+        errorMessage={emailError}
+        placeholder="Enter email ID"
+      />
+    </div>
+
+    <!-- Role Selection -->
+    <div>
+      <label
+        class="text-fs-ds-14 font-fw-ds-400 font-inter mb-1 flex items-center text-neutral-200"
+      >
+        Role
+        <span class="ml-1 text-red-400">*</span>
+      </label>
+      <RoleDropdown
+        selected={selectedRole}
+        on:change={handleRoleChange}
+        placeholder="Select the role"
+        hasError={!!roleError}
+        errorMessage={roleError}
+      />
+
+      {#if selectedRole.id === 'admin'}
+        <p class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
+          Admins will have access to all current and future hub workspaces.
+        </p>
+      {/if}
+    </div>
+
+    <!-- Workspace Selection (only for editor and viewer roles) -->
+    {#if selectedRole.id !== 'admin' && selectedRole.id !== ''}
+      <div>
+        <label
+          class="text-fs-ds-14 font-fw-ds-400 font-inter mb-1 flex items-center text-neutral-200"
+        >
+          Specify Workspace
+          <span class="ml-1 text-red-400">*</span>
+        </label>
+        <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">
+          Select workspaces you would want to give access to.
+        </p>
+        <CheckboxDropdown
+          {workspaces}
+          {selectedWorkspaces}
+          on:change={handleWorkspacesChange}
+          hasError={!!workspacesError}
+          errorMessage={workspacesError}
+          placeholder="Select workspaces"
+        />
+      </div>
+    {/if}
+
+    <!-- Hub display -->
+    <div class="border-surface-500 mt-6 flex items-center border-t pt-4">
+      <ProfileIcon />
+      <div class="ml-3">
+        <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">{hubName}</p>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="mt-6 flex justify-end gap-3">
+      <Button variant="filled-secondary" size="medium" on:click={onClose} disabled={isSubmitting}>
+        Cancel
+      </Button>
+      <Button variant="filled-primary" size="medium" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Sending...' : 'Send Invite'}
+      </Button>
+    </div>
+  </form>
+</div>
