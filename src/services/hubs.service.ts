@@ -97,6 +97,9 @@ export class HubsService {
   }
 
   public async getWorkspaceDetails(params): Promise<any> {
+    if (!params.workspaceId) {
+      return;
+    }
     const queryParams = new URLSearchParams();
 
     const defaults = {
@@ -125,6 +128,9 @@ export class HubsService {
   }
   public async getWorkspaceSummary(params): Promise<any> {
     const queryParams = new URLSearchParams();
+    if (!params.workspaceId) {
+      return;
+    }
 
     queryParams.append('workspaceId', params.workspaceId);
     queryParams.append('hubId', params.hubId);
