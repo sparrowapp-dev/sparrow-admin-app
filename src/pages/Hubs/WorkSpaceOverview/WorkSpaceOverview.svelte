@@ -166,7 +166,6 @@
     { label: $topData?.data?.hubName, path: `/hubs/workspace/${params}` },
     { label: $topData?.data?.title, path: `/hubs/members/${params}` },
   ];
-  console.log();
 </script>
 
 <section class="font-inter w-full text-neutral-50">
