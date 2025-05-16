@@ -152,6 +152,7 @@ export class HubsService {
   public async changeRoles({ data, params }) {
     const queryParams = new URLSearchParams();
     queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('userId', params.userId);
 
     const url = `/api/admin/user-role?${queryParams.toString()}`;
     const res = await makeRequest('PUT', url, data);

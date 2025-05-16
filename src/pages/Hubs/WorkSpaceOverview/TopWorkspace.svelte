@@ -162,14 +162,14 @@
                   <button
                     class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={() => {
-                      if (topdata.WorkspaceType === 'Private') {
+                      if (topdata.WorkspaceType === 'PRIVATE') {
                         handleMakeItPublic();
                       } else {
                         copylink();
                       }
                     }}
                   >
-                    {#if topdata.WorkspaceType === 'Private'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
+                    {#if topdata.WorkspaceType === 'PRIVATE'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
                       /> Link Copied
                     {:else}<ShareIcon /> Share Workspace{/if}
                   </button>

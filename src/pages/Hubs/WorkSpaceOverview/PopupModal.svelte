@@ -29,6 +29,7 @@
     summary: string;
     emails: string[];
     role: string;
+    publishWorkspaceName: string;
     deleteworkspaceName: string;
   }
 
@@ -59,6 +60,7 @@
     summary: data.summary ?? '',
     emails: [],
     role: '',
+    publishWorkspaceName: '',
     deleteworkspaceName: '',
   };
   let errors: FormErrors = {};
@@ -82,6 +84,9 @@
 
     if (modalVariants.isDeleteWorkspaceModalOpen && formData.deleteworkspaceName !== data?.title) {
       newErrors.deleteNameMismatchError = 'Workspace name does not match.';
+    }
+    if (modalVariants.isMakeItPublicModalOpen && formData.publishWorkspaceName !== data?.title) {
+      newErrors.publishnameMismatchError = 'Workspace name does not match';
     }
 
     errors = newErrors;
@@ -241,9 +246,9 @@
         name="workspaceName"
         placeholder="Type workspace name to proceed"
         required={true}
-        hasError={!!errors.workspaceName}
-        errorMessage={errors.workspaceName || ''}
-        bind:value={formData.workspaceName}
+        hasError={!!errors.publishnameMismatchError}
+        errorMessage={errors.publishnameMismatchError || ''}
+        bind:value={formData.publishWorkspaceName}
       />
       <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-neutral-400 font-light"
         ><button
@@ -284,8 +289,8 @@
         name="workspaceName"
         placeholder="Enter the workspace name"
         required={true}
-        hasError={!!errors.workspaceName}
-        errorMessage={errors.workspaceName || ''}
+        hasError={!!errors.deleteNameMismatchError}
+        errorMessage={errors.deleteNameMismatchError || ''}
         bind:value={formData.deleteworkspaceName}
       />
       <div class="flex items-end justify-between">

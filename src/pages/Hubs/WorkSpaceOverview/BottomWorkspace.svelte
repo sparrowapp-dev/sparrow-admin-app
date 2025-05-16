@@ -156,7 +156,7 @@
               async function onChange(selected) {
                 try {
                   const response = await hubsService.changeRoles({
-                    params: { workspaceId: params },
+                    params: { workspaceId: params, userId: row.original._id },
                     data: { role: selected },
                   });
                   notification.success(`Role changed to ${selected.value}`);
