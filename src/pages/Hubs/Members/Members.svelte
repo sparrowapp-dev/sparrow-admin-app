@@ -105,7 +105,11 @@
       enableSorting: false,
       cell: ({ row }) => ({
         Component: InviteDropdown,
-        props: { row: row },
+        props: {
+          row: row,
+          hubId: params,
+          refetchInvites,
+        },
       }),
     },
   ];
@@ -234,9 +238,22 @@
 
 <section class="w-full">
   <Breadcrumbs items={breadcrumbItems} />
-  <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
-    {hubName}
-  </h1>
+  <div class="flex items-center justify-between">
+    <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
+      {hubName}
+    </h1>
+    <Button
+      variant="filled-primary"
+      size="small"
+      iconLeft={true}
+      on:click={() => (showModal = true)}
+    >
+      <svelte:fragment slot="iconLeft">
+        <ManageMembersIcon />
+      </svelte:fragment>
+      Invite Collaborators
+    </Button>
+  </div>
 
   <!-- Tab Navigation -->
   <div class="flex">
@@ -273,18 +290,6 @@
           placeholder="Search user in {hubName}"
           width="max-w-[300px]"
         />
-
-        <Button
-          variant="filled-primary"
-          size="small"
-          iconLeft={true}
-          on:click={() => (showModal = true)}
-        >
-          <svelte:fragment slot="iconLeft">
-            <ManageMembersIcon />
-          </svelte:fragment>
-          Invite Collaborators
-        </Button>
       </div>
 
       {#if membersTotalCount === 0 && !$isMembersFetching}
@@ -324,18 +329,6 @@
           placeholder="Search invites by email"
           width="max-w-[300px]"
         />
-
-        <Button
-          variant="filled-primary"
-          size="small"
-          iconLeft={true}
-          on:click={() => (showModal = true)}
-        >
-          <svelte:fragment slot="iconLeft">
-            <ManageMembersIcon />
-          </svelte:fragment>
-          Invite Collaborators
-        </Button>
       </div>
 
       {#if invitesTotalCount === 0 && !$isInvitesFetching}
