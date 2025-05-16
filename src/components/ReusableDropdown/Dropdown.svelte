@@ -1,14 +1,15 @@
 <script lang="ts">
+  import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import type { ComponentType } from 'svelte';
 
   export let icon: ComponentType;
-  export let label: string;
-  export let options: { label: string; value: any; plan?: string }[] = [];
+  export let label: { label: string; id: string };
+  export let options: { id: string; label: string; value: any; plan?: string }[] = [];
   export let showPlans: boolean = false;
   export let onSelect: (value: any) => void = () => {};
 
-  let selected = label;
+  let selected: { label: string; id: string } = label;
   export let open = false;
   let searchMode = false;
   let searchTerm = '';
@@ -32,7 +33,7 @@
     open = false;
     searchMode = false;
     searchTerm = '';
-    selected = option.label;
+    selected = { label: option.label, id: option.id };
     onSelect(option.value);
   }
 
@@ -67,7 +68,7 @@
         class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 cursor-pointer truncate text-neutral-50"
         on:click={openSearchMode}
       >
-        {label}
+        {label.label}
       </div>
     {:else}
       <div class="">
@@ -82,12 +83,7 @@
 
     <!-- Always-visible arrow -->
     <div class="cursor-pointer" on:click={toggleDropdown}>
-      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M1.9569 0C1.14921 0 0.674755 0.90803 1.136 1.57107L3.76863 5.35548C4.36541 6.21335 5.63457 6.21335 6.23135 5.35548L8.86399 1.57106C9.32523 0.908027 8.85077 0 8.04308 0H1.9569Z"
-          fill="white"
-        />
-      </svg>
+      <DropdownArrow {open} />
     </div>
   </div>
 
@@ -105,8 +101,8 @@
         {:else}
           {#each filteredOptions as option, index}
             <button
-              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected ===
-              option.label
+              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected.id ===
+              option.id
                 ? 'text-blue-300'
                 : 'text-neutral-50'}"
               on:click={() => selectOption(option)}
@@ -124,7 +120,7 @@
               </Tooltip>
 
               <div class="ml-2 flex-shrink-0">
-                {#if selected === option.label}
+                {#if selected.id === option.id}
                   <span>
                     <svg
                       width="12"
