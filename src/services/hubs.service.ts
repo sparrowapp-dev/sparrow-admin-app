@@ -97,6 +97,9 @@ export class HubsService {
   }
 
   public async getWorkspaceDetails(params): Promise<any> {
+    if (!params.workspaceId) {
+      return;
+    }
     const queryParams = new URLSearchParams();
 
     const defaults = {
@@ -125,6 +128,9 @@ export class HubsService {
   }
   public async getWorkspaceSummary(params): Promise<any> {
     const queryParams = new URLSearchParams();
+    if (!params.workspaceId) {
+      return;
+    }
 
     queryParams.append('workspaceId', params.workspaceId);
     queryParams.append('hubId', params.hubId);
@@ -245,6 +251,42 @@ export class HubsService {
       `/api/admin/hub/${hubId}/invite/${encodeURIComponent(email)}/resend`,
     );
     return res?.data;
+  }
+
+  public async changeRoletoAdmin(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('teamId', params.hubId);
+    queryParams.append('userId', params.userId);
+    const url = `/api/admin/user-hubrole?${queryParams.toString()}`;
+
+    const res = await makeRequest('POST', url);
+    return res.data;
+  }
+  public async changeRoletoMember(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('teamId', params.hubId);
+    queryParams.append('userId', params.userId);
+    const url = `/api/admin/user-hubrole?${queryParams.toString()}`;
+
+    const res = await makeRequest('PUT', url);
+    return res.data;
+  }
+  public async deleteUserFromTeam(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('teamId', params.teamId);
+    queryParams.append('userId', params.userId);
+    const url = `/api/admin/user-hubrole?${queryParams.toString()}`;
+
+    const res = await makeRequest('DELETE', url);
+    return res.data;
+  }
+  public async deleteUserFromWorkspace(params): Promise<any> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('workspaceId', params.workspaceId);
+    queryParams.append('userId', params.userId);
+    const url = `/api/admin/deleteuser-workspace?${queryParams.toString()}`;
+    const res = await makeRequest('DELETE', url);
+    return res.data;
   }
 }
 

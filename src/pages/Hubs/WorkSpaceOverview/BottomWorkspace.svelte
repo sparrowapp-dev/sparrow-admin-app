@@ -215,7 +215,7 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  <div class="flex gap-2 px-4">
+  <div class="flex gap-2">
     <button
       class={`text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 font-inter cursor-pointer border-b-2 pb-1
           ${selectedTab === 'resources' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}

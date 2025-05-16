@@ -93,8 +93,10 @@
               <BlueCheckIcon />
             {/if}
           </div>
-          <p class="text-fs-ds-12 font-fw-ds-300 mt-1 text-neutral-300">{role.description}</p>
-        </button>
+          {#if role.description}
+            <p class="text-fs-ds-12 font-fw-ds-300 mt-1 text-neutral-300">{role.description}</p>
+          {/if}</button
+        >
       {/each}
     </div>
   {/if}

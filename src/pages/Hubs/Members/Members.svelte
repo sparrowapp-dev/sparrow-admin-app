@@ -15,6 +15,8 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
+  import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
+  import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -25,10 +27,20 @@
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
-
+  let modalVariants = { changeRole: false, removeUser: false };
+  let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
-
+  function closePopups() {
+    modalVariants.changeRole = false;
+    modalVariants.removeUser = false;
+    showModal = false;
+    modalData.data = null;
+  }
+  function handleshowModal(data: any) {
+    showModal = true;
+    modalData.data = data;
+  }
   // Column definitions for Members tab
   const membersColumns = [
     {
@@ -70,7 +82,7 @@
       enableSorting: false,
       cell: ({ row }) => ({
         Component: MembersDropdown,
-        props: { row: row },
+        props: { row: row, modalVariants: modalVariants, handleshowModal: handleshowModal },
       }),
     },
   ];
@@ -359,13 +371,38 @@
 
   <!-- Invite Modal -->
   {#if showModal}
-    <Modal on:close={() => (showModal = false)}>
-      <InviteCollaborators
-        onClose={() => (showModal = false)}
-        hubId={params}
-        {hubName}
-        onSuccess={handleInviteComplete}
-      />
+    <Modal
+      on:close={() => {
+        closePopups();
+        showModal = false;
+      }}
+    >
+      {#if modalVariants.changeRole}
+        <ChangeUserRole
+          onClose={closePopups}
+          data={modalData.data}
+          removeUserPopupOpen={() => {
+            modalVariants.changeRole = false;
+            modalVariants.removeUser = true;
+          }}
+          hubId={params}
+          onSuccess={() => refetchMembers()}
+        />
+      {:else if modalVariants.removeUser}
+        <RemoveuserPopup
+          onSuccess={() => console.log('success')}
+          onClose={closePopups}
+          {hubName}
+          data={modalData.data}
+          hubId={params}
+        />
+      {:else}
+        <InviteCollaborators
+          onClose={() => (showModal = false)}
+          hubId={params}
+          {hubName}
+          onSuccess={handleInviteComplete}
+        />{/if}
     </Modal>
   {/if}
 </section>

@@ -14,6 +14,7 @@
   import { derived } from 'svelte/store';
   import { navigate, useLocation } from 'svelte-routing';
   import { hubsService } from '@/services/hubs.service';
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
 
   // ─── STATE VARIABLES ────────────────────────────────
   let showModal = false;
@@ -159,10 +160,17 @@
 
     return hubsService.getWorkspaceSummary(queryParams);
   });
+
+  $: breadcrumbItems = [
+    { label: 'Hubs', path: '/hubs' },
+    { label: $topData?.data?.hubName, path: `/hubs/workspace/${params}` },
+    { label: $topData?.data?.title, path: `/hubs/members/${params}` },
+  ];
 </script>
 
 <section class="font-inter w-full text-neutral-50">
-  <div class="flex flex-col gap-6">
+  <Breadcrumbs items={breadcrumbItems} />
+  <div class="flex flex-col gap-6 pt-6">
     <TopWorkspace topdata={$topData?.data} {openModal} isLoading={$isTopDataFetching} />
     <BottomWorkspace
       data={$workspacesData?.data}
