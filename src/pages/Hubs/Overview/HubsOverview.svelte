@@ -133,17 +133,6 @@
       cell: ({ getValue }) => getValue().total,
     },
     {
-      accessorKey: 'createdAt',
-      header: 'Created',
-      enableSorting: true,
-      enableSortingRemoval: false,
-      cell: ({ getValue }) => {
-        const date = getValue();
-        const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
-      },
-    },
-    {
       accessorKey: 'updatedAt',
       header: 'Last Updated',
       enableSorting: true,
@@ -154,6 +143,18 @@
         return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
       },
     },
+    {
+      accessorKey: 'createdAt',
+      header: 'Created',
+      enableSorting: true,
+      enableSortingRemoval: false,
+      cell: ({ getValue }) => {
+        const date = getValue();
+        const relativeTime = getRelativeTime(date);
+        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
+      },
+    },
+
     {
       id: 'launch',
       header: '',
@@ -235,7 +236,7 @@
   <!-- Hubs Table Section -->
   <div class="flex flex-col gap-2 px-4">
     <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
-    <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-400">
+    <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
       All your Hub's in one place, manage access, manage members, or dive into details with ease.
     </h2>
   </div>
@@ -246,6 +247,7 @@
         value={filters.searchTerm}
         on:search={handleSearchChange}
         isLoading={$isFetching}
+        placeholder={'Search hubs'}
       />
       <Button
         variant="filled-primary"

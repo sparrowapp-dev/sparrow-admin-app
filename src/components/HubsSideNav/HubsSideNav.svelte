@@ -45,11 +45,14 @@
   // Transform data into dropdown options
   $: {
     if ($data && $data?.data?.length > 0) {
-      dropdownOptions = $data.data.map((team) => ({
-        label: team?.teamName || '',
-        value: team,
-        plan: null,
-      }));
+      dropdownOptions = $data.data.map((team) => {
+        return {
+          id: team?.teamId,
+          label: team?.teamName || '',
+          value: team,
+          plan: null,
+        };
+      });
     } else {
       dropdownOptions = [];
     }
@@ -78,6 +81,7 @@
       }
     }
   }
+  console.log(selectOption);
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
@@ -86,7 +90,10 @@
       <Dropdown
         bind:open={dropdownOpen}
         icon={GiftIcon}
-        label={selectOption?.teamName ? selectOption?.teamName : 'Select your Hub'}
+        label={{
+          label: selectOption?.teamName ? selectOption?.teamName : 'Select your Hub',
+          id: selectOption?.teamId || '',
+        }}
         options={dropdownOptions}
         onSelect={handleSelection}
       />
