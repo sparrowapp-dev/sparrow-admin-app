@@ -67,9 +67,9 @@
     closeDropdown();
   }
 
-  function handleManageMembers(event, hub) {
+  function handleManageMembers(event) {
     event.stopPropagation();
-
+    navigate(`/hubs/members/${params}`);
     closeDropdown();
   }
 
