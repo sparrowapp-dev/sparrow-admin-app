@@ -51,7 +51,7 @@
   ];
 
   // table columns
-  const columns = [
+  $: columns = [
     {
       accessorKey: 'name',
       header: 'Workspaces',
@@ -119,7 +119,7 @@
       enableSorting: false,
       cell: ({ row }) => ({
         Component: WorkspaceDropdown,
-        props: { row: row },
+        props: { row: row, params: params },
       }),
     },
   ];

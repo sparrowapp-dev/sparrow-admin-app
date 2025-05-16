@@ -7,7 +7,7 @@
     dispatch(event.type, event);
   }
 
-  export let variant: 'filled-primary' | 'filled-secondary' = 'filled-primary';
+  export let variant: 'filled-primary' | 'filled-secondary' | 'filled-tertiary' = 'filled-primary';
   export let size: 'small' | 'medium' | 'large' = 'medium';
   export let disabled: boolean = false;
   export let iconLeft: boolean = false;
@@ -32,6 +32,12 @@
         hover:bg-surface-100 active:bg-surface-400
         focus-visible:ring-2 focus-visible:ring-blue-300
         disabled:bg-surface-700 disabled:text-neutral-400
+      `,
+    'filled-tertiary': `
+        bg-red-500 text-neutral-50 font-inter font-fw-ds-400
+        hover:bg-red-300 active:bg-red-400
+        focus-visible:ring-2 focus-visible:ring-red-200
+        disabled:bg-red-700 disabled:text-neutral-400
       `,
   };
 

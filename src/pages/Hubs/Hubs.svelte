@@ -6,8 +6,46 @@
   import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
   import HubsOverview from './Overview/HubsOverview.svelte';
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import WorkSpaceOverview from './WorkSpaceOverview/WorkSpaceOverview.svelte';
+  import { createQuery } from '@/services/api.common';
+  import { hubsService } from '@/services/hubs.service';
+  interface Team {
+    teamId: string;
+    teamName: string;
+    role: string;
+    workspaces: any[];
+    users: any[];
+  }
+
+  interface ApiResponse {
+    data: Team[];
+  }
+
+  interface DropdownOption {
+    label: string;
+    value: Team;
+    plan: string | null;
+  }
+
+  let dropdownOptions: Array<DropdownOption> = [];
 
   const location = useLocation();
+  // queries
+  const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
+    hubsService.getAllHubs(),
+  );
+
+  $: {
+    if ($data && $data?.data?.length > 0) {
+      dropdownOptions = $data.data.map((team) => ({
+        label: team?.teamName || '',
+        value: team,
+        plan: null,
+      }));
+    } else {
+      dropdownOptions = [];
+    }
+  }
 </script>
 
 <div>
@@ -25,6 +63,7 @@
           <Route path="workspace/:id" component={Workspace} />
           <Route path="settings/:id" component={Settings} />
           <Route path="members/:id" component={Members} />
+          <Route path="workspace-details/:id/:id" component={WorkSpaceOverview} />
         </Router>
       </div>
     </div>
