@@ -2,14 +2,16 @@
   import { onMount } from 'svelte';
   import { setTokens } from '@/store/auth';
   import { authService } from '@/services/auth.service';
-  import { LOGIN_REDIRECT_URL } from '@/constants/environment';
+
+  let isLoading = true;
+  let errorMessage = '';
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
 
     if (!token) {
-      window.location.href = LOGIN_REDIRECT_URL;
+      window.location.href = '/login';
       return;
     }
 
@@ -24,9 +26,39 @@
       // Redirect to the app
       window.location.href = '/hubs';
     } catch (err) {
-      window.location.href = '/login';
+      errorMessage = 'Authentication failed. Redirecting to login...';
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+    } finally {
+      isLoading = false;
     }
   });
 </script>
 
-<p class="font-fw-ds-600 mt-4 text-center text-lg text-blue-600">Logging in...</p>
+<div class="bg-surface-800 flex h-screen w-screen flex-col items-center justify-center">
+  <div class="flex flex-col items-center">
+    <!-- Spinner Animation -->
+    <div
+      class="h-12 w-12 animate-spin rounded-full border-4 border-solid border-current border-t-transparent text-blue-300"
+    ></div>
+
+    <!-- Text below spinner -->
+    <p class="font-fw-ds-400 mt-4 text-neutral-400">
+      {errorMessage || 'Logging in...'}
+    </p>
+  </div>
+</div>
+
+<style>
+  /* Fallback animation if Tailwind's animate-spin is not available */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>

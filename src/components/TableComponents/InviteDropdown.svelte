@@ -3,30 +3,27 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import WithdrawInviteIcon from '@/assets/icons/WithdrawInviteIcon.svelte';
   import ResendInvite from '@/assets/icons/ResendInvite.svelte';
+  import { notification } from '@/components/Toast';
+  import { hubsService } from '@/services/hubs.service';
 
   export let row;
+  export let refetchInvites;
+  export let hubId;
 
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;
   let dropdownEl: HTMLDivElement;
   let position = { top: 0, left: 0, width: 0 };
+  let isLoading = { resend: false, withdraw: false };
 
   async function toggleDropdown(event) {
-    // Stop propagation to prevent the row click event
     event.stopPropagation();
 
     if (!isOpen) {
-      // Close other dropdowns first
       window.dispatchEvent(new CustomEvent('close-all-dropdowns'));
-
-      // Set to open
       isOpen = true;
-
-      // Wait for the dropdown to be rendered
       await tick();
-
-      // Calculate position after the dropdown is in the DOM
       calculatePosition();
     } else {
       isOpen = false;
@@ -42,10 +39,8 @@
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const spaceRight = window.innerWidth - triggerRect.right;
 
-    // Determine if dropdown should open upward
     openUp = spaceBelow < dropdownHeight + 5;
 
-    // Calculate position
     position = {
       top: openUp ? triggerRect.top - dropdownHeight - 5 : triggerRect.bottom + 5,
       left:
@@ -60,16 +55,44 @@
     isOpen = false;
   }
 
-  function handleManageHub(event, hub) {
+  // Withdraw invite handler
+  async function handleWithdrawInvite(event) {
     event.stopPropagation();
-
     closeDropdown();
+
+    try {
+      isLoading.withdraw = true;
+      const email = row.original.email;
+
+      await hubsService.withdrawInvite(hubId, email);
+      notification.success('Invite withdrawn successfully.');
+      refetchInvites();
+    } catch (error: any) {
+      console.error('Error withdrawing invite:', error);
+      notification.error('Failed to withdraw invite. Please try again.');
+    } finally {
+      isLoading.withdraw = false;
+    }
   }
 
-  function handleManageMembers(event, hub) {
+  // Resend invite handler
+  async function handleResendInvite(event) {
     event.stopPropagation();
-
     closeDropdown();
+
+    try {
+      isLoading.resend = true;
+      const email = row.original.email;
+
+      await hubsService.resendInvite(hubId, email);
+      notification.success('Invite resent successfully.');
+      refetchInvites();
+    } catch (error: any) {
+      console.error('Error resending invite:', error);
+      notification.error('Failed to resend invite. Please try again.');
+    } finally {
+      isLoading.resend = false;
+    }
   }
 
   function handleClickOutside(event) {
@@ -85,7 +108,6 @@
   }
 
   onMount(() => {
-    // Handle global events
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('close-all-dropdowns', closeDropdown);
     window.addEventListener('scroll', closeDropdown, true);
@@ -119,7 +141,7 @@
   </Tooltip>
 </div>
 
-<!-- Dropdown menu - use portal to avoid clipping issues -->
+<!-- Dropdown menu -->
 {#if isOpen}
   <div
     bind:this={dropdownEl}
@@ -130,18 +152,24 @@
     <div class="bg-surface-600 flex flex-col gap-1 overflow-hidden rounded-sm px-1 py-1">
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageHub(e, row.original)}
+        on:click={handleWithdrawInvite}
+        disabled={isLoading.withdraw}
       >
         <WithdrawInviteIcon />
-        <h2 class="text-fs-ds-12 font-fw-ds-400">Withdraw Invite</h2>
+        <h2 class="text-fs-ds-12 font-fw-ds-400">
+          {isLoading.withdraw ? 'Withdrawing...' : 'Withdraw Invite'}
+        </h2>
       </button>
 
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageMembers(e, row.original)}
+        on:click={handleResendInvite}
+        disabled={isLoading.resend}
       >
         <ResendInvite />
-        <h2 class="text-fs-ds-12 font-regular font-fw-ds-400">Resend Invite</h2>
+        <h2 class="text-fs-ds-12 font-regular font-fw-ds-400">
+          {isLoading.resend ? 'Resending...' : 'Resend Invite'}
+        </h2>
       </button>
     </div>
   </div>

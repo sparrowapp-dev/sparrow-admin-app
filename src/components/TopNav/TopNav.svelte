@@ -7,6 +7,29 @@
   import BellIcon from '@/assets/icons/BellIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { userName } from '@/store/auth';
+  import { onDestroy, onMount } from 'svelte';
+  let focusedPath: string | null = null;
+  let hoveredPath: string | null = null;
+  let isPressed: string | null = null;
+  function launcSparrow() {
+    navigate('https://web.sparrowapp.dev/app/collections');
+  }
+  function navigateToSparrowDocs() {
+    navigate('https://docs.sparrowapp.dev/');
+  }
+  onMount(() => {
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+  });
+
+  // Clean up event listeners
+  onDestroy(() => {
+    window.removeEventListener('pointerup', handleGlobalPointerUp);
+  });
+  function handleGlobalPointerUp() {
+    setTimeout(() => {
+      isPressed = null;
+    }, 100);
+  }
 </script>
 
 <div
@@ -25,13 +48,12 @@
     </div>
     <div class="flex items-center gap-4 px-1">
       <!-- Profile button -->
-      <a href="https://web.sparrowapp.dev/app/collections" target="_blank">
-        <button
-          class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
-          ><span><LaunchSparrow /> </span>
-          <p class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">Launch Sparrow</p>
-          <span><LaunchSparrow2 /> </span></button
-        ></a
+      <button
+        on:click={launcSparrow}
+        class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+        ><span><LaunchSparrow /> </span>
+        <p class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">Launch Sparrow</p>
+        <span><LaunchSparrow2 /> </span></button
       >
       <a
         href="mailto:contactus@sparrowapp.dev?subject=Sparrow Admin Support"
@@ -39,24 +61,33 @@
       >
         Help & Support
       </a>
-      <a href="https://docs.sparrowapp.dev/" target="_blank">
-        <button
-          class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
-          ><p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">
-            Documentation
-          </p>
-          <span><LaunchSparrow2 /> </span>
-        </button>
-      </a>
-      <Tooltip text="Notification" position="bottom" mode="hover" size="sm"
+
+      <button
+        on:click={navigateToSparrowDocs}
+        class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
+        ><p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130">Documentation</p>
+        <span><LaunchSparrow2 /> </span>
+      </button>
+
+      <Tooltip
+        text="Notification"
+        position="bottom"
+        mode="controlled"
+        show={focusedPath === '/notification' || hoveredPath === '/notification'}
+        size="sm"
         ><button
-          class="hover:bg-surface-300 cursor-pointer rounded p-1 focus-visible:outline-2 focus-visible:outline-blue-300"
-          ><BellIcon />
+          class="hover:bg-surface-300 active:bg-surface-300 cursor-pointer rounded p-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+          on:mouseenter={() => (hoveredPath = '/notification')}
+          on:mouseleave={() => (hoveredPath = null)}
+          on:focus={() => (focusedPath = '/notification')}
+          on:blur={() => (focusedPath = null)}
+          on:click={() => (isPressed = '/notification')}
+          ><BellIcon isPressed={isPressed === '/notification'} />
         </button>
       </Tooltip>
       <button
         class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
-        >{$userName?.charAt(0)}</button
+        >{$userName?.charAt(0).toUpperCase()}</button
       >
     </div>
   </div>
