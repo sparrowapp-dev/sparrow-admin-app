@@ -159,9 +159,9 @@
                     params: { workspaceId: params, userId: row.original._id },
                     data: { role: selected },
                   });
-                  notification.success(`Role changed to ${selected.value}`);
+                  notification.success(`Role changed to ${selected}`);
                 } catch (error) {
-                  notification.error('Failed to role. Please try again.');
+                  notification.error('Failed to change role. Please try again.');
                 }
               }
               return {

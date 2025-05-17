@@ -65,7 +65,7 @@
   }
 
   async function handleWorkspaceRoleChange(event, workspace) {
-    const selectedRole = event.detail.id;
+    const selectedRole = event?.detail?.id;
 
     try {
       isLoading = true;
@@ -80,7 +80,7 @@
           params: { workspaceId: workspace?.workspace?._id, userId: data?.id },
           data: { role: selectedRole },
         });
-        notification.success(`Successfully changed role to ${selectedRole}`);
+        notification.success(`Successfully changed role to ${selectedRole.toLowerCase()}`);
       }
       onSuccess();
     } catch (error) {

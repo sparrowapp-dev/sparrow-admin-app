@@ -67,8 +67,20 @@
   // reactively update selected value if id is present in query
   $: {
     if (!selectOption && dropdownOptions.length > 0 && $location) {
-      const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
-      const currentId = match?.[1];
+      let currentId;
+
+      // Match the new route first
+      const workspaceDetailsMatch = $location.pathname.match(
+        /\/hubs\/workspace-details\/([^\/]+)\/([^\/]+)/,
+      );
+
+      if (workspaceDetailsMatch) {
+        currentId = workspaceDetailsMatch[2];
+      } else {
+        // Match the original routes
+        const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
+        currentId = match?.[1];
+      }
 
       if (currentId) {
         const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);

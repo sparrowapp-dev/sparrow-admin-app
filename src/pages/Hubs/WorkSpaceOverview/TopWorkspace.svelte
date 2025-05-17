@@ -14,10 +14,11 @@
   import ShareIcon from '@/assets/icons/ShareIcon.svelte';
   import { notification } from '@/components/Toast';
   import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
-
+  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   export let topdata;
   export let openModal;
   export let isLoading;
+  export let workspaceId;
   $: stats = topdata
     ? [
         { label: 'Total Contributors', value: topdata.totalContributors },
@@ -68,6 +69,7 @@
   }
 
   function launchinSparrow() {
+    window.open(`${launchUrl}`, '_blank');
     closeDropdown();
   }
   function handleMakeItPublic() {
@@ -80,7 +82,7 @@
     closeDropdown();
   }
   async function copylink() {
-    const shareUrl = `${window.location.origin}/workspaces/samplelink`; // or whatever your share URL is
+    const shareUrl = `${launchUrl}?workspaceId=${workspaceId}`; // or whatever your share URL is
     try {
       await navigator.clipboard.writeText(shareUrl);
       notification.success(`Link copied`);

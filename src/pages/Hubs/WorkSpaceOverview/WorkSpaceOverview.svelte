@@ -163,15 +163,20 @@
 
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
-    { label: $topData?.data?.hubName, path: `/hubs/workspace/${params}` },
-    { label: $topData?.data?.title, path: `/hubs/members/${params}` },
+    { label: $topData?.data?.hubName, path: `/hubs/workspace-details/${hubId}` },
+    { label: $topData?.data?.title, path: `/hubs/workspace-details/${params}/${hubId}` },
   ];
 </script>
 
 <section class="font-inter w-full text-neutral-50">
   <Breadcrumbs items={breadcrumbItems} />
   <div class="flex flex-col gap-6 pt-6">
-    <TopWorkspace topdata={$topData?.data} {openModal} isLoading={$isTopDataFetching} />
+    <TopWorkspace
+      topdata={$topData?.data}
+      {openModal}
+      isLoading={$isTopDataFetching}
+      workspaceId={params}
+    />
     <BottomWorkspace
       data={$workspacesData?.data}
       onRefresh={handleRefresh}
