@@ -156,16 +156,30 @@
               const role = selectedRoles[userId] || row.original.role;
               const isAdmin = role === 'admin';
 
+              const roleOptions = [
+                { value: 'editor', label: 'Editor' },
+                { value: 'viewer', label: 'Viewer' },
+              ];
+
+              const selectedOption = roleOptions.find((opt) => opt.value === role) || {
+                value: 'admin',
+                label: 'Admin',
+              };
+
               return {
                 Component: RolesDropdown,
                 props: {
-                  selected: role,
-                  options: [
-                    { value: 'editor', label: 'Editor' },
-                    { value: 'viewer', label: 'Viewer' },
-                  ],
+                  selected: selectedOption,
+                  options: roleOptions,
                   disabled: isAdmin,
                   onChange: async (newRole: string) => {
+                    const previousRole = selectedRoles[userId];
+
+                    selectedRoles = {
+                      ...selectedRoles,
+                      [userId]: newRole,
+                    };
+
                     try {
                       await hubsService.changeRoles({
                         params: { workspaceId: params, userId },
@@ -173,10 +187,12 @@
                       });
 
                       TopDatarefetch();
-
-                      selectedRoles[userId] = newRole;
                       notification.success(`Role changed to ${newRole}`);
                     } catch (error) {
+                      selectedRoles = {
+                        ...selectedRoles,
+                        [userId]: previousRole,
+                      };
                       notification.error('Failed to change role. Please try again.');
                     }
                   },

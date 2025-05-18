@@ -81,7 +81,7 @@
 
 <div class="relative flex items-center gap-5">
   <div class="relative flex gap-1">
-    <div class="flex w-[61px] gap-1">{selected}</div>
+    <div class="flex w-[61px] gap-1">{selected.label}</div>
     {#if !disabled}
       <button
         bind:this={triggerEl}

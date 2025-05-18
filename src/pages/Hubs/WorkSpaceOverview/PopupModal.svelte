@@ -9,12 +9,18 @@
   import Textarea from '@/ui/Textarea/Textarea.svelte';
   import EmailInvite from '../../../components/EmailInvite/EmailInvite.svelte';
   import InvitePopupHubIcon from '@/assets/icons/InvitePopupHubIcon.svelte';
+  import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
+  import CheckboxDropdown from '@/components/CheckboxDropdown/CheckboxDropdown.svelte';
+  import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
+  import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
+  import { onMount } from 'svelte';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
   export let onSuccess: () => void;
   export let data: any;
   export let hubId;
+  export let workspaceId;
   export let modalVariants: {
     isEditWorkspaceModalOpen: boolean;
     isMakeItPublicModalOpen: boolean;
@@ -22,13 +28,32 @@
     isInviteModal: boolean;
   };
   export let params;
+  let workspaces: { id: string; name: string }[] = [];
+  onMount(async () => {
+    if (modalVariants.isEditWorkspaceModalOpen) {
+      try {
+        const response = await hubsService.getHubWorkspaces({
+          hubId,
+          limit: 500,
+        });
 
+        if (response && response.data && response.data.hubs) {
+          workspaces = response?.data?.hubs?.map((ws) => ({
+            id: ws.id,
+            name: ws.name,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch workspaces:', error);
+      }
+    }
+  });
   // ─── TYPES ────────────────────────────────────────────
   interface FormData {
     workspaceName: string;
     summary: string;
     emails: string[];
-    role: string;
+    selectedRole: { id: string; name: string };
     publishWorkspaceName: string;
     deleteworkspaceName: string;
   }
@@ -59,12 +84,12 @@
     workspaceName: data.title ?? '',
     summary: data.summary ?? '',
     emails: [],
-    role: '',
+    selectedRole: { id: '', name: '' },
     publishWorkspaceName: '',
     deleteworkspaceName: '',
   };
   let errors: FormErrors = {};
-
+  let chipInputComponent;
   // ─── VALIDATION ───────────────────────────────────────
   function validateForm(): boolean {
     const newErrors: FormErrors = {};
@@ -72,14 +97,15 @@
     if (!formData.workspaceName.trim()) {
       newErrors.workspaceName = 'Workspace name cannot be empty. Please enter the workspace name.';
     }
+    if (
+      modalVariants.isEditWorkspaceModalOpen &&
+      formData.workspaceName.trim() &&
+      workspaces.some((ws) => ws.name === formData.workspaceName.trim())
+    ) {
+      newErrors.workspaceName = 'Workspace with same name already exists';
+    }
 
     if (modalVariants.isInviteModal) {
-      if (formData.emails.length < 1) {
-        newErrors.emptyEmailList = 'Add at least one email to invite.';
-      }
-      if (!roles.find((r) => r.value === formData.role)) {
-        newErrors.roleError = 'Select a valid role.';
-      }
     }
 
     if (modalVariants.isDeleteWorkspaceModalOpen && formData.deleteworkspaceName !== data?.title) {
@@ -125,11 +151,19 @@
         );
       } else if (modalVariants.isInviteModal) {
         // Handle inviting collaborators
-        const response = await hubsService.inviteCollaborators({
-          params: { workspaceId: params, hubId: hubId },
-          data: { users: formData?.emails, role: formData?.role },
-        });
-        notification.success(`Invite sent successfully.`);
+        const payload = {
+          users: formData.emails,
+          role: formData.selectedRole.id,
+          teamId: hubId,
+        };
+        if (formData.selectedRole.id !== 'admin') {
+          payload['workspaces'] = [{ id: workspaceId, name: data?.title }];
+        }
+
+        // Call the API to invite users
+        await hubsService.inviteUsers(payload);
+
+        notification.success('Invite sent successfully.');
       }
 
       onSuccess();
@@ -150,6 +184,23 @@
     } finally {
       isLoading = false;
     }
+  }
+  let hasInvalidEmails = false;
+  function handleEmailsChange(event) {
+    formData.emails = event.detail;
+    errors.emailError = '';
+  }
+  function handleEmailsValidity(event) {
+    hasInvalidEmails = !event.detail.isValid;
+    if (hasInvalidEmails) {
+      errors.emailError = 'Please check and enter correct email address.';
+    } else {
+      errors.emailError = '';
+    }
+  }
+  function handleRoleChange(event) {
+    formData.selectedRole = event.detail;
+    errors.roleError = '';
   }
 </script>
 
@@ -326,7 +377,7 @@
       </button>
     </div>
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+    <!-- <form on:submit|preventDefault={handleSubmit} class="space-y-4">
       <EmailInvite
         label="Invite by email"
         id="emails"
@@ -361,6 +412,68 @@
         <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
         <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>
           Save
+        </Button>
+      </div>
+    </form> -->
+    <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+      <!-- Email Input -->
+      <div>
+        <label
+          class="text-fs-ds-14 font-fw-ds-400 font-inter mb-1 flex items-center text-neutral-200"
+        >
+          Invite by email
+          <span class="ml-1 text-red-400">*</span>
+        </label>
+        <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">
+          You can add multiple emails.
+        </p>
+        <ChipInput
+          bind:this={chipInputComponent}
+          emails={formData.emails}
+          on:change={handleEmailsChange}
+          on:validity={handleEmailsValidity}
+          hasError={!!errors.emailError}
+          errorMessage={errors.emailError}
+          placeholder="Enter email ID"
+        />
+      </div>
+
+      <!-- Role Selection -->
+      <div>
+        <label
+          class="text-fs-ds-14 font-fw-ds-400 font-inter mb-1 flex items-center text-neutral-200"
+        >
+          Role
+          <span class="ml-1 text-red-400">*</span>
+        </label>
+        <RoleDropdown
+          selected={formData.selectedRole}
+          on:change={handleRoleChange}
+          placeholder="Select the role"
+          hasError={!!errors.roleError}
+          errorMessage={errors.roleError}
+        />
+      </div>
+
+      <!-- Workspace Selection (only for editor and viewer roles) -->
+
+      <!-- Hub display -->
+      <div class="border-surface-500 mt-6 flex items-center border-t pt-4">
+        <ProfileIcon />
+        <div class="ml-3">
+          <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">
+            {data?.hubName}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="mt-6 flex justify-end gap-3">
+        <Button variant="filled-secondary" size="medium" on:click={onClose} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>
+          {isLoading ? 'Sending...' : 'Send Invite'}
         </Button>
       </div>
     </form>

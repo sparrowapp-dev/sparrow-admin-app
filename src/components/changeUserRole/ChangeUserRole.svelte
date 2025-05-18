@@ -49,7 +49,9 @@
   }
 
   async function handleRoleChange(event) {
+    let previouslySelectedRole = selected;
     const selectedRole = event.detail.id;
+    selected = event?.detail;
 
     try {
       isLoading = true;
@@ -66,11 +68,12 @@
 
         await action({ userId: data?.id, hubId });
         notification.success(`Successfully changed role to ${selectedRole}`);
-        selected = event?.detail;
+
         onSuccess();
       }
     } catch (error) {
       notification.error(`Error while changing role to ${selectedRole.toLowerCase()}`);
+      selected = previouslySelectedRole;
     } finally {
       onClose();
       isLoading = false;

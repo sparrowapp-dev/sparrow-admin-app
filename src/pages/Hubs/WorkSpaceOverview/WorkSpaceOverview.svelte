@@ -187,6 +187,7 @@
   {#if showModal}
     <Modal on:close={closeAllModals}>
       <PopupModal
+        workspaceId={params}
         onClose={closeAllModals}
         data={$topData.data}
         onSuccess={handleOnSuccess}
