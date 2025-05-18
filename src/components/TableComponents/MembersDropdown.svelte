@@ -2,18 +2,20 @@
   import EditIcon from '@/assets/icons/EditIcon.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import { navigate } from 'svelte-routing';
-  import { onMount, onDestroy, tick } from 'svelte';
+  import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import RemoveUsers from '@/assets/icons/RemoveUsers.svelte';
 
   export let row;
   export let modalVariants;
   export let handleshowModal;
+  export let onClick;
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;
   let dropdownEl: HTMLDivElement;
   let position = { top: 0, left: 0, width: 0 };
+  const dispatch = createEventDispatcher();
 
   async function toggleDropdown(event) {
     // Stop propagation to prevent the row click event
@@ -63,18 +65,15 @@
     isOpen = false;
   }
 
-  function handleManageHub(event, hub) {
+  function handleChangeRole(event) {
     event.stopPropagation();
-
-    modalVariants.changeRole = true;
-    handleshowModal(row?.original);
+    onClick({ data: row?.original, click: 'changeRole' });
 
     closeDropdown();
   }
-  function handleManageMembers(event, hub) {
+  function handleRemoveUser(event) {
     event.stopPropagation();
-    modalVariants.removeUser = true;
-    handleshowModal(row?.original);
+    onClick({ data: row.original, click: 'removeUser' });
 
     closeDropdown();
   }
@@ -138,7 +137,7 @@
     <div class="bg-surface-600 flex flex-col gap-1 overflow-hidden rounded-sm px-1 py-1">
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageHub(e, row.original)}
+        on:click={(e) => handleChangeRole(e)}
       >
         <EditIcon />
         <h2 class="text-fs-ds-12 font-fw-ds-400">Change Role</h2>
@@ -146,7 +145,7 @@
 
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageMembers(e, row.original)}
+        on:click={(e) => handleRemoveUser(e)}
       >
         <RemoveUsers />
         <h2 class="text-fs-ds-12 font-regular font-fw-ds-400 text-red-300">Remove User</h2>

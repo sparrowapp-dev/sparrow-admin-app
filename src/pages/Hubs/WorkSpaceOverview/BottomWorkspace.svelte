@@ -93,6 +93,7 @@
     pagination.pageIndex = 0;
     triggerRefresh();
   }
+  let selectedRoles: Record<string, string> = {};
 
   $: totalItems = data?.totalCount || 0;
 
@@ -150,20 +151,10 @@
             accessorKey: 'role',
             header: 'Roles',
             cell: ({ row }: CellContext<any, any>) => {
-              const role = row.original.role;
+              const userId = row.original._id;
+              const role = selectedRoles[userId] || row.original.role;
               const isAdmin = role === 'admin';
 
-              async function onChange(selected) {
-                try {
-                  const response = await hubsService.changeRoles({
-                    params: { workspaceId: params, userId: row.original._id },
-                    data: { role: selected },
-                  });
-                  notification.success(`Role changed to ${selected}`);
-                } catch (error) {
-                  notification.error('Failed to change role. Please try again.');
-                }
-              }
               return {
                 Component: RolesDropdown,
                 props: {
@@ -174,7 +165,17 @@
                   ],
                   disabled: isAdmin,
                   onChange: async (newRole: string) => {
-                    await onChange(newRole);
+                    try {
+                      await hubsService.changeRoles({
+                        params: { workspaceId: params, userId },
+                        data: { role: newRole },
+                      });
+
+                      selectedRoles[userId] = newRole;
+                      notification.success(`Role changed to ${newRole}`);
+                    } catch (error) {
+                      notification.error('Failed to change role. Please try again.');
+                    }
                   },
                 },
               };

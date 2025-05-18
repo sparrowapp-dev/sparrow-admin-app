@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
@@ -82,11 +82,21 @@
       enableSorting: false,
       cell: ({ row }) => ({
         Component: MembersDropdown,
-        props: { row: row, modalVariants: modalVariants, handleshowModal: handleshowModal },
+        props: {
+          row: row,
+          onClick: onClick,
+        },
       }),
     },
   ];
-
+  function onClick({ data, click }) {
+    handleshowModal(data);
+    if (click === 'changeRole') {
+      modalVariants.changeRole = true;
+    } else if (click === 'removeUser') {
+      modalVariants.removeUser = true;
+    }
+  }
   // Column definitions for Invites tab
   const invitesColumns = [
     {

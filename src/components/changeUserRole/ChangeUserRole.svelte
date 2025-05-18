@@ -35,6 +35,18 @@
   ];
 
   let selected = { id: data?.role, name: data?.role };
+  let workspaceSelected: Record<string, { id: string; name: string }> = {};
+
+  $: if (data?.simplifiedWorkspaces?.length) {
+    workspaceSelected = {};
+
+    data.simplifiedWorkspaces.forEach((ws, i) => {
+      workspaceSelected[ws.workspace._id] = {
+        id: ws.userRole,
+        name: ws.userRole === 'editor' ? 'Editor' : 'Viewer',
+      };
+    });
+  }
 
   async function handleRoleChange(event) {
     const selectedRole = event.detail.id;
@@ -54,6 +66,7 @@
 
         await action({ userId: data?.id, hubId });
         notification.success(`Successfully changed role to ${selectedRole}`);
+        selected = event?.detail;
         onSuccess();
       }
     } catch (error) {
@@ -81,6 +94,7 @@
           data: { role: selectedRole },
         });
         notification.success(`Successfully changed role to ${selectedRole.toLowerCase()}`);
+        workspaceSelected[workspace.workspace._id] = event?.detail;
       }
       onSuccess();
     } catch (error) {
@@ -111,7 +125,7 @@
               {data.email}
             </h2>
           </div>
-          <div>
+          <div class="relative">
             <MemberRolesDropdown
               dropdownId="hub-role-dropdown"
               {options}
@@ -131,11 +145,9 @@
               <h2>{workspace.workspace.name}</h2>
               <span>
                 <MemberRolesDropdown
+                  disabled={selected.id === 'Admin'}
                   dropdownId={`workspace-role-dropdown-${i}`}
-                  selected={{
-                    id: workspace.userRole,
-                    name: workspace.userRole === 'editor' ? 'Editor' : 'Viewer',
-                  }}
+                  selected={workspaceSelected[workspace.workspace._id]}
                   options={workspaceOptions}
                   on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
                 />

@@ -7,7 +7,6 @@
   export let options: string[] = [];
   export let disabled: boolean = false;
   export let onChange;
-  const dispatch = createEventDispatcher();
 
   let isOpen = false;
   let openUp = false;
@@ -53,9 +52,8 @@
   }
 
   function handleSelect(option: string) {
-    selected = option.value;
     closeDropdown();
-    onChange(selected);
+    onChange(option.value);
   }
 
   onMount(() => {
