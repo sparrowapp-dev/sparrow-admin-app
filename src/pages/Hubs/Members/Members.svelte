@@ -400,7 +400,7 @@
         />
       {:else if modalVariants.removeUser}
         <RemoveuserPopup
-          onSuccess={() => console.log('success')}
+          onSuccess={() => refetchMembers()}
           onClose={closePopups}
           {hubName}
           data={modalData.data}

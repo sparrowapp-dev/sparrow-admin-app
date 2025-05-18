@@ -6,7 +6,6 @@
   import PopupModal from './PopupModal.svelte';
 
   // ─── DATA & SERVICES ────────────────────────────────
-  import { topdata } from './dummyData';
   import { createQuery } from '@/services/api.common';
 
   // ─── SVELTE LIFECYCLE & STORES ──────────────────────
@@ -182,6 +181,7 @@
       onRefresh={handleRefresh}
       isLoading={$isFetching}
       {params}
+      {TopDatarefetch}
     />
   </div>
   {#if showModal}

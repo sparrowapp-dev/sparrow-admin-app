@@ -18,26 +18,25 @@
   const dispatch = createEventDispatcher();
 
   async function toggleDropdown(event) {
-    // Stop propagation to prevent the row click event
     event.stopPropagation();
-
     if (!isOpen) {
-      // Close other dropdowns first
       window.dispatchEvent(new CustomEvent('close-all-dropdowns'));
-
-      // Set to open
       isOpen = true;
-
-      // Wait for the dropdown to be rendered
       await tick();
-
-      // Calculate position after the dropdown is in the DOM
       calculatePosition();
     } else {
       isOpen = false;
     }
   }
+  onMount(() => {
+    window.addEventListener('close-all-dropdowns', closeDropdown);
+    window.addEventListener('click', handleClickOutside);
+  });
 
+  onDestroy(() => {
+    window.removeEventListener('close-all-dropdowns', closeDropdown);
+    window.removeEventListener('click', handleClickOutside);
+  });
   function calculatePosition() {
     if (!triggerEl || !dropdownEl) return;
 

@@ -33,6 +33,7 @@
     resourceType: string;
   }) => void;
   export let isLoading: boolean = false;
+  export let TopDatarefetch;
 
   // ─── ROUTE PARAM ─────────────────────────────────────
   const location = useLocation();
@@ -170,6 +171,8 @@
                         params: { workspaceId: params, userId },
                         data: { role: newRole },
                       });
+
+                      TopDatarefetch();
 
                       selectedRoles[userId] = newRole;
                       notification.success(`Role changed to ${newRole}`);
