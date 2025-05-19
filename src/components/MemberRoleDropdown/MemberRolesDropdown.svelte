@@ -3,7 +3,7 @@
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
 
-  export let selected: { id: string; name: string } | undefined = {};
+  export let selected: { id: string; name: string };
   export let placeholder = 'Select the role';
   export let hasError = false;
   export let errorMessage = '';
