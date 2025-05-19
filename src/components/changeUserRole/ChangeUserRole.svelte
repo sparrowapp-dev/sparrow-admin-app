@@ -140,14 +140,14 @@
 
         <div class="border-b-surface-100 border-b"></div>
 
-        <div class="h-[200px] overflow-y-auto">
+        <div class="custom-scroll h-[200px] overflow-y-auto">
           {#if data?.simplifiedWorkspaces && data.simplifiedWorkspaces?.length > 0}
             {#each data.simplifiedWorkspaces as workspace, i}
               <div
                 class="text-fs-ds-12 font-fw-ds-500 leading-lh-ds-150 font-inter flex w-full justify-between p-1 text-neutral-400"
               >
                 <h2>{workspace.workspace.name}</h2>
-                <span>
+                <span class="">
                   <MemberRolesDropdown
                     disabled={selected.id === 'Admin'}
                     dropdownId={`workspace-role-dropdown-${i}`}
@@ -164,3 +164,25 @@
     </div>
   </div>
 </section>
+
+<style>
+  /* global.css */
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #a3a3a3 transparent;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: #a3a3a3;
+    border-radius: 10px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+</style>
