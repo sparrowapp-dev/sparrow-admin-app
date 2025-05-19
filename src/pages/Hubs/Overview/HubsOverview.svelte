@@ -21,9 +21,9 @@
   import Button from '@/ui/Button/Button.svelte';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
-  import WorkspaceLaunch from '@/components/TableComponents/WorkspaceLaunch.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
   import AddHubs from '@/components/AddHubs/AddHubs.svelte';
+  import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
@@ -160,9 +160,9 @@
       header: '',
       enableSorting: false,
       cell: ({ row }) => ({
-        Component: WorkspaceLaunch,
+        Component: LaunchApp,
         props: {
-          workspaceId: row.original.id,
+          hubId: row.original._id,
           showOnHover: true,
         },
       }),
