@@ -18,7 +18,6 @@
     }
   }
   let hubUrl = `${SPARROW_LAUNCH_URL}/home?adminRedirectHubId=${row?.original._id}`;
-  const baseUrl = `${SPARROW_LAUNCH_URL}/home`;
 </script>
 
 <div class="group/url relative flex items-center gap-2">
