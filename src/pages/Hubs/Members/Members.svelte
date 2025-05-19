@@ -280,20 +280,20 @@
   <!-- Tab Navigation -->
   <div class="flex">
     <button
-      class="font-inter text-fs-ds-12 bord font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 text-neutral-50 {activeTab ===
+      class="font-inter text-fs-ds-12 bord font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
       'members'
-        ? 'border-b-2'
-        : 'border-b-2 border-transparent'}"
+        ? 'border-b-2 text-neutral-50'
+        : 'border-b-2 border-transparent text-neutral-100'}"
       on:click={() => setActiveTab('members')}
     >
       Members
       <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{membersCount}</span>
     </button>
     <button
-      class="font-inter text-fs-ds-12 font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 text-neutral-50 {activeTab ===
+      class="font-inter text-fs-ds-12 font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
       'invites'
-        ? 'border-b-2'
-        : 'border-b-2 border-transparent'}"
+        ? 'border-b-2 text-neutral-50'
+        : 'border-b-2 border-transparent text-neutral-100'}"
       on:click={() => setActiveTab('invites')}
     >
       Manage Invites
