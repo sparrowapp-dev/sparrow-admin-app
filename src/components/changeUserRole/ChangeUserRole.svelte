@@ -141,22 +141,24 @@
         <div class="border-b-surface-100 border-b"></div>
 
         <div class="h-[200px] overflow-y-auto">
-          {#each data.simplifiedWorkspaces as workspace, i}
-            <div
-              class="text-fs-ds-12 font-fw-ds-500 leading-lh-ds-150 font-inter flex w-full justify-between p-1 text-neutral-400"
-            >
-              <h2>{workspace.workspace.name}</h2>
-              <span>
-                <MemberRolesDropdown
-                  disabled={selected.id === 'Admin'}
-                  dropdownId={`workspace-role-dropdown-${i}`}
-                  selected={workspaceSelected[workspace.workspace._id]}
-                  options={workspaceOptions}
-                  on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
-                />
-              </span>
-            </div>
-          {/each}
+          {#if data?.simplifiedWorkspaces && data.simplifiedWorkspaces?.length > 0}
+            {#each data.simplifiedWorkspaces as workspace, i}
+              <div
+                class="text-fs-ds-12 font-fw-ds-500 leading-lh-ds-150 font-inter flex w-full justify-between p-1 text-neutral-400"
+              >
+                <h2>{workspace.workspace.name}</h2>
+                <span>
+                  <MemberRolesDropdown
+                    disabled={selected.id === 'Admin'}
+                    dropdownId={`workspace-role-dropdown-${i}`}
+                    selected={workspaceSelected[workspace.workspace._id]}
+                    options={workspaceOptions}
+                    on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
+                  />
+                </span>
+              </div>
+            {/each}
+          {/if}
         </div>
       </div>
     </div>
