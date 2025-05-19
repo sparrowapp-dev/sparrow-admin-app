@@ -19,6 +19,7 @@
   export let openModal;
   export let isLoading;
   export let workspaceId;
+  export let hubId;
   $: stats = topdata
     ? [
         { label: 'Total Contributors', value: topdata.totalContributors },
@@ -70,7 +71,32 @@
   function launchInSparrow(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    window.location.href = `sparrow://`;
+
+    if (workspaceId) {
+      // Build URL with required query parameters
+      const baseUrl = `${SPARROW_LAUNCH_URL}/collections`;
+      const params = new URLSearchParams();
+
+      // Add workspaceId parameter
+      params.set('adminRedirectWorkspaceId', workspaceId);
+
+      const url = `${baseUrl}?${params.toString()}`;
+
+      // Open in a new tab
+      window.open(url, '_blank');
+    } else if (hubId) {
+      // Build URL with required query parameters
+      const baseUrl = `${SPARROW_LAUNCH_URL}/home`;
+      const params = new URLSearchParams();
+
+      // Add hubId parameter
+      params.set('adminRedirectHubId', hubId);
+
+      const url = `${baseUrl}?${params.toString()}`;
+
+      // Open in a new tab
+      window.open(url, '_blank');
+    }
     closeDropdown();
   }
   function handleMakeItPublic() {

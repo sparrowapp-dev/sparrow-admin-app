@@ -171,6 +171,7 @@
   <Breadcrumbs items={breadcrumbItems} />
   <div class="flex flex-col gap-6 pt-6">
     <TopWorkspace
+      {hubId}
       topdata={$topData?.data}
       {openModal}
       isLoading={$overviewDataRefetching}

@@ -2,6 +2,7 @@
   import Check from '@/assets/icons/Check.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import Copy from '@/assets/icons/Copy.svelte';
+  import { SPARROW_LAUNCH_URL } from '@/constants/environment';
   export let Value;
   export let row;
   let copyState: { [key: string]: boolean } = {};
@@ -16,17 +17,22 @@
       console.error('Copy failed:', error);
     }
   }
+  let hubUrl = `${SPARROW_LAUNCH_URL}/home?adminRedirectHubId=${row?.original._id}`;
+  const baseUrl = `${SPARROW_LAUNCH_URL}/home`;
 </script>
 
 <div class="group/url relative flex items-center gap-2">
   <span class="truncate text-neutral-50">
-    {Value || `https://sparrow.app/hub/${row.original._id}`}
+    {hubUrl || Value || `https://sparrow.app/hub/${row.original._id}`}
   </span>
   <button
     class="relative cursor-pointer p-1 text-neutral-400 opacity-0
          transition-all duration-150 group-hover/url:opacity-100 hover:text-neutral-50"
     on:click|stopPropagation={() =>
-      handleCopy(Value || `https://sparrow.app/hub/${row.original._id}`, row.original._id)}
+      handleCopy(
+        hubUrl || Value || `https://sparrow.app/hub/${row.original._id}`,
+        row.original._id,
+      )}
     title="Click to copy URL"
   >
     <Tooltip
