@@ -2,15 +2,11 @@
   // ─── IMPORTS ──────────────────────────────────────────
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import { notification } from '@/components/Toast';
-  import PopupDropdown from '@/components/ReusableDropdown/PopupDropdown.svelte';
   import { hubsService } from '@/services/hubs.service';
   import Button from '@/ui/Button/Button.svelte';
   import Input from '@/ui/Input/Input.svelte';
   import Textarea from '@/ui/Textarea/Textarea.svelte';
-  import EmailInvite from '../../../components/EmailInvite/EmailInvite.svelte';
-  import InvitePopupHubIcon from '@/assets/icons/InvitePopupHubIcon.svelte';
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
-  import CheckboxDropdown from '@/components/CheckboxDropdown/CheckboxDropdown.svelte';
   import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
@@ -376,45 +372,6 @@
         <CloseIcon />
       </button>
     </div>
-
-    <!-- <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-      <EmailInvite
-        label="Invite by email"
-        id="emails"
-        placeholder="Enter email ID"
-        maxHeight="76px"
-        required={true}
-        desc="You can add multiple emails"
-        bind:emails={formData.emails}
-        errorMessage={errors.emptyEmailList}
-      />
-
-      <PopupDropdown
-        label="Select Role"
-        id="roleDropdown"
-        placeholder="Role"
-        options={roles}
-        bind:selected={formData.role}
-        errorMessage={errors.roleError}
-      />
-      <div class="flex items-center gap-1 py-1 pr-1 pl-2">
-        <div
-          class="bg-surface-100 flex h-[24px] w-[24px] items-center justify-center rounded-[100px]"
-        >
-          <InvitePopupHubIcon />
-        </div>
-        <h2 class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-          {data?.hubName}
-        </h2>
-      </div>
-
-      <div class="mt-6 flex w-full items-center justify-end gap-3">
-        <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
-        <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>
-          Save
-        </Button>
-      </div>
-    </form> -->
     <form on:submit|preventDefault={handleSubmit} class="space-y-6">
       <!-- Email Input -->
       <div>

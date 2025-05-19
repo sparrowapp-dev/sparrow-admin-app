@@ -17,12 +17,13 @@
       };
       userRole: string;
     }>;
-  };
+  } | null = null;
+
   export let removeUserPopupOpen: () => void;
   export let onSuccess: () => void;
-  export let hubId: string;
+  export let hubId: string | null = null;
   let isLoading = false;
-  const options = [
+  let options = [
     { id: 'Admin', name: 'Admin' },
     { id: 'Member', name: 'Member' },
     { id: 'Remove User', name: 'Remove User' },
@@ -33,8 +34,8 @@
     { id: 'editor', name: 'Editor' },
     { id: 'Remove User', name: 'Remove' },
   ];
-
-  let selected = { id: data?.role, name: data?.role };
+  let selected: { id: string; name: string };
+  selected = { id: data?.role || '', name: data?.role || '' };
   let workspaceSelected: Record<string, { id: string; name: string }> = {};
 
   $: if (data?.simplifiedWorkspaces?.length) {
@@ -122,10 +123,10 @@
         <div class="flex justify-between">
           <div class="flex flex-col gap-2">
             <h2 class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
-              {data.name}
+              {data?.name}
             </h2>
             <h2 class="font-inter font-fw-ds-300 text-fs-ds-12 leading-lh-ds-150 text-neutral-300">
-              {data.email}
+              {data?.email}
             </h2>
           </div>
           <div class="relative">
@@ -149,7 +150,7 @@
                 <h2>{workspace.workspace.name}</h2>
                 <span class="">
                   <MemberRolesDropdown
-                    disabled={selected.id === 'Admin'}
+                    disabled={selected?.id === 'Admin'}
                     dropdownId={`workspace-role-dropdown-${i}`}
                     selected={workspaceSelected[workspace.workspace._id]}
                     options={workspaceOptions}

@@ -106,22 +106,23 @@
 <!-- Dropdown trigger -->
 <div class="relative flex items-center justify-end">
   <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
-    {#if row.original.role !== 'Owner'}
-      <button
-        bind:this={triggerEl}
-        class="hover:bg-surface-300 cursor-pointer rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
-        on:click={toggleDropdown}
-        aria-label="More actions"
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        data-action="toggle-menu"
-      >
-        {#if typeof row.original.renderThreeDotsIcon === 'function'}
-          {@html row.original.renderThreeDotsIcon()}
-        {:else}
-          ⋮
-        {/if}
-      </button>{/if}
+    <button
+      bind:this={triggerEl}
+      class="hover:bg-surface-300 cursor-pointer {row.original.role === 'Owner'
+        ? 'pointer-events-none opacity-0'
+        : ''} rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
+      on:click={toggleDropdown}
+      aria-label="More actions"
+      aria-haspopup="true"
+      aria-expanded={isOpen}
+      data-action="toggle-menu"
+    >
+      {#if typeof row.original.renderThreeDotsIcon === 'function'}
+        {@html row.original.renderThreeDotsIcon()}
+      {:else}
+        ⋮
+      {/if}
+    </button>
   </Tooltip>
 </div>
 

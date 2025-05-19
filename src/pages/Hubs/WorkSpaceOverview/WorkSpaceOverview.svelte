@@ -59,10 +59,10 @@
   // ─── CALLBACKS ───────────────────────────────────────
   function handleOnSuccess() {
     if (modalVariants.isEditWorkspaceModalOpen) {
-      TopDatarefetch();
+      overviewRefetch();
     }
     if (modalVariants.isMakeItPublicModalOpen) {
-      TopDatarefetch();
+      overviewRefetch();
     }
     if (modalVariants.isInviteModal) {
     }
@@ -94,7 +94,7 @@
   //     if (id && id !== params) {
   //       params = id;
   //       refetch();
-  //       TopDatarefetch();
+  //       overviewRefetch();
   //     }
   //   });
   // });
@@ -104,7 +104,7 @@
         params = wId;
         hubId = hId;
         refetch();
-        TopDatarefetch();
+        overviewRefetch();
       }
     });
   });
@@ -152,8 +152,8 @@
 
   const {
     data: topData,
-    isFetching: isTopDataFetching,
-    refetch: TopDatarefetch,
+    isFetching: overviewDataRefetching,
+    refetch: overviewRefetch,
   } = createQuery(async () => {
     const queryParams = { workspaceId: params, hubId: hubId };
 
@@ -162,7 +162,7 @@
 
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
-    { label: $topData?.data?.hubName, path: `/hubs/workspace-details/${hubId}` },
+    { label: $topData?.data?.hubName, path: `/hubs/workspace/${hubId}` },
     { label: $topData?.data?.title, path: `/hubs/workspace-details/${params}/${hubId}` },
   ];
 </script>
@@ -173,7 +173,7 @@
     <TopWorkspace
       topdata={$topData?.data}
       {openModal}
-      isLoading={$isTopDataFetching}
+      isLoading={$overviewDataRefetching}
       workspaceId={params}
     />
     <BottomWorkspace
@@ -181,7 +181,7 @@
       onRefresh={handleRefresh}
       isLoading={$isFetching}
       {params}
-      {TopDatarefetch}
+      {overviewRefetch}
     />
   </div>
   {#if showModal}

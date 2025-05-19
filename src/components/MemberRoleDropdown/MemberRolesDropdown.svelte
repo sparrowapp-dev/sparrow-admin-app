@@ -3,11 +3,11 @@
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
 
-  export let selected = { id: '', name: '' };
+  export let selected: { id: string; name: string } | undefined = {};
   export let placeholder = 'Select the role';
   export let hasError = false;
   export let errorMessage = '';
-  export let options = [];
+  export let options: { id: string; name: string; description?: string }[] = [];
   export let dropdownId = `dropdown-${Math.random().toString(36).substring(2, 9)}`; // Generate unique ID if not provided
   export let disabled: boolean = false;
 
