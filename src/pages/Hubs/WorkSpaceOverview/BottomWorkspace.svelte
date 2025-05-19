@@ -33,6 +33,7 @@
     resourceType: string;
   }) => void;
   export let isLoading: boolean = false;
+  export let overviewRefetch;
 
   // ─── ROUTE PARAM ─────────────────────────────────────
   const location = useLocation();
@@ -93,6 +94,7 @@
     pagination.pageIndex = 0;
     triggerRefresh();
   }
+  let selectedRoles: Record<string, string> = {};
 
   $: totalItems = data?.totalCount || 0;
 
@@ -150,31 +152,49 @@
             accessorKey: 'role',
             header: 'Roles',
             cell: ({ row }: CellContext<any, any>) => {
-              const role = row.original.role;
+              const userId = row.original._id;
+              const role = selectedRoles[userId] || row.original.role;
               const isAdmin = role === 'admin';
 
-              async function onChange(selected) {
-                try {
-                  const response = await hubsService.changeRoles({
-                    params: { workspaceId: params, userId: row.original._id },
-                    data: { role: selected },
-                  });
-                  notification.success(`Role changed to ${selected.value}`);
-                } catch (error) {
-                  notification.error('Failed to role. Please try again.');
-                }
-              }
+              const roleOptions = [
+                { value: 'editor', label: 'Editor' },
+                { value: 'viewer', label: 'Viewer' },
+              ];
+
+              const selectedOption = roleOptions.find((opt) => opt.value === role) || {
+                value: 'admin',
+                label: 'Admin',
+              };
+
               return {
                 Component: RolesDropdown,
                 props: {
-                  selected: role,
-                  options: [
-                    { value: 'editor', label: 'Editor' },
-                    { value: 'viewer', label: 'Viewer' },
-                  ],
+                  selected: selectedOption,
+                  options: roleOptions,
                   disabled: isAdmin,
                   onChange: async (newRole: string) => {
-                    await onChange(newRole);
+                    const previousRole = selectedRoles[userId];
+
+                    selectedRoles = {
+                      ...selectedRoles,
+                      [userId]: newRole,
+                    };
+
+                    try {
+                      await hubsService.changeRoles({
+                        params: { workspaceId: params, userId },
+                        data: { role: newRole },
+                      });
+
+                      overviewRefetch();
+                      notification.success(`Role changed to ${newRole}`);
+                    } catch (error) {
+                      selectedRoles = {
+                        ...selectedRoles,
+                        [userId]: previousRole,
+                      };
+                      notification.error('Failed to change role. Please try again.');
+                    }
                   },
                 },
               };

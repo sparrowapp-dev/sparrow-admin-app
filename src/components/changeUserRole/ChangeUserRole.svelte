@@ -17,12 +17,13 @@
       };
       userRole: string;
     }>;
-  };
+  } | null = null;
+
   export let removeUserPopupOpen: () => void;
   export let onSuccess: () => void;
-  export let hubId: string;
+  export let hubId: string | null = null;
   let isLoading = false;
-  const options = [
+  let options = [
     { id: 'Admin', name: 'Admin' },
     { id: 'Member', name: 'Member' },
     { id: 'Remove User', name: 'Remove User' },
@@ -33,11 +34,25 @@
     { id: 'editor', name: 'Editor' },
     { id: 'Remove User', name: 'Remove' },
   ];
+  let selected: { id: string; name: string };
+  selected = { id: data?.role || '', name: data?.role || '' };
+  let workspaceSelected: Record<string, { id: string; name: string }> = {};
 
-  let selected = { id: data?.role, name: data?.role };
+  $: if (data?.simplifiedWorkspaces?.length) {
+    workspaceSelected = {};
+
+    data.simplifiedWorkspaces.forEach((ws, i) => {
+      workspaceSelected[ws.workspace._id] = {
+        id: ws.userRole,
+        name: ws.userRole === 'editor' ? 'Editor' : 'Viewer',
+      };
+    });
+  }
 
   async function handleRoleChange(event) {
+    let previouslySelectedRole = selected;
     const selectedRole = event.detail.id;
+    selected = event?.detail;
 
     try {
       isLoading = true;
@@ -54,10 +69,12 @@
 
         await action({ userId: data?.id, hubId });
         notification.success(`Successfully changed role to ${selectedRole}`);
+
         onSuccess();
       }
     } catch (error) {
       notification.error(`Error while changing role to ${selectedRole.toLowerCase()}`);
+      selected = previouslySelectedRole;
     } finally {
       onClose();
       isLoading = false;
@@ -65,7 +82,7 @@
   }
 
   async function handleWorkspaceRoleChange(event, workspace) {
-    const selectedRole = event.detail.id;
+    const selectedRole = event?.detail?.id;
 
     try {
       isLoading = true;
@@ -80,7 +97,8 @@
           params: { workspaceId: workspace?.workspace?._id, userId: data?.id },
           data: { role: selectedRole },
         });
-        notification.success(`Successfully changed role to ${selectedRole}`);
+        notification.success(`Successfully changed role to ${selectedRole.toLowerCase()}`);
+        workspaceSelected[workspace.workspace._id] = event?.detail;
       }
       onSuccess();
     } catch (error) {
@@ -98,20 +116,20 @@
         <h2 class="font-fw-ds-500 text-fs-ds-20 leading-lh-ds-120 font-inter text-neutral-50">
           Access to Enterprise Hub
         </h2>
-        <span on:click={onClose}><CloseIcon /></span>
+        <span class="cursor-pointer" on:click={onClose}><CloseIcon /></span>
       </div>
 
       <div class="flex flex-col gap-3">
         <div class="flex justify-between">
           <div class="flex flex-col gap-2">
             <h2 class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
-              {data.name}
+              {data?.name}
             </h2>
             <h2 class="font-inter font-fw-ds-300 text-fs-ds-12 leading-lh-ds-150 text-neutral-300">
-              {data.email}
+              {data?.email}
             </h2>
           </div>
-          <div>
+          <div class="relative">
             <MemberRolesDropdown
               dropdownId="hub-role-dropdown"
               {options}
@@ -123,27 +141,49 @@
 
         <div class="border-b-surface-100 border-b"></div>
 
-        <div class="h-[200px] overflow-y-auto">
-          {#each data.simplifiedWorkspaces as workspace, i}
-            <div
-              class="text-fs-ds-12 font-fw-ds-500 leading-lh-ds-150 font-inter flex w-full justify-between p-1 text-neutral-400"
-            >
-              <h2>{workspace.workspace.name}</h2>
-              <span>
-                <MemberRolesDropdown
-                  dropdownId={`workspace-role-dropdown-${i}`}
-                  selected={{
-                    id: workspace.userRole,
-                    name: workspace.userRole === 'editor' ? 'Editor' : 'Viewer',
-                  }}
-                  options={workspaceOptions}
-                  on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
-                />
-              </span>
-            </div>
-          {/each}
+        <div class="custom-scroll h-[200px] overflow-y-auto">
+          {#if data?.simplifiedWorkspaces && data.simplifiedWorkspaces?.length > 0}
+            {#each data.simplifiedWorkspaces as workspace, i}
+              <div
+                class="text-fs-ds-12 font-fw-ds-500 leading-lh-ds-150 font-inter flex w-full justify-between p-1 text-neutral-400"
+              >
+                <h2>{workspace.workspace.name}</h2>
+                <span class="">
+                  <MemberRolesDropdown
+                    disabled={selected?.id === 'Admin'}
+                    dropdownId={`workspace-role-dropdown-${i}`}
+                    selected={workspaceSelected[workspace.workspace._id]}
+                    options={workspaceOptions}
+                    on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
+                  />
+                </span>
+              </div>
+            {/each}
+          {/if}
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  /* global.css */
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #a3a3a3 transparent;
+  }
+
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: #a3a3a3;
+    border-radius: 10px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+</style>

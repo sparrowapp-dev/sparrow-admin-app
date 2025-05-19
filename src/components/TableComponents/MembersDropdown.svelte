@@ -2,40 +2,41 @@
   import EditIcon from '@/assets/icons/EditIcon.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import { navigate } from 'svelte-routing';
-  import { onMount, onDestroy, tick } from 'svelte';
+  import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import RemoveUsers from '@/assets/icons/RemoveUsers.svelte';
 
   export let row;
   export let modalVariants;
   export let handleshowModal;
+  export let onClick;
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;
   let dropdownEl: HTMLDivElement;
   let position = { top: 0, left: 0, width: 0 };
+  const dispatch = createEventDispatcher();
 
   async function toggleDropdown(event) {
-    // Stop propagation to prevent the row click event
     event.stopPropagation();
-
     if (!isOpen) {
-      // Close other dropdowns first
       window.dispatchEvent(new CustomEvent('close-all-dropdowns'));
-
-      // Set to open
       isOpen = true;
-
-      // Wait for the dropdown to be rendered
       await tick();
-
-      // Calculate position after the dropdown is in the DOM
       calculatePosition();
     } else {
       isOpen = false;
     }
   }
+  onMount(() => {
+    window.addEventListener('close-all-dropdowns', closeDropdown);
+    window.addEventListener('click', handleClickOutside);
+  });
 
+  onDestroy(() => {
+    window.removeEventListener('close-all-dropdowns', closeDropdown);
+    window.removeEventListener('click', handleClickOutside);
+  });
   function calculatePosition() {
     if (!triggerEl || !dropdownEl) return;
 
@@ -63,18 +64,15 @@
     isOpen = false;
   }
 
-  function handleManageHub(event, hub) {
+  function handleChangeRole(event) {
     event.stopPropagation();
-
-    modalVariants.changeRole = true;
-    handleshowModal(row?.original);
+    onClick({ data: row?.original, click: 'changeRole' });
 
     closeDropdown();
   }
-  function handleManageMembers(event, hub) {
+  function handleRemoveUser(event) {
     event.stopPropagation();
-    modalVariants.removeUser = true;
-    handleshowModal(row?.original);
+    onClick({ data: row.original, click: 'removeUser' });
 
     closeDropdown();
   }
@@ -108,22 +106,23 @@
 <!-- Dropdown trigger -->
 <div class="relative flex items-center justify-end">
   <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
-    {#if row.original.role !== 'Owner'}
-      <button
-        bind:this={triggerEl}
-        class="hover:bg-surface-300 cursor-pointer rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
-        on:click={toggleDropdown}
-        aria-label="More actions"
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        data-action="toggle-menu"
-      >
-        {#if typeof row.original.renderThreeDotsIcon === 'function'}
-          {@html row.original.renderThreeDotsIcon()}
-        {:else}
-          ⋮
-        {/if}
-      </button>{/if}
+    <button
+      bind:this={triggerEl}
+      class="hover:bg-surface-300 cursor-pointer {row.original.role === 'Owner'
+        ? 'pointer-events-none opacity-0'
+        : ''} rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
+      on:click={toggleDropdown}
+      aria-label="More actions"
+      aria-haspopup="true"
+      aria-expanded={isOpen}
+      data-action="toggle-menu"
+    >
+      {#if typeof row.original.renderThreeDotsIcon === 'function'}
+        {@html row.original.renderThreeDotsIcon()}
+      {:else}
+        ⋮
+      {/if}
+    </button>
   </Tooltip>
 </div>
 
@@ -138,7 +137,7 @@
     <div class="bg-surface-600 flex flex-col gap-1 overflow-hidden rounded-sm px-1 py-1">
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageHub(e, row.original)}
+        on:click={(e) => handleChangeRole(e)}
       >
         <EditIcon />
         <h2 class="text-fs-ds-12 font-fw-ds-400">Change Role</h2>
@@ -146,7 +145,7 @@
 
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageMembers(e, row.original)}
+        on:click={(e) => handleRemoveUser(e)}
       >
         <RemoveUsers />
         <h2 class="text-fs-ds-12 font-regular font-fw-ds-400 text-red-300">Remove User</h2>

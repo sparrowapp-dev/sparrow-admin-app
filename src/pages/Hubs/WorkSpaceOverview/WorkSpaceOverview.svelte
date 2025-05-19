@@ -6,7 +6,6 @@
   import PopupModal from './PopupModal.svelte';
 
   // ─── DATA & SERVICES ────────────────────────────────
-  import { topdata } from './dummyData';
   import { createQuery } from '@/services/api.common';
 
   // ─── SVELTE LIFECYCLE & STORES ──────────────────────
@@ -60,10 +59,10 @@
   // ─── CALLBACKS ───────────────────────────────────────
   function handleOnSuccess() {
     if (modalVariants.isEditWorkspaceModalOpen) {
-      TopDatarefetch();
+      overviewRefetch();
     }
     if (modalVariants.isMakeItPublicModalOpen) {
-      TopDatarefetch();
+      overviewRefetch();
     }
     if (modalVariants.isInviteModal) {
     }
@@ -95,7 +94,7 @@
   //     if (id && id !== params) {
   //       params = id;
   //       refetch();
-  //       TopDatarefetch();
+  //       overviewRefetch();
   //     }
   //   });
   // });
@@ -105,7 +104,7 @@
         params = wId;
         hubId = hId;
         refetch();
-        TopDatarefetch();
+        overviewRefetch();
       }
     });
   });
@@ -153,8 +152,8 @@
 
   const {
     data: topData,
-    isFetching: isTopDataFetching,
-    refetch: TopDatarefetch,
+    isFetching: overviewDataRefetching,
+    refetch: overviewRefetch,
   } = createQuery(async () => {
     const queryParams = { workspaceId: params, hubId: hubId };
 
@@ -163,25 +162,32 @@
 
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
-    { label: $topData?.data?.hubName, path: `/hubs/workspace/${params}` },
-    { label: $topData?.data?.title, path: `/hubs/members/${params}` },
+    { label: $topData?.data?.hubName, path: `/hubs/workspace/${hubId}` },
+    { label: $topData?.data?.title, path: `/hubs/workspace-details/${params}/${hubId}` },
   ];
 </script>
 
 <section class="font-inter w-full text-neutral-50">
   <Breadcrumbs items={breadcrumbItems} />
   <div class="flex flex-col gap-6 pt-6">
-    <TopWorkspace topdata={$topData?.data} {openModal} isLoading={$isTopDataFetching} />
+    <TopWorkspace
+      topdata={$topData?.data}
+      {openModal}
+      isLoading={$overviewDataRefetching}
+      workspaceId={params}
+    />
     <BottomWorkspace
       data={$workspacesData?.data}
       onRefresh={handleRefresh}
       isLoading={$isFetching}
       {params}
+      {overviewRefetch}
     />
   </div>
   {#if showModal}
     <Modal on:close={closeAllModals}>
       <PopupModal
+        workspaceId={params}
         onClose={closeAllModals}
         data={$topData.data}
         onSuccess={handleOnSuccess}

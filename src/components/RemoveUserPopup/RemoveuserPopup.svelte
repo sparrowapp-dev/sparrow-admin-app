@@ -29,7 +29,7 @@
       <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
         Remove user ?
       </h2>
-      <span on:click={onClose}> <CloseIcon /></span>
+      <span class="cursor-pointer" on:click={onClose}> <CloseIcon /></span>
     </div>
     <div class="flex flex-col gap-1">
       <div class="font-fw-ds-300 text-fs-ds-14 leading-lh-ds-143 font-inter text-neutral-200">

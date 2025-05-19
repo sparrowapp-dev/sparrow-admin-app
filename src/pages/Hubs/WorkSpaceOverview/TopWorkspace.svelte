@@ -14,10 +14,11 @@
   import ShareIcon from '@/assets/icons/ShareIcon.svelte';
   import { notification } from '@/components/Toast';
   import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
-
+  import { SPARROW_LAUNCH_URL } from '@/constants/environment';
   export let topdata;
   export let openModal;
   export let isLoading;
+  export let workspaceId;
   $: stats = topdata
     ? [
         { label: 'Total Contributors', value: topdata.totalContributors },
@@ -62,12 +63,14 @@
 
   // Dropdown action handlers
   function handleEditWorkspace() {
-    // Add your edit workspace functionality here
     openModal('editWorkspace');
     closeDropdown();
   }
 
-  function launchinSparrow() {
+  function launchInSparrow(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    window.location.href = `sparrow://`;
     closeDropdown();
   }
   function handleMakeItPublic() {
@@ -79,8 +82,8 @@
     openModal('deleteWorkSpace');
     closeDropdown();
   }
-  async function copylink() {
-    const shareUrl = `${window.location.origin}/workspaces/samplelink`; // or whatever your share URL is
+  async function copyLink() {
+    const shareUrl = `${SPARROW_LAUNCH_URL}?workspaceId=${workspaceId}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
       notification.success(`Link copied`);
@@ -152,7 +155,7 @@
                   </button>
                   <button
                     class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
-                    on:click={launchinSparrow}
+                    on:click={(e) => launchInSparrow(e)}
                   >
                     <LaunchInSparrow /> Launch in Sparrow
                   </button>
@@ -163,7 +166,7 @@
                       if (topdata.WorkspaceType === 'PRIVATE') {
                         handleMakeItPublic();
                       } else {
-                        copylink();
+                        copyLink();
                       }
                     }}
                   >
