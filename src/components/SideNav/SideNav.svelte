@@ -104,7 +104,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/home')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <HomeIcon
             variant={hoveredPath === '/home' && !isPathActive('/home') && pressedPath !== '/home'
               ? 'hover'
@@ -139,7 +139,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/analytics')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <ChartIcon
             variant={hoveredPath === '/analytics' &&
             !isPathActive('/analytics') &&
@@ -176,7 +176,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/hubs')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <WorkspaceIcon
             variant={hoveredPath === '/hubs' && !isPathActive('/hubs') && pressedPath !== '/hubs'
               ? 'hover'
@@ -195,7 +195,7 @@
 
     <!-- Users Icon -->
     <Tooltip
-      text="Coming soon"
+      text="Users"
       position="right"
       mode="controlled"
       show={focusedPath === '/users' || hoveredPath === '/users'}
@@ -211,7 +211,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/users')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <UsersIcon
             variant={hoveredPath === '/users' && !isPathActive('/users') && pressedPath !== '/users'
               ? 'hover'
@@ -249,7 +249,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/billing')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <BillingIcon
             variant={hoveredPath === '/billing' &&
             !isPathActive('/billing') &&
@@ -286,7 +286,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/audit')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <AuditIcon
             variant={hoveredPath === '/audit' && !isPathActive('/audit') && pressedPath !== '/audit'
               ? 'hover'
@@ -321,7 +321,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/security')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <SecurityIcon
             variant={hoveredPath === '/security' &&
             !isPathActive('/security') &&
@@ -358,7 +358,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/self-hosting')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <HostingIcon
             variant={hoveredPath === '/self-hosting' &&
             !isPathActive('/self-hosting') &&
@@ -395,7 +395,7 @@
         on:blur={() => (focusedPath = null)}
         on:pointerdown={() => handlePointerDown('/settings')}
       >
-        <div class="rounded px-3 py-3">
+        <div class="pointer-events-none rounded px-3 py-3">
           <SettingsIcon
             variant={hoveredPath === '/settings' &&
             !isPathActive('/settings') &&
