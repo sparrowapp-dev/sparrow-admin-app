@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Router, Route, Link, useLocation } from 'svelte-routing';
-  import Overview from './Overview/Overview.svelte';
   import UserOverview from './UserOverview/UserOverview.svelte';
   import UsersSideNav from '@/components/UsersSideNav/UsersSideNav.svelte';
+  import UserDashboard from './UserDashboard/UserDashboard.svelte';
 
   const location = useLocation();
   // queries
@@ -19,7 +19,7 @@
       <!-- Nested Route Content -->
       <div class="w-[100%] overflow-auto p-4">
         <Router>
-          <Route path="overview" component={Overview} />
+          <Route path="overview" component={UserDashboard} />
           <Route path="users-overview" component={UserOverview} />
         </Router>
       </div>
