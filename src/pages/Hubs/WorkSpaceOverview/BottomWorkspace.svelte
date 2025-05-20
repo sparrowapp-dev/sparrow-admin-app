@@ -271,10 +271,10 @@
         />
       {/if}
     </div>
-    {#if totalItems < 1}
+    {#if totalItems < 1 && !isLoading}
       <div class="flex flex-col items-center justify-center py-16">
         <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
-          No {selectedTab === 'resources' ? 'Resources' : 'Memebers'} Found
+          No {selectedTab === 'resources' ? 'Resources' : 'Members'} Found
         </p>
       </div>
     {:else}
