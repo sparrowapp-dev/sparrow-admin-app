@@ -126,7 +126,9 @@
     <div class="flex w-full flex-col gap-3">
       <div class="header flex w-full flex-row items-center justify-between">
         <div class="flex max-h-[20px] items-center gap-3">
-          <h2 class="font-inter text-fs-ds-28 leading-lh-ds-120 font-medium text-neutral-50">
+          <h2
+            class="font-inter text-fs-ds-28 leading-lh-ds-120 max-w-[300px] overflow-hidden font-medium text-ellipsis whitespace-nowrap text-neutral-50"
+          >
             {topData?.title}
           </h2>
           {#if topData?.WorkspaceType === 'PRIVATE'}
@@ -222,10 +224,13 @@
         </div>
       </div>
     </div>
-    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 text-neutral-400">
-      You are viewing details for the workspace '{topData?.title}'s Workspace'. This workspace
-      contains API collections, test flows, and environments that are organized for collaborative
-      development and testing.
+    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 flex text-neutral-400">
+      You are viewing details for the workspace ""
+      <h2 class="max-w-[150px] overflow-hidden pl-2 text-ellipsis whitespace-nowrap">
+        {topData?.title}
+      </h2>
+      "" . This workspace contains API collections, test flows, and environments that are organized for
+      collaborative development and testing.
     </div>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {#each stats as stat (stat?.label)}

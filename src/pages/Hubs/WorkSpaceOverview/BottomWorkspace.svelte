@@ -271,25 +271,32 @@
         />
       {/if}
     </div>
+    {#if totalItems < 1}
+      <div class="flex flex-col items-center justify-center py-16">
+        <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
+          No {selectedTab === 'resources' ? 'Resources' : 'Memebers'} Found
+        </p>
+      </div>
+    {:else}
+      <Table
+        {columns}
+        data={processedData.workspaces}
+        {isLoading}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        on:sortingChange={handleSortingChange}
+        on:rowClick={(e) => console.log('Row clicked:', e.detail)}
+      />
 
-    <Table
-      {columns}
-      data={processedData.workspaces}
-      {isLoading}
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      on:sortingChange={handleSortingChange}
-      on:rowClick={(e) => console.log('Row clicked:', e.detail)}
-    />
-
-    <TablePagination
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      {isLoading}
-      on:pageChange={handlePageChange}
-      on:pageSizeChange={handlePageSizeChange}
-    />
+      <TablePagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        {isLoading}
+        on:pageChange={handlePageChange}
+        on:pageSizeChange={handlePageSizeChange}
+      />
+    {/if}
   </div>
 </div>
