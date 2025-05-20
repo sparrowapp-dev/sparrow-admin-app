@@ -6,7 +6,8 @@
   const location = useLocation();
 
   // Reactive variables for active states
-  $: isOverviewActive = $location.pathname === '/users/overview' || $location.pathname === '/users';
+  $: isOverviewActive =
+    $location.pathname === '/users/users-dashboard' || $location.pathname === '/users';
   $: isUsersActive = $location.pathname === '/users/users-overview';
 
   // Function to handle navigation with active state updates
@@ -17,7 +18,7 @@
   // Redirect to overview if on the base /users path
   onMount(() => {
     if ($location.pathname === '/users') {
-      navigate('/users/overview', { replace: true });
+      navigate('/users/users-dashboard', { replace: true });
     }
   });
 </script>
@@ -26,7 +27,7 @@
   <div class="flex flex-col gap-3">
     <nav class="flex flex-col gap-0.5 p-2">
       <button
-        on:click={() => handleNavigation('/users/overview')}
+        on:click={() => handleNavigation('/users/users-dashboard')}
         class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-left text-neutral-50 {isOverviewActive
           ? 'bg-surface-500'
           : ''}"

@@ -19,7 +19,7 @@
       <!-- Nested Route Content -->
       <div class="w-[100%] overflow-auto p-4">
         <Router>
-          <Route path="overview" component={UserDashboard} />
+          <Route path="users-dashboard" component={UserDashboard} />
           <Route path="users-overview" component={UserOverview} />
         </Router>
       </div>
