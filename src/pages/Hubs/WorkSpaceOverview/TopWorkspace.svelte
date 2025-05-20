@@ -15,14 +15,14 @@
   import { notification } from '@/components/Toast';
   import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
   import { SPARROW_LAUNCH_URL } from '@/constants/environment';
-  export let topdata;
+  export let topData;
   export let openModal;
   export let isLoading;
   export let workspaceId;
   export let hubId;
-  $: stats = topdata
+  $: stats = topData
     ? [
-        { label: 'Total Contributors', value: topdata.totalContributors },
+        { label: 'Total Contributors', value: topData.totalContributors },
         { label: 'Total Collections', value: topdata.totalCollections },
         { label: 'Total Test Flows', value: topdata.totalTestFLows },
         { label: 'Total Environments', value: topdata.totalEnvironments },

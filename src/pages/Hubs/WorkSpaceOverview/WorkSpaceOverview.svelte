@@ -172,7 +172,7 @@
   <div class="flex flex-col gap-6 pt-6">
     <TopWorkspace
       {hubId}
-      topdata={$topData?.data}
+      topData={$topData?.data}
       {openModal}
       isLoading={$overviewDataRefetching}
       workspaceId={params}

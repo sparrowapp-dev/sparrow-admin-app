@@ -22,16 +22,12 @@
 
 <div class="group/url relative flex items-center gap-2">
   <span class="truncate text-neutral-50">
-    {hubUrl || Value || `https://sparrow.app/hub/${row.original._id}`}
+    {hubUrl || Value}
   </span>
   <button
     class="relative cursor-pointer p-1 text-neutral-400 opacity-0
          transition-all duration-150 group-hover/url:opacity-100 hover:text-neutral-50"
-    on:click|stopPropagation={() =>
-      handleCopy(
-        hubUrl || Value || `https://sparrow.app/hub/${row.original._id}`,
-        row.original._id,
-      )}
+    on:click|stopPropagation={() => handleCopy(hubUrl || Value, row.original._id)}
     title="Click to copy URL"
   >
     <Tooltip
