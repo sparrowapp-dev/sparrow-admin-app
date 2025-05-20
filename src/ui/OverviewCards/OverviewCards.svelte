@@ -8,6 +8,7 @@
   export let title: string;
   export let value: number;
   export let points: Point[] = [];
+  export let history: string;
 </script>
 
 <section class="bg-surface-600 w-[32%] rounded-[8px] p-6">
@@ -33,6 +34,12 @@
               {/if}
             </div>
           {/each}
+        {/if}
+
+        {#if history}
+          <div class="font-inter text-fs-ds-12 font-fw-ds-300 text-green-300">
+            {history}
+          </div>
         {/if}
       </div>
     </div>

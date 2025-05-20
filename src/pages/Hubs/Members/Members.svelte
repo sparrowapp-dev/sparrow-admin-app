@@ -3,7 +3,7 @@
   import { useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import TableV2 from '@/components/Table/TableV2.svelte';
+  import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
@@ -319,7 +319,7 @@
           <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No members found.</p>
         </div>
       {:else}
-        <TableV2
+        <Table
           columns={membersColumns}
           data={members}
           isLoading={$isMembersFetching}
@@ -358,7 +358,7 @@
           <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No pending invites.</p>
         </div>
       {:else}
-        <TableV2
+        <Table
           columns={invitesColumns}
           data={invites}
           isLoading={$isInvitesFetching}

@@ -14,9 +14,9 @@
   import WorkspaceIcon2 from '@/assets/icons/WorkspaceIcon2.svelte';
   import ContributionIcon from '@/assets/icons/ContributionIcon.svelte';
   import PlusIcon from '@/assets/icons/PlusIcon.svelte';
-  import OverviewCards from './OverviewCards.svelte';
+  import OverviewCards from '@/ui/OverviewCards/OverviewCards.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import TableV2 from '@/components/Table/TableV2.svelte';
+  import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import HubUrl from '@/components/TableComponents/HubUrl.svelte';
@@ -267,7 +267,7 @@
         <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
       </div>
     {:else}
-      <TableV2
+      <Table
         {columns}
         data={$hubsData?.data?.hubs || []}
         isLoading={$isFetching}
