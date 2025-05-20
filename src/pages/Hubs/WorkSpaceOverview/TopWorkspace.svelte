@@ -2,7 +2,7 @@
   import Inviteicon from '@/assets/icons/Inviteicon.svelte';
   import PrivateIcon from '@/assets/icons/PrivateIcon.svelte';
   import ThreeDotsVerticalIcon from '@/assets/icons/ThreeDotsVerticalIcon.svelte';
-  import StatCard from './StatCard.svelte';
+
   import { onMount, onDestroy } from 'svelte';
   import EditIcon from '@/assets/icons/EditIcon.svelte';
   import LaunchInSparrow from '@/assets/icons/LaunchInSparrow.svelte';
@@ -15,6 +15,7 @@
   import { notification } from '@/components/Toast';
   import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
   import { SPARROW_LAUNCH_URL } from '@/constants/environment';
+  import StatCard from '@/components/StatCard/StatCard.svelte';
   export let topData;
   export let openModal;
   export let isLoading;
@@ -23,9 +24,9 @@
   $: stats = topData
     ? [
         { label: 'Total Contributors', value: topData.totalContributors },
-        { label: 'Total Collections', value: topdata.totalCollections },
-        { label: 'Total Test Flows', value: topdata.totalTestFLows },
-        { label: 'Total Environments', value: topdata.totalEnvironments },
+        { label: 'Total Collections', value: topData.totalCollections },
+        { label: 'Total Test Flows', value: topData.totalTestFLows },
+        { label: 'Total Environments', value: topData.totalEnvironments },
       ]
     : [];
 
@@ -126,9 +127,9 @@
       <div class="header flex w-full flex-row items-center justify-between">
         <div class="flex max-h-[20px] items-center gap-3">
           <h2 class="font-inter text-fs-ds-28 leading-lh-ds-120 font-medium text-neutral-50">
-            {topdata?.title}
+            {topData?.title}
           </h2>
-          {#if topdata?.WorkspaceType === 'PRIVATE'}
+          {#if topData?.WorkspaceType === 'PRIVATE'}
             <span>
               <PrivateIcon />
             </span>
@@ -177,14 +178,14 @@
                   <button
                     class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={() => {
-                      if (topdata.WorkspaceType === 'PRIVATE') {
+                      if (topData.WorkspaceType === 'PRIVATE') {
                         handleMakeItPublic();
                       } else {
                         copyLink();
                       }
                     }}
                   >
-                    {#if topdata.WorkspaceType === 'PRIVATE'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
+                    {#if topData.WorkspaceType === 'PRIVATE'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
                       /> Link Copied
                     {:else}<ShareIcon /> Share Workspace{/if}
                   </button>
@@ -207,7 +208,7 @@
             Last Updated :
           </p>
           <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {getRelativeTime(topdata?.updatedAt)}
+            {getRelativeTime(topData?.updatedAt)}
           </p>
         </div>
         <div class="ml-1 h-full border-r border-r-neutral-500" />
@@ -216,13 +217,13 @@
             Updated By :
           </div>
           <div class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {topdata?.updatedBy}
+            {topData?.updatedBy}
           </div>
         </div>
       </div>
     </div>
     <div class="font-inter text-fs-ds-12 leading-lh-ds-150 text-neutral-400">
-      You are viewing details for the workspace '{topdata?.title}'s Workspace'. This workspace
+      You are viewing details for the workspace '{topData?.title}'s Workspace'. This workspace
       contains API collections, test flows, and environments that are organized for collaborative
       development and testing.
     </div>

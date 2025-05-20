@@ -3,8 +3,8 @@
   import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
 
-  export let selected: string;
-  export let options: string[] = [];
+  export let selected: { label: string; value: string };
+  export let options: { label: string; value: string }[] = [];
   export let disabled: boolean = false;
   export let onChange;
 
@@ -51,7 +51,7 @@
     isOpen = false;
   }
 
-  function handleSelect(option: string) {
+  function handleSelect(option) {
     closeDropdown();
     onChange(option.value);
   }
@@ -104,14 +104,14 @@
         <div class="bg-surface-600 flex flex-col gap-1 rounded-sm py-1">
           {#each options as option}
             <button
-              class="hover:bg-surface-300 flex w-full items-center justify-between gap-1 px-2 py-1 {selected ===
+              class="hover:bg-surface-300 flex w-full items-center justify-between gap-1 px-2 py-1 {selected.value ===
               option.value
                 ? 'text-blue-400'
                 : 'text-neutral-50'}"
               on:click={() => handleSelect(option)}
             >
               <h2>{option.label}</h2>
-              {#if selected === option.value}
+              {#if selected.value === option.value}
                 <BlueCheckIcon />
               {/if}
             </button>
