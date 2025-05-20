@@ -139,7 +139,7 @@
 
       <button
         class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleManageMembers(e, row.original)}
+        on:click={(e) => handleManageMembers(e)}
       >
         <ManageMembersIcon />
         <h2 class="text-fs-ds-12 font-regular">Manage Members</h2>

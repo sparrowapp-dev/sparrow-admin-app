@@ -2,7 +2,7 @@
   // ─── COMPONENTS ──────────────────────────────────────
   import ResourceIcons from '@/assets/icons/ResourceIcons.svelte';
 
-  import TableV2 from '@/components/Table/TableV2.svelte';
+  import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
@@ -272,7 +272,7 @@
       {/if}
     </div>
 
-    <TableV2
+    <Table
       {columns}
       data={processedData.workspaces}
       {isLoading}

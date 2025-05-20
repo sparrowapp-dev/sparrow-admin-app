@@ -4,7 +4,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
-  import TableV2 from '@/components/Table/TableV2.svelte';
+  import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
@@ -275,7 +275,7 @@
         </p>
       </div>
     {:else}
-      <TableV2
+      <Table
         {columns}
         data={data.workspaces}
         isLoading={$isFetching}
