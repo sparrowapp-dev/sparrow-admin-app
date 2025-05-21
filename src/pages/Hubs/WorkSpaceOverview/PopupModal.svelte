@@ -10,6 +10,7 @@
   import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
+  import { SPARROW_APP_URL, SPARROW_DOCS_URL } from '@/constants/environment';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -24,6 +25,7 @@
     isInviteModal: boolean;
   };
   export let params;
+  const baseUrl = SPARROW_APP_URL;
   let workspaces: { id: string; name: string }[] = [];
   onMount(async () => {
     if (modalVariants.isEditWorkspaceModalOpen) {
@@ -153,7 +155,7 @@
           params: { workspaceId: params, hubId: hubId },
         });
         notification.success(
-          `"Workspace "${formData.workspaceName}" has been deleted successfully.`,
+          `Workspace "${formData.workspaceName}" has been deleted successfully.`,
         );
       } else if (modalVariants.isInviteModal) {
         // Handle inviting collaborators
@@ -265,7 +267,7 @@
     <span class="flex flex-col gap-1">
       <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
         Publish "
-        <p class="w-[8rem] truncate">{data.title}</p>
+        <p class="max-w-[8rem] truncate">{data.title}</p>
         " Workspace
       </span>
       <span class="mb-1">
@@ -280,6 +282,12 @@
             <button
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
+              on:click={() => {
+                const url = `${baseUrl}/terms-of-service`;
+
+                // Open in a new tab
+                window.open(url, '_blank');
+              }}
             >
               Terms of services
             </button>
@@ -287,6 +295,12 @@
             <button
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
+              on:click={() => {
+                const url = `${baseUrl}/privacy-policy/`;
+
+                // Open in a new tab
+                window.open(url, '_blank');
+              }}
             >
               Privacy Policy
             </button>
@@ -312,7 +326,12 @@
       <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-light text-neutral-400"
         ><button
           class="cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
-          >Learn more</button
+          on:click={() => {
+            const url = `${SPARROW_DOCS_URL}`;
+
+            // Open in a new tab
+            window.open(url, '_blank');
+          }}>Learn more</button
         > how public workspaces work .</span
       >
       <div class="mt-6 flex w-full items-center justify-end gap-3">
@@ -340,12 +359,11 @@
         class="font-inter leading-lh-ds-150 text-fs-ds-12 items-center pr-2 text-left text-neutral-400"
       >
         Everything in
-        <span
-          class="leading-lh-ds-150 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap"
-        >
-          {data.title}
-        </span>
-        will be permanently removed, all contributors will lose access. This action cannot be undone.
+
+        {data.title.length > 10 ? `${data.title.slice(0, 10)}...` : data.title}
+
+        will be permanently removed, all contributors will lose access. This action cannot be
+        undone.
       </span>
     </span>
 

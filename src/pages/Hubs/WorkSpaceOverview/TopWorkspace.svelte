@@ -228,11 +228,11 @@
     </div>
     <div class="font-inter text-fs-ds-12 leading-lh-ds-150 flex text-neutral-400">
       You are viewing details for the workspace '
-      <h2 class="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
-        {topData?.title || ''}
-      </h2>
-      '. This workspace contains API collections, test flows, and environments that are organized for
-      collaborative development and testing.
+
+      {topData?.title?.length > 10 ? `${topData?.title?.slice(0, 10)}...` : topData?.title}
+
+      '. This workspace contains API collections, test flows, and environments that are organized
+      for collaborative development and testing.
     </div>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {#each stats as stat (stat?.label)}
