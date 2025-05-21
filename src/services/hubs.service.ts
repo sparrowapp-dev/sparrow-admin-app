@@ -288,6 +288,12 @@ export class HubsService {
     const res = await makeRequest('DELETE', url);
     return res.data;
   }
+  public async getUsers(): Promise<any> {
+    const url = '/api/admin/enterpriseUsers';
+
+    const res = await makeRequest('GET', url);
+    return res?.data?.data;
+  }
 }
 
 export const hubsService = new HubsService();

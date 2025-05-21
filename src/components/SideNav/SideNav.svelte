@@ -204,7 +204,7 @@
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/users')}
-        on:click={() => navigate('/user')}
+        on:click={() => navigate('/users')}
         on:mouseenter={() => (hoveredPath = '/users')}
         on:mouseleave={() => (hoveredPath = null)}
         on:focus={() => (focusedPath = '/users')}

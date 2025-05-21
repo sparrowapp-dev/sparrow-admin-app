@@ -3,6 +3,7 @@
   import UserOverview from './UserOverview/UserOverview.svelte';
   import UsersSideNav from '@/components/UsersSideNav/UsersSideNav.svelte';
   import UserDashboard from './UserDashboard/UserDashboard.svelte';
+  import UserDetails from './UserDetails/UserDetails.svelte';
 
   const location = useLocation();
   // queries
@@ -21,6 +22,7 @@
         <Router>
           <Route path="users-dashboard" component={UserDashboard} />
           <Route path="users-overview" component={UserOverview} />
+          <Route path="users-overview/:id" component={UserDetails} />
         </Router>
       </div>
     </div>

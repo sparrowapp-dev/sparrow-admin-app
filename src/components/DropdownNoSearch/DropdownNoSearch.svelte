@@ -91,9 +91,9 @@
       {#if leftIcon}
         <svelte:component this={leftIcon} />
       {/if}
-      <span>
+      <span class="">
         {#if selected}
-          {selected.label}
+          {selected.label.length > 15 ? `${selected.label.slice(0, 15)}...` : selected.label}
         {:else}
           {placeholder}
         {/if}
@@ -120,7 +120,7 @@
             {#if option.leftIcon}
               <svelte:component this={option.leftIcon} />
             {/if}
-            {option.label}
+            {option.label.length > 15 ? `${option.label.slice(0, 15)}...` : option.label}
             {#if selected?.value === option.value}
               <div class="ml-auto">
                 <BlueCheckIcon />

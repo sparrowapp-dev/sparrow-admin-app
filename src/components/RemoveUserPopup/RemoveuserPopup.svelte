@@ -23,11 +23,11 @@
   }
 </script>
 
-<div class="bg-surface-600 p-4">
+<div class="bg-surface-600 rounded-[8px] p-6">
   <div class="flex flex-col gap-6">
     <div class="flex justify-between">
       <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
-        Remove user ?
+        Remove user?
       </h2>
       <span class="cursor-pointer" on:click={onClose}> <CloseIcon /></span>
     </div>
@@ -37,8 +37,8 @@
         will lose access to the <span class="text-neutral-50">“{hubName}”</span>
         team.
       </div>
-      <div class="flex w-full justify-end gap-2">
-        <Button on:click={onClose} variant="filled-primary">Cancel</Button>
+      <div class="flex w-full justify-end gap-3">
+        <Button on:click={onClose} variant="filled-secondary">Cancel</Button>
         <Button disabled={isLoading} on:click={handleRemoveUser} variant="filled-tertiary"
           >Remove</Button
         >
