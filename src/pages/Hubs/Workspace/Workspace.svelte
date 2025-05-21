@@ -9,7 +9,7 @@
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import type { SortingState } from '@tanstack/table-core';
-  import { useLocation } from 'svelte-routing';
+  import { navigate, useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import { onDestroy, onMount } from 'svelte';
   import { getRelativeTime } from '@/utils/TimeFunction';
@@ -283,7 +283,8 @@
         pageSize={pagination.pageSize}
         {totalItems}
         on:sortingChange={handleSortingChange}
-        on:rowClick={(e) => console.log('Row clicked:', e.detail)}
+        on:rowClick={(e) =>
+          navigate(`/hubs/workspace-details/${e.detail._id || e.detail.id}/${params}`)}
       />
 
       <TablePagination
