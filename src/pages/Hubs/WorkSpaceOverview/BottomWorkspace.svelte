@@ -128,7 +128,7 @@
               const resourceType = row.original.resourceType;
               // Example: Append strings based on some condition
               let extra;
-              if (resourceType === 'environment') {
+              if (resourceType === 'environments') {
                 extra = 'Variables';
               }
               if (resourceType === 'testflows') {

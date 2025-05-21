@@ -340,11 +340,11 @@
         class="font-inter leading-lh-ds-150 text-fs-ds-12 items-center pr-2 text-left text-neutral-400"
       >
         Everything in
-        <p
-          class="leading-lh-ds-150 vertical-align-baseline inline-block max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap"
+        <span
+          class="leading-lh-ds-150 max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap"
         >
           {data.title}
-        </p>
+        </span>
         will be permanently removed, all contributors will lose access. This action cannot be undone.
       </span>
     </span>
