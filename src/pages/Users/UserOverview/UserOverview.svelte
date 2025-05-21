@@ -1,4 +1,5 @@
 <script lang="ts">
+  import AllHubsIcon from '@/assets/icons/AllHubsIcon.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import ResourceIcons from '@/assets/icons/ResourceIcons.svelte';
   import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
@@ -242,10 +243,11 @@
             {options}
             bind:selected
             placeholder="Select Team"
-            leftIcon={ResourceIcons}
+            leftIcon={AllHubsIcon}
             variant="primary"
             width="w-48"
             on:select={handleSelect}
+            pinLastOptionBottom={true}
           />
         </div>
 
@@ -305,7 +307,7 @@
         />
       {:else if modalVariants.changingRole}
         <ChangingRolesPopup
-          onSuccess={() => refetchMembers()}
+          onSuccess={() => refetch()}
           onClose={closePopups}
           hubName={currentHubName}
           data={$membersData.data?.members?.find(

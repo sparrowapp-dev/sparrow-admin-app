@@ -16,6 +16,7 @@
   export let leftIcon: any = null; // Main dropdown left icon
   export let width = 'min-w-[133px]';
   export let variant: 'primary' | 'secondary' = 'primary';
+  export let pinLastOptionBottom = false;
 
   const dispatch = createEventDispatcher<{
     select: DropdownOption;
@@ -83,6 +84,8 @@
           : 'bg-white hover:bg-gray-50 text-gray-900 focus:border-blue-300 focus:ring-blue-300'
       }
     `;
+  $: pinnedOption = options.find((opt) => opt.value === 'all');
+  $: otherOptions = pinLastOptionBottom ? options.filter((opt) => opt.value !== 'all') : options;
 </script>
 
 <div class="text-fs-ds-12 leading-lh-ds-150 relative font-medium" bind:this={dropdownRef}>
@@ -105,14 +108,14 @@
   {#if open}
     <ul
       class="dropdown absolute z-10 w-full rounded-md px-1 py-1 shadow-lg
-        {variant === 'primary' ? 'bg-surface-600' : 'bg-white'}
-        {dropdownDirection === 'down' ? 'top-full mt-1' : 'bottom-full mb-1'}"
+      {variant === 'primary' ? 'bg-surface-600' : 'bg-white'}
+      {dropdownDirection === 'down' ? 'top-full mt-1' : 'bottom-full mb-1'}"
     >
-      {#each options as option}
+      {#each otherOptions as option}
         <li class="flex items-center justify-between">
           <button
             class="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
-              {variant === 'primary'
+            {variant === 'primary'
               ? `hover:bg-surface-400 ${selected?.value === option.value ? 'text-blue-300' : 'text-neutral-100'}`
               : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
             on:click={() => selectOption(option)}
@@ -129,6 +132,30 @@
           </button>
         </li>
       {/each}
+
+      {#if pinLastOptionBottom && pinnedOption}
+        <li class="border-surface-400 mt-1 flex items-center justify-between border-t pt-1">
+          <button
+            class="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
+            {variant === 'primary'
+              ? `hover:bg-surface-400 ${selected?.value === pinnedOption.value ? 'text-blue-300' : 'text-neutral-100'}`
+              : `hover:bg-gray-50 ${selected?.value === pinnedOption.value ? 'text-blue-600' : 'text-gray-900'}`}"
+            on:click={() => selectOption(pinnedOption)}
+          >
+            {#if pinnedOption.leftIcon}
+              <svelte:component this={pinnedOption.leftIcon} />
+            {/if}
+            {pinnedOption.label.length > 15
+              ? `${pinnedOption.label.slice(0, 15)}...`
+              : pinnedOption.label}
+            {#if selected?.value === pinnedOption.value}
+              <div class="ml-auto">
+                <BlueCheckIcon />
+              </div>
+            {/if}
+          </button>
+        </li>
+      {/if}
     </ul>
   {/if}
 </div>

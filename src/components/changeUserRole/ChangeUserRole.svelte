@@ -125,7 +125,7 @@
       </div>
 
       <div class="flex flex-col gap-3">
-        <div class="flex justify-between">
+        <div class="flex justify-between pr-4">
           <div class="flex flex-col">
             <h2 class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
               {data?.name}
