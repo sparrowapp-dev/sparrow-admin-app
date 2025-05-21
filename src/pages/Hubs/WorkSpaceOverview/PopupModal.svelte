@@ -78,7 +78,7 @@
   let isLoading = false;
   let formData: FormData = {
     workspaceName: data.title ?? '',
-    summary: data.summary ?? '',
+    summary: data.description ?? '',
     emails: [],
     selectedRole: { id: '', name: '' },
     publishWorkspaceName: '',
@@ -104,11 +104,21 @@
     if (modalVariants.isInviteModal) {
     }
 
-    if (modalVariants.isDeleteWorkspaceModalOpen && formData.deleteworkspaceName !== data?.title) {
-      newErrors.deleteNameMismatchError = 'Workspace name does not match.';
+    if (modalVariants.isDeleteWorkspaceModalOpen) {
+      if (!formData.deleteworkspaceName.trim()) {
+        newErrors.deleteNameMismatchError =
+          'Workspace name cannot be empty. Please enter the workspace name.';
+      } else if (formData.deleteworkspaceName !== data?.title) {
+        newErrors.deleteNameMismatchError = 'Workspace name does not match.';
+      }
     }
     if (modalVariants.isMakeItPublicModalOpen && formData.publishWorkspaceName !== data?.title) {
-      newErrors.publishnameMismatchError = 'Workspace name does not match';
+      if (!formData.publishWorkspaceName.trim()) {
+        newErrors.publishnameMismatchError =
+          'Workspace name cannot be empty. Please enter the workspace name.';
+      } else if (formData.publishWorkspaceName !== data?.title) {
+        newErrors.publishnameMismatchError = 'Workspace name does not match';
+      }
     }
 
     errors = newErrors;
@@ -136,7 +146,7 @@
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
         });
-        notification.success(`"${formData.workspaceName}" is now public.`);
+        notification.success(`Workspace Published."${formData.workspaceName}" is now public.`);
       } else if (modalVariants.isDeleteWorkspaceModalOpen) {
         // Handle deleting workspace
         const response = await hubsService.deleteWorkspace({
@@ -211,7 +221,7 @@
     </div>
 
     <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
-      Edit your workspace name to reflect its purpose
+      Edit your workspace name to reflect its purpose .
     </p>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-6">
@@ -253,9 +263,11 @@
       </button>
     </div>
     <span class="flex flex-col gap-1">
-      <p class="text-fs-ds-14 font-fw-ds-300 font-inter text-neutral-200">
-        Publish "{data.title}" Workspace
-      </p>
+      <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
+        Publish "
+        <p class="w-[8rem] truncate">{data.title}</p>
+        " Workspace
+      </span>
       <span class="mb-1">
         <p class="font-inter leading-lh-ds-150 text-fs-ds-12 text-left font-light text-neutral-400">
           Anyone with the link can view this workspace, but only collaborators you've added can make
@@ -297,11 +309,11 @@
         errorMessage={errors.publishnameMismatchError || ''}
         bind:value={formData.publishWorkspaceName}
       />
-      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-neutral-400 font-light"
+      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-light text-neutral-400"
         ><button
           class="cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
           >Learn more</button
-        > how public workspaces work</span
+        > how public workspaces work .</span
       >
       <div class="mt-6 flex w-full items-center justify-end gap-3">
         <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
@@ -324,11 +336,18 @@
         Enter workspace name to confirm <span class="ml-1 text-red-400">*</span>
       </p>
 
-      <p class="font-inter leading-lh-ds-150 text-fs-ds-12 pr-2 text-left text-neutral-400">
-        Everything in {data.title} Workspace will be permanently removed, all contributors will lose
-        access. This action cannot be undone.
-      </p></span
-    >
+      <span
+        class="font-inter leading-lh-ds-150 text-fs-ds-12 items-center pr-2 text-left text-neutral-400"
+      >
+        Everything in
+        <p
+          class="leading-lh-ds-150 vertical-align-baseline inline-block max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap"
+        >
+          {data.title}
+        </p>
+        will be permanently removed, all contributors will lose access. This action cannot be undone.
+      </span>
+    </span>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-2">
       <Input
@@ -349,7 +368,8 @@
               {data?.hubName?.[0]?.toUpperCase() || ''}
             </span>
           </div>
-          <span class="font-inter text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 text-neutral-50"
+          <span
+            class="font-inter text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 w-[8rem] truncate text-neutral-50"
             >{data?.hubName}</span
           >
         </div>
