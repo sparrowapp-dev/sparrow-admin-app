@@ -72,7 +72,7 @@
     { value: 'all', label: 'All Resources' },
   ];
 
-  let selected = { value: '', label: 'All Workspaces' };
+  let selected = { value: 'all', label: 'All Resources' };
 
   // ─── DATA REFETCH TRIGGER ────────────────────────────
   function triggerRefresh() {
