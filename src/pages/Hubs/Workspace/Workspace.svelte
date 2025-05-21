@@ -216,7 +216,7 @@
 <section class="w-full">
   <Breadcrumbs items={breadcrumbItems} />
   <h1
-    class="font-inter text-fs-ds-28 font-fw-ds-500 w-1/4 truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"
+    class="font-inter text-fs-ds-28 font-fw-ds-500 w-[30vw] truncate overflow-hidden py-4 whitespace-nowrap text-neutral-50"
   >
     {data.teamName}
   </h1>
