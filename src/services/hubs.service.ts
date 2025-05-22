@@ -288,23 +288,6 @@ export class HubsService {
     const res = await makeRequest('DELETE', url);
     return res.data;
   }
-  public async getUsers(): Promise<any> {
-    const url = '/api/admin/enterpriseUsers';
-
-    const res = await makeRequest('GET', url);
-    return res?.data?.data;
-  }
-  public async getUserDetails(params): Promise<any> {
-    if (!params.userId) {
-      return;
-    }
-    const queryParams = new URLSearchParams();
-    queryParams.append('userId', params.userId);
-    const url = `/api/admin/enterpriseUsers-details?${queryParams.toString()}`;
-    const res = await makeRequest('GET', url);
-
-    return res.data.data;
-  }
 }
 
 export const hubsService = new HubsService();
