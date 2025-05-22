@@ -79,7 +79,7 @@
 }
 
 .table-scroll-container::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #292525;
   border-radius: 4px;
 }
 
@@ -90,4 +90,24 @@
 
 .table-scroll-container::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* Custom scrollbar for the entire application */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-width: thin;
 }

@@ -100,19 +100,29 @@
 
     // Set up scales
     const xScale = d3.scaleTime().domain([minDate, maxDate]).range([0, width]);
-    const yScale = d3
-      .scaleLinear()
-      .domain([0, maxValue * 1.2])
-      .range([chartHeight, 0]);
+
+    // Round the max value up to next integer and ensure domain starts at 0
+    const yMaxValue = Math.ceil(maxValue * 1.2);
+
+    const yScale = d3.scaleLinear().domain([0, yMaxValue]).range([chartHeight, 0]);
 
     // Create axes with conditional rendering for lines and ticks
     const xAxis = d3.axisBottom(xScale).ticks(12).tickFormat(d3.timeFormat('%b'));
     if (!mergedConfig.showAxisTicks) xAxis.tickSize(0);
 
+    // Generate integer-only tick values
+    const yTickCount = mergedConfig.yAxisTicks || 5;
+    const yTickStep = Math.max(1, Math.ceil(yMaxValue / yTickCount));
+    const yTickValues = Array.from(
+      { length: Math.floor(yMaxValue / yTickStep) + 1 },
+      (_, i) => i * yTickStep,
+    );
+
+    // Apply these integer tick values to the y-axis
     const yAxis = d3
       .axisLeft(yScale)
-      .ticks(mergedConfig.yAxisTicks)
-      .tickFormat((d) => `${d}`);
+      .tickValues(yTickValues)
+      .tickFormat((d) => d.toString());
     if (!mergedConfig.showAxisTicks) yAxis.tickSize(0);
 
     // Add X-axis
