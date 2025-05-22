@@ -100,7 +100,7 @@
           workspaceId: workspace?.workspace?._id,
         });
         notification.success(
-          `"${data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}" is removed from ${workspace.name.length > 20 ? `${workspace.name.slice(0, 20)}` : workspace?.name}.`,
+          `"${data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}" is removed from "${workspace.workspace.name.length > 20 ? `${workspace.workspace.name.slice(0, 20)}` : workspace?.workspace.name}".`,
         );
         onClose();
       } else {
@@ -118,7 +118,7 @@
     } catch (error) {
       if (selectedRole === 'Remove User') {
         notification.error(
-          `Failed to remove “${data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}” from “${workspace.name.length > 20 ? `${workspace.name.slice(0, 20)}` : workspace?.name}”. Please try again.`,
+          `Failed to remove “${data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}” from “${workspace?.workspace.name.length > 20 ? `${workspace?.workspace.name.slice(0, 20)}` : workspace?.workspace.name}”. Please try again.`,
         );
       } else {
         notification.error(

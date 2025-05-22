@@ -8,7 +8,7 @@
   // Reactive variables for active states
   $: isOverviewActive =
     $location.pathname === '/users/users-dashboard' || $location.pathname === '/users';
-  $: isUsersActive = $location.pathname === '/users/users-overview';
+  $: isUsersActive = $location.pathname.startsWith('/users/users-overview');
 
   // Function to handle navigation with active state updates
   function handleNavigation(path) {

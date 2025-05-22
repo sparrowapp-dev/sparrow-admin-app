@@ -137,10 +137,11 @@
           {
             accessorKey: 'lastActive',
             header: 'Last Active',
-            enableSorting: true,
             cell: ({ getValue }) => {
               const date = getValue();
-              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${getRelativeTime(date)}</span>`;
+              const title = new Date(date).toLocaleString();
+              const relative = getRelativeTime(date);
+              return `<span class='text-neutral-50 px-3 py-2 block' title='${title}'>${relative}</span>`;
             },
           },
           {
@@ -234,7 +235,7 @@
             value={filters.searchTerm}
             on:search={handleSearchChange}
             isLoading={$isFetching}
-            placeholder="Search Users"
+            placeholder="Search user"
           />
           <DropdownNoSearch
             {options}
@@ -301,7 +302,10 @@
         />
       {:else if modalVariants.removeUser}
         <RemoveuserPopup
-          onSuccess={handleModalSuccess}
+          onSuccess={() => {
+            refetchMembers();
+            handleModalSuccess();
+          }}
           onClose={closePopups}
           hubName={currentHubName}
           data={$membersData.data?.members?.find(
