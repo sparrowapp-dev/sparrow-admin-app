@@ -66,27 +66,6 @@
       changingRolePopupOpen();
       return;
     }
-    // try {
-    //   isLoading = true;
-
-    //   if (selectedRole === 'Member' || selectedRole === 'Admin') {
-    //     const action =
-    //       selectedRole === 'Member'
-    //         ? hubsService.changeRoletoMember
-    //         : hubsService.changeRoletoAdmin;
-
-    //     await action({ userId: data?.id, hubId });
-    //     notification.success(`Successfully changed role to ${selectedRole}`);
-
-    //     onSuccess();
-    //   }
-    // } catch (error) {
-    //   notification.error(`Error while changing role to ${selectedRole.toLowerCase()}`);
-    //   selected = previouslySelectedRole;
-    // } finally {
-    //   onClose();
-    //   isLoading = false;
-    // }
   }
 
   async function handleWorkspaceRoleChange(event, workspace) {
@@ -131,7 +110,7 @@
   }
 </script>
 
-<section class="bg-surface-600 rounded-[8px]">
+<section class="bg-surface-600 rounded-lg">
   <div class="p-6">
     <div class="flex flex-col gap-6">
       <div class="flex justify-between">
