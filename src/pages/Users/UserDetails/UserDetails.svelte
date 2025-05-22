@@ -9,6 +9,7 @@
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
+  import { userService } from '@/services/users.service';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
 
   import { getRelativeTime } from '@/utils/TimeFunction';
@@ -41,7 +42,7 @@
 
   const { data, isFetching, refetch } = createQuery(async () => {
     if (!params) return;
-    return hubsService.getUserDetails({ userId: params });
+    return userService.getUserDetails({ userId: params });
   });
 
   let showModal = false;

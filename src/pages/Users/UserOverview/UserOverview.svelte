@@ -13,6 +13,7 @@
 
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
+  import { userService } from '@/services/users.service';
   import { userId } from '@/store/auth';
   import Button from '@/ui/Button/Button.svelte';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
@@ -28,7 +29,7 @@
   let pagination = { pageIndex: 0, pageSize: 10 };
   let sorting: SortingState = [];
 
-  const { data, isFetching, refetch } = createQuery(async () => hubsService.getUsers());
+  const { data, isFetching, refetch } = createQuery(async () => userService.getUsers());
 
   $: users = ($data?.users || []).filter((user) => user.id !== $userId);
 
