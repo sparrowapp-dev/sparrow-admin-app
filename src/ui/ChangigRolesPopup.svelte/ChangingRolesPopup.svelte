@@ -3,29 +3,31 @@
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
   import Button from '@/ui/Button/Button.svelte';
+  import { slide } from 'svelte/transition';
   export let onClose;
   export let hubName;
   export let data;
   export let hubId;
   export let onSuccess;
   let isLoading = false;
-  console.log(data);
   async function UpdateRole() {
     try {
       isLoading = true;
 
       const action =
-        data?.role === 'Member' ? hubsService.changeRoletoAdmin : hubsService.changeRoletoMember;
+        data?.role.toLowerCase() === 'member'
+          ? hubsService.changeRoletoAdmin
+          : hubsService.changeRoletoMember;
 
       await action({ userId: data?.id, hubId });
       notification.success(
-        `Successfully changed role to ${data?.role === 'Member' ? 'Admin' : 'Member'}`,
+        `Successfully changed role to ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}`,
       );
 
       onSuccess();
     } catch (error) {
       notification.error(
-        `Error while changing role to ${data?.role === 'Member' ? 'Admin' : 'Member'}`,
+        `Error while changing role to ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}`,
       );
     } finally {
       onClose();
@@ -56,12 +58,12 @@
             </h2>
 
             <h2 class="text-fs-ds-12 leading-lh-ds-150 font-fw-ds-300 text-neutral-300">
-              {data.email}
+              {data.email.length > 50 ? `${data.email.length.slice(0, 50)}...` : data.email}
             </h2>
           </div>
         </div>
         <div>
-          {#if data.role === 'Admin'}
+          {#if data.role.toLowerCase() === 'admin'}
             <div class="font-fw-ds-300 text-fs-ds-14 leading-lh-ds-143 font-inter text-neutral-200">
               Upon transitioning an Admin to a Member, ‘Edit’ access will be automatically provided
               for all assigned workspaces.

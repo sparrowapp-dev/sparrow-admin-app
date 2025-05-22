@@ -41,7 +41,7 @@
   $: isLoading = $isFetching;
 
   $: teamOptions = teams.map((team) => ({ value: team.id, label: team.name }));
-  $: options = [{ value: 'all', label: 'All Teams' }, ...teamOptions];
+  $: options = [{ value: 'all', label: 'All Hubs' }, ...teamOptions];
 
   $: filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -60,22 +60,20 @@
 
   $: totalItems = filteredUsers.length;
 
-  let membersPagination = { pageIndex: 0, pageSize: 10 };
-  let membersFilters = { searchTerm: '' };
-  let params = null;
+  let hubId = null;
 
   const {
     data: membersData,
     isFetching: isMembersFetching,
     refetch: refetchMembers,
   } = createQuery(async () => {
-    if (!params) return { data: { members: [], totalCount: 0, hubName: '' } };
+    if (!hubId) return { data: { members: [], totalCount: 0, hubName: '' } };
 
     return hubsService.getHubMembers({
-      hubId: params,
-      page: membersPagination.pageIndex + 1,
-      limit: membersPagination.pageSize,
-      search: membersFilters.searchTerm,
+      hubId: hubId,
+      page: 1,
+      limit: 1000000,
+      search: '',
     });
   });
 
@@ -95,8 +93,8 @@
   function handleSelect(event: CustomEvent<{ value: string; label: string }>) {
     selected = event.detail;
     pagination.pageIndex = 0;
-    params = selected.value !== 'all' ? selected.value : null;
-    if (params) refetchMembers();
+    hubId = selected.value !== 'all' ? selected.value : null;
+    if (hubId) refetchMembers();
   }
 
   let showModal = false;
@@ -128,7 +126,7 @@
   function handleModalSuccess() {
     closePopups();
     refetch();
-    if (params) refetchMembers();
+    if (hubId) refetchMembers();
   }
 
   $: columns =
@@ -293,7 +291,7 @@
           }}
           hubId={selected.value !== 'all' ? selected.value : ''}
           hubName={currentHubName}
-          onSuccess={handleModalSuccess}
+          onSuccess={() => refetch()}
         />
       {:else if modalVariants.removeUser}
         <RemoveuserPopup
@@ -307,18 +305,21 @@
         />
       {:else if modalVariants.changingRole}
         <ChangingRolesPopup
-          onSuccess={() => refetch()}
+          onSuccess={() => {
+            refetch();
+            refetchMembers();
+          }}
           onClose={closePopups}
           hubName={currentHubName}
           data={$membersData.data?.members?.find(
             (data) => data.id.toString() === modalData?.data?.id.toString(),
           )}
-          hubId={params}
+          {hubId}
         />
       {:else}
         <InviteCollaborators
           onClose={() => (showModal = false)}
-          hubId={params}
+          {hubId}
           hubName={currentHubName}
           onSuccess={() => {}}
         />
