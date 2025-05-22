@@ -1,49 +1,83 @@
 <script>
   import ContributionIcon from '@/assets/icons/ContributionIcon.svelte';
   import Hubsicon from '@/assets/icons/Hubsicon.svelte';
-  import WorkspaceIcon2 from '@/assets/icons/WorkspaceIcon2.svelte';
   import PieGraph from '@/graphs/PieGraph.svelte';
   import TrendLineGraph from '@/graphs/TrendLineGraph.svelte';
   import OverviewCards from '@/ui/OverviewCards/OverviewCards.svelte';
   import ChartLegend from '@/ui/ChartLegend/ChartLegend.svelte';
-  import {
-    pieChartConfig,
-    trendData,
-    trendLineConfig,
-    userDistributionData,
-  } from './dashboardData';
+  import { createQuery } from '@/services/api.common';
+  import { userService } from '@/services/users.service';
+  import { pieChartConfig, trendLineConfig } from './dashboardData';
+  import ActivityList from '@/ui/ActivityList/ActivityList.svelte';
+  import NewInvites from '@/assets/icons/NewInvites.svelte';
 
-  // Reactive Statements
+  // Fetch dashboard stats using createQuery
+  const { data: dashboardStats, isFetching: isLoadingStats } = createQuery(async () => {
+    return userService.getDashboardStats();
+  });
+
+  // Fetch user distribution data for pie chart
+  const { data: userDistribution, isFetching: isLoadingDistribution } = createQuery(async () => {
+    return userService.getUserDistribution();
+  });
+
+  // Fetch user trend data for line chart
+  const { data: userTrends, isFetching: isLoadingTrends } = createQuery(async () => {
+    return userService.getUserTrends();
+  });
+
+  // Reactive statement to create cards data from API response
   $: cardsData = [
     {
       title: 'Total Users',
-      value: '100',
+      value: $dashboardStats?.data?.users?.total?.toString() || '0',
       icon: ContributionIcon,
-      history: '+12 from last month',
+      history:
+        $dashboardStats?.data?.users?.changeFromLastMonth > 0
+          ? `+${$dashboardStats?.data?.users?.changeFromLastMonth} from last month`
+          : '',
+      loading: $isLoadingStats,
     },
     {
       title: 'New Invites',
-      value: '7',
-      icon: WorkspaceIcon2,
-      history: '',
+      value: $dashboardStats?.data?.invites?.total?.toString() || '0',
+      icon: NewInvites,
+      history:
+        $dashboardStats?.data?.invites?.changeFromLastMonth > 0
+          ? `+${$dashboardStats?.data?.invites?.changeFromLastMonth} from last month`
+          : '',
+      loading: $isLoadingStats,
     },
     {
       title: 'Total Hubs',
-      value: 50,
+      value: $dashboardStats?.data?.hubs?.total?.toString() || '0',
       icon: Hubsicon,
-      history: '+1 from last month',
+      history:
+        $dashboardStats?.data?.hubs?.changeFromLastMonth > 0
+          ? `+${$dashboardStats?.data?.hubs?.changeFromLastMonth} from last month`
+          : '',
+      loading: $isLoadingStats,
     },
   ];
 
-  const legendItems = userDistributionData.map((item) => ({
-    label: item.label,
-    color: item.color,
-  }));
+  // Generate legend items from API data
+  $: legendItems =
+    $userDistribution?.data?.map((item) => ({
+      label: item.label,
+      color: item.color,
+    })) || [];
 
-  const trendLegendItems = trendData.series.map((series) => ({
-    label: series.name,
-    color: series.color,
-  }));
+  // Generate trend legend items from API data
+  $: trendLegendItems =
+    $userTrends?.data?.series?.map((series) => ({
+      label: series.name,
+      color: series.color,
+    })) || [];
+
+  // user activity data
+  const { data: userActivity, isFetching: isLoadingActivity } = createQuery(async () => {
+    return userService.getUserActivity(1, 50);
+  });
 </script>
 
 <div class="bg-surface-900 w-full">
@@ -59,8 +93,8 @@
         icon={card.icon}
         title={card.title}
         value={card.value}
-        points={card?.subData}
         history={card.history}
+        loading={card.loading}
       />
     {/each}
   </div>
@@ -75,8 +109,17 @@
         Track of Admins and Members
       </p>
 
-      <div class="h-[358px] pt-6">
-        <PieGraph data={userDistributionData} config={pieChartConfig} showTotal={true} />
+      <div class="relative h-[358px] pt-6">
+        {#if $isLoadingDistribution}
+          <!-- Loading state for pie chart -->
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div
+              class="border-t-primary-500 h-12 w-12 animate-spin rounded-full border-4 border-neutral-400"
+            ></div>
+          </div>
+        {:else if $userDistribution?.data}
+          <PieGraph data={$userDistribution.data} config={pieChartConfig} showTotal={true} />
+        {/if}
       </div>
 
       <div class="py-6">
@@ -90,6 +133,12 @@
       <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
         Timeline of recent events
       </p>
+      <div class="mt-6 h-[420px] overflow-y-auto">
+        <ActivityList
+          activities={$userActivity?.data?.activities || []}
+          loading={$isLoadingActivity}
+        />
+      </div>
     </div>
   </div>
   <div class="bg-surface-700 mt-6 rounded-lg p-6">
@@ -100,8 +149,17 @@
       View monthly admin and member counts to understand team growth and balance roles.
     </p>
 
-    <div class="h-[400px] pt-4">
-      <TrendLineGraph data={trendData} config={trendLineConfig} />
+    <div class="relative h-[400px] pt-4">
+      {#if $isLoadingTrends}
+        <!-- Loading state for trend line chart -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div
+            class="border-t-primary-500 h-12 w-12 animate-spin rounded-full border-4 border-neutral-400"
+          ></div>
+        </div>
+      {:else if $userTrends?.data}
+        <TrendLineGraph data={$userTrends.data} config={trendLineConfig} />
+      {/if}
     </div>
 
     <div class="py-4">
