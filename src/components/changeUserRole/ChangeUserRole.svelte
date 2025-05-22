@@ -50,7 +50,7 @@
     data.simplifiedWorkspaces?.forEach((ws, i) => {
       workspaceSelected[ws.workspace._id] = {
         id: ws.userRole,
-        name: ws.userRole === 'editor' ? 'Editor' : 'Viewer',
+        name: ws.userRole?.charAt(0).toUpperCase() + ws.userRole.slice(1)?.toLowerCase(),
       };
     });
   }
@@ -99,7 +99,9 @@
           userId: data?.id,
           workspaceId: workspace?.workspace?._id,
         });
-        notification.success('Successfully removed user from workspace');
+        notification.success(
+          `"${data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}" is removed from ${workspace.name.length > 20 ? `${workspace.name.slice(0, 20)}` : workspace?.name}.`,
+        );
         onClose();
       } else {
         await hubsService.changeRoles({
@@ -107,16 +109,22 @@
           data: { role: selectedRole },
         });
         notification.success(
-          `Successfully changed role to ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1).toLowerCase()}`,
+          `Successfully changed role to ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1).toLowerCase()}.`,
         );
 
         workspaceSelected[workspace.workspace._id] = event?.detail;
       }
       onSuccess();
     } catch (error) {
-      notification.error(
-        `Error while changing role to ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1).toLowerCase()}`,
-      );
+      if (selectedRole === 'Remove User') {
+        notification.error(
+          `Failed to remove “${data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}” from “${workspace.name.length > 20 ? `${workspace.name.slice(0, 20)}` : workspace?.name}”. Please try again.`,
+        );
+      } else {
+        notification.error(
+          `Error while changing role to ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1).toLowerCase()}`,
+        );
+      }
     } finally {
       isLoading = false;
     }
@@ -168,7 +176,7 @@
                   </h2>
                   <span class="">
                     <MemberRolesDropdown
-                      disabled={selected?.id === 'Admin'}
+                      disabled={selected?.id.toLowerCase() === 'admin'}
                       dropdownId={`workspace-role-dropdown-${i}`}
                       selected={workspaceSelected[workspace.workspace._id]}
                       options={workspaceOptions}

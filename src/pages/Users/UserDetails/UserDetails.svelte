@@ -1,6 +1,6 @@
 <script lang="ts">
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
-  import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
   import Table from '@/components/Table/Table.svelte';
@@ -9,7 +9,8 @@
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
-  import ChangingRolesPopup from '@/ui/ChangigRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
   import { onDestroy, onMount } from 'svelte';
@@ -196,11 +197,16 @@
     const rowData = event.detail;
     console.log('Row clicked:', rowData);
   }
+  $: breadcrumbItems = [
+    { label: 'Users', path: `/users/users-overview` },
+    { label: username || '', path: `/users/users-overview/${params || ''}` },
+  ];
 </script>
 
 <section>
   <div class="bg-surface-900 flex w-full flex-col px-4 text-left">
     <div class="flex flex-col gap-6">
+      <Breadcrumbs items={breadcrumbItems} />
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-2 py-2">
           <div
@@ -217,87 +223,95 @@
             </h2>
           </div>
         </div>
-        <div class="font-inter font-fw-ds-300 leading-lh-ds-143 text-fs-ds-143 text-neutral-100">
+        <div class="font-inter font-fw-ds-300 leading-lh-ds-14 text-fs-ds-143 text-neutral-100">
           Manage {username && username.length > 25 ? `${username.slice(0, 25)}...` : username}'s
           permissions across Sparrow Hubs
         </div>
       </div>
+      <div>
+        <div class="bg-surface-900">
+          <div class="flex items-center gap-3 py-6">
+            <TableSearch
+              value={filters.searchTerm}
+              on:search={handleSearchChange}
+              isLoading={$isFetching}
+              placeholder="Search Hubs"
+            />
+          </div>
 
-      <div class="bg-surface-900">
-        <div class="flex items-center gap-3 py-6">
-          <TableSearch
-            value={filters.searchTerm}
-            on:search={handleSearchChange}
-            isLoading={$isFetching}
-            placeholder="Search Hubs"
-          />
+          {#if totalItems === 0 && !$isFetching}
+            <div class="flex flex-col items-center justify-center py-16">
+              <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No User Details Found</p>
+            </div>
+          {:else}
+            <div>
+              <Table
+                {columns}
+                data={paginatedData}
+                isLoading={$isFetching}
+                pageIndex={pagination.pageIndex}
+                pageSize={pagination.pageSize}
+                {totalItems}
+                {sorting}
+                on:sortingChange={handleSortingChange}
+                on:rowClick={handleRowClick}
+              />
+
+              <TablePagination
+                pageIndex={pagination.pageIndex}
+                pageSize={pagination.pageSize}
+                {totalItems}
+                isLoading={$isFetching}
+                on:pageChange={handlePageChange}
+                on:pageSizeChange={handlePageSizeChange}
+              />
+            </div>{/if}
         </div>
-
-        <Table
-          {columns}
-          data={paginatedData}
-          isLoading={$isFetching}
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          {sorting}
-          on:sortingChange={handleSortingChange}
-          on:rowClick={handleRowClick}
-        />
-
-        <TablePagination
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          isLoading={$isFetching}
-          on:pageChange={handlePageChange}
-          on:pageSizeChange={handlePageSizeChange}
-        />
       </div>
     </div>
-  </div>
 
-  {#if showModal}
-    <Modal on:close={closePopups}>
-      {#if modalVariants.changeRole}
-        <ChangeUserRole
-          onClose={closePopups}
-          data={modalData?.data}
-          removeUserPopupOpen={() => {
-            modalVariants.changeRole = false;
-            modalVariants.removeUser = true;
-          }}
-          changingRolePopupOpen={() => {
-            modalVariants.changeRole = false;
-            modalVariants.removeUser = false;
-            modalVariants.changingRole = true;
-          }}
-          hubId={modalData?.data?.teamId}
-          onSuccess={() => {
-            refetch();
-          }}
-        />
-      {:else if modalVariants.removeUser}
-        <RemoveuserPopup
-          onSuccess={() => {
-            refetch();
-          }}
-          onClose={closePopups}
-          hubName={modalData?.data?.teamName}
-          data={modalData.data}
-          hubId={modalData?.data?.teamId}
-        />
-      {:else if modalVariants.changingRole}
-        <ChangingRolesPopup
-          onSuccess={() => {
-            refetch();
-          }}
-          onClose={closePopups}
-          hubName={modalData?.data?.teamName}
-          data={modalData.data}
-          hubId={modalData?.data?.teamId}
-        />
-      {/if}
-    </Modal>
-  {/if}
+    {#if showModal}
+      <Modal on:close={closePopups}>
+        {#if modalVariants.changeRole}
+          <ChangeUserRole
+            onClose={closePopups}
+            data={modalData?.data}
+            removeUserPopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = true;
+            }}
+            changingRolePopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = false;
+              modalVariants.changingRole = true;
+            }}
+            hubId={modalData?.data?.teamId}
+            onSuccess={() => {
+              refetch();
+            }}
+          />
+        {:else if modalVariants.removeUser}
+          <RemoveuserPopup
+            onSuccess={() => {
+              refetch();
+            }}
+            onClose={closePopups}
+            hubName={modalData?.data?.teamName}
+            data={modalData.data}
+            hubId={modalData?.data?.teamId}
+          />
+        {:else if modalVariants.changingRole}
+          <ChangingRolesPopup
+            onSuccess={() => {
+              refetch();
+            }}
+            onClose={closePopups}
+            hubName={modalData?.data?.teamName}
+            data={modalData.data}
+            hubId={modalData?.data?.teamId}
+          />
+        {/if}
+      </Modal>
+    {/if}
+  </div>
 </section>

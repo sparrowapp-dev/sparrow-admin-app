@@ -21,13 +21,13 @@
 
       await action({ userId: data?.id, hubId });
       notification.success(
-        `Successfully changed role to ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}`,
+        `${data?.name?.length > 15 ? `${data.length.slice(0, 15)}...` : data?.name} is now a ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}.`,
       );
 
       onSuccess();
     } catch (error) {
       notification.error(
-        `Error while changing role to ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}`,
+        `Failed to assign ${data?.name?.length > 15 ? `${data.length.slice(0, 15)}...` : data?.name} as a ${data?.role.toLowerCase() === 'member' ? 'Admin' : 'Member'}.Please try again.`,
       );
     } finally {
       onClose();
@@ -87,7 +87,7 @@
           {/if}
         </div>
       </div>
-      <div class="flex w-full justify-between gap-2">
+      <div class="mt-2 flex w-full justify-between gap-2">
         <div class="flex items-center gap-2">
           <div
             class="text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] bg-purple-400 text-neutral-50"

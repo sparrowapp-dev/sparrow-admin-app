@@ -1,7 +1,6 @@
 <script lang="ts">
   import AllHubsIcon from '@/assets/icons/AllHubsIcon.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
-  import ResourceIcons from '@/assets/icons/ResourceIcons.svelte';
   import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import InviteCollaborators from '@/components/InviteCollaborators/InviteCollaborators.svelte';
@@ -16,7 +15,7 @@
   import { hubsService } from '@/services/hubs.service';
   import { userId } from '@/store/auth';
   import Button from '@/ui/Button/Button.svelte';
-  import ChangingRolesPopup from '@/ui/ChangigRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
   import { navigate } from 'svelte-routing';
@@ -248,26 +247,33 @@
             pinLastOptionBottom={true}
           />
         </div>
+        {#if totalItems === 0 && !$isFetching}
+          <div class="flex flex-col items-center justify-center py-16">
+            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No Results Found</p>
+          </div>
+        {:else}
+          <div>
+            <Table
+              {columns}
+              data={paginatedUsers}
+              isLoading={$isFetching}
+              pageIndex={pagination.pageIndex}
+              pageSize={pagination.pageSize}
+              {totalItems}
+              on:sortingChange={handleSortingChange}
+              on:rowClick={handleRowClick}
+            />
 
-        <Table
-          {columns}
-          data={paginatedUsers}
-          isLoading={$isFetching}
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          on:sortingChange={handleSortingChange}
-          on:rowClick={handleRowClick}
-        />
-
-        <TablePagination
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          isLoading={$isFetching}
-          on:pageChange={handlePageChange}
-          on:pageSizeChange={handlePageSizeChange}
-        />
+            <TablePagination
+              pageIndex={pagination.pageIndex}
+              pageSize={pagination.pageSize}
+              {totalItems}
+              isLoading={$isFetching}
+              on:pageChange={handlePageChange}
+              on:pageSizeChange={handlePageSizeChange}
+            />
+          </div>
+        {/if}
       </div>
     </div>
   </div>

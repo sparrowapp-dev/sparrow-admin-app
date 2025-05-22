@@ -17,7 +17,7 @@
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
   import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
-  import ChangingRolesPopup from '@/ui/ChangigRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
