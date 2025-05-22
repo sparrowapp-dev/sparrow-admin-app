@@ -15,9 +15,9 @@ export const trendLineConfig = {
   showGrid: false,
   margin: {
     top: 20,
-    right: 0,
+    right: 10,
     bottom: 40,
-    left: 0,
+    left: 10,
   },
   useGradient: false,
   whitePoints: true,

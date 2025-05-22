@@ -1,8 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
   import ContributionIcon from '@/assets/icons/ContributionIcon.svelte';
   import Hubsicon from '@/assets/icons/Hubsicon.svelte';
-  import WorkspaceIcon2 from '@/assets/icons/WorkspaceIcon2.svelte';
   import PieGraph from '@/graphs/PieGraph.svelte';
   import TrendLineGraph from '@/graphs/TrendLineGraph.svelte';
   import OverviewCards from '@/ui/OverviewCards/OverviewCards.svelte';
@@ -11,6 +9,7 @@
   import { userService } from '@/services/users.service';
   import { pieChartConfig, trendLineConfig } from './dashboardData';
   import ActivityList from '@/ui/ActivityList/ActivityList.svelte';
+  import NewInvites from '@/assets/icons/NewInvites.svelte';
 
   // Fetch dashboard stats using createQuery
   const { data: dashboardStats, isFetching: isLoadingStats } = createQuery(async () => {
@@ -42,7 +41,7 @@
     {
       title: 'New Invites',
       value: $dashboardStats?.data?.invites?.total?.toString() || '0',
-      icon: WorkspaceIcon2,
+      icon: NewInvites,
       history:
         $dashboardStats?.data?.invites?.changeFromLastMonth > 0
           ? `+${$dashboardStats?.data?.invites?.changeFromLastMonth} from last month`
@@ -75,6 +74,7 @@
       color: series.color,
     })) || [];
 
+  // user activity data
   const { data: userActivity, isFetching: isLoadingActivity } = createQuery(async () => {
     return userService.getUserActivity(1, 50);
   });
@@ -95,7 +95,6 @@
         value={card.value}
         history={card.history}
         loading={card.loading}
-        points={card?.subData || []}
       />
     {/each}
   </div>
