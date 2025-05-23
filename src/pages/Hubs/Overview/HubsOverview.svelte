@@ -24,6 +24,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import AddHubs from '@/components/AddHubs/AddHubs.svelte';
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
@@ -212,86 +213,92 @@
 
 <section class="bg-surface-900 flex min-h-screen w-full flex-col gap-6 p-4">
   <!-- Overview Cards Section -->
-  <div class="flex flex-col gap-4 p-4">
-    <div class="flex flex-col gap-2">
-      <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
-        Overview
-      </h1>
-      <h2 class="font-inter font-regular text-fs-ds-14 leading-lh-ds-143 text-neutral-100">
-        Manage and monitor all your Sparrow Hubs
+  {#if !$hubsData?.httpStatusCode}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
+    </div>
+  {:else}
+    <div class="flex flex-col gap-4 p-4">
+      <div class="flex flex-col gap-2">
+        <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
+          Overview
+        </h1>
+        <h2 class="font-inter font-regular text-fs-ds-14 leading-lh-ds-143 text-neutral-100">
+          Manage and monitor all your Sparrow Hubs
+        </h2>
+      </div>
+      <div class="flex flex-row justify-between">
+        {#each cardsData as card}
+          <OverviewCards
+            icon={card.icon}
+            title={card.title}
+            value={card.value}
+            points={card?.subData}
+          />
+        {/each}
+      </div>
+    </div>
+
+    <!-- Hubs Table Section -->
+    <div class="flex flex-col gap-2 px-4">
+      <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
+      <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
+        All your Hub's in one place, manage access, manage members, or dive into details with ease.
       </h2>
     </div>
-    <div class="flex flex-row justify-between">
-      {#each cardsData as card}
-        <OverviewCards
-          icon={card.icon}
-          title={card.title}
-          value={card.value}
-          points={card?.subData}
+
+    <div class="table-container bg-surface-900 min-h-full">
+      <div class="table-header">
+        <TableSearch
+          value={filters.searchTerm}
+          on:search={handleSearchChange}
+          isLoading={$isFetching}
+          placeholder={'Search hubs'}
         />
-      {/each}
-    </div>
-  </div>
-
-  <!-- Hubs Table Section -->
-  <div class="flex flex-col gap-2 px-4">
-    <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
-    <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
-      All your Hub's in one place, manage access, manage members, or dive into details with ease.
-    </h2>
-  </div>
-
-  <div class="table-container bg-surface-900 min-h-full">
-    <div class="table-header">
-      <TableSearch
-        value={filters.searchTerm}
-        on:search={handleSearchChange}
-        isLoading={$isFetching}
-        placeholder={'Search hubs'}
-      />
-      <Button
-        variant="filled-primary"
-        size="small"
-        iconLeft={true}
-        on:click={() => (showModal = true)}
-      >
-        <svelte:fragment slot="iconLeft">
-          <PlusIcon />
-        </svelte:fragment>
-        New Hub
-      </Button>
-    </div>
-
-    {#if totalItems === 0 && !$isFetching}
-      <div class="flex flex-col items-center justify-center py-16">
-        <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+        <Button
+          variant="filled-primary"
+          size="small"
+          iconLeft={true}
+          on:click={() => (showModal = true)}
+        >
+          <svelte:fragment slot="iconLeft">
+            <PlusIcon />
+          </svelte:fragment>
+          New Hub
+        </Button>
       </div>
-    {:else}
-      <Table
-        {columns}
-        data={$hubsData?.data?.hubs || []}
-        isLoading={$isFetching}
-        pageIndex={pagination.pageIndex}
-        pageSize={pagination.pageSize}
-        {totalItems}
-        on:sortingChange={handleSortingChange}
-        on:rowClick={handleRowClick}
-      />
 
-      <TablePagination
-        pageIndex={pagination.pageIndex}
-        pageSize={pagination.pageSize}
-        {totalItems}
-        isLoading={$isFetching}
-        on:pageChange={handlePageChange}
-        on:pageSizeChange={handlePageSizeChange}
-      />
+      {#if totalItems === 0 && !$isFetching}
+        <div class="flex flex-col items-center justify-center py-16">
+          <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+        </div>
+      {:else}
+        <Table
+          {columns}
+          data={$hubsData?.data?.hubs || []}
+          isLoading={$isFetching}
+          pageIndex={pagination.pageIndex}
+          pageSize={pagination.pageSize}
+          {totalItems}
+          on:sortingChange={handleSortingChange}
+          on:rowClick={handleRowClick}
+        />
+
+        <TablePagination
+          pageIndex={pagination.pageIndex}
+          pageSize={pagination.pageSize}
+          {totalItems}
+          isLoading={$isFetching}
+          on:pageChange={handlePageChange}
+          on:pageSizeChange={handlePageSizeChange}
+        />
+      {/if}
+    </div>
+    {#if showModal}
+      <Modal on:close={() => (showModal = false)}>
+        <AddHubs onClose={() => (showModal = false)} />
+      </Modal>
     {/if}
-  </div>
-  {#if showModal}
-    <Modal on:close={() => (showModal = false)}>
-      <AddHubs onClose={() => (showModal = false)} />
-    </Modal>
   {/if}
 </section>
 
