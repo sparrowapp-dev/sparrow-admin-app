@@ -5,6 +5,7 @@
   import { Link, navigate, useLocation } from 'svelte-routing';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   interface Team {
     teamId: string;
@@ -91,7 +92,6 @@
       }
     }
   }
-  console.log(selectOption);
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
@@ -137,6 +137,10 @@
           </Link>
         {/if}
       </nav>
+    {:else}
+      <div class="flex w-full items-center justify-center">
+        <CircularLoader />
+      </div>
     {/if}
   </div>
 </section>
