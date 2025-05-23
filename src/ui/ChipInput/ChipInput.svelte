@@ -144,9 +144,9 @@
 
 <div class="relative">
   <div
-    class="bg-surface-400 flex flex-wrap items-center gap-2 rounded-sm border p-2 hover:border-neutral-400 {hasError
+    class="bg-surface-400 flex flex-wrap items-center gap-2 rounded-sm border {emails?.length > 0 ? 'p-[3px]' : 'p-2 '} hover:border-neutral-400 {hasError
       ? 'border-red-300'
-      : 'border-surface-400'} min-h-[42px]"
+      : 'border-surface-400'}  max-h-[120px] min-h-[36px] overflow-y-auto"
     on:click={() => inputElement.focus()}
   >
     {#each emails as email, i}

@@ -3,6 +3,7 @@
   import CheckboxChecked from '@/assets/icons/CheckboxChecked.svelte';
   import CheckboxUnchecked from '@/assets/icons/CheckboxUnchecked.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
+  import CloseIcon from '@/assets/icons/CloseIcon.svelte'; // Add this import or use your own close icon
 
   // Props with better defaults and customization
   export let workspaces: { id: string; name: string }[] = [];
@@ -41,6 +42,22 @@
       // Add to selection
       updatedSelection = [...selectedWorkspaces, workspace];
     }
+
+    // Update selection and notify parent
+    selectedWorkspaces = updatedSelection;
+    dispatch('change', selectedWorkspaces);
+
+    // Ensure UI updates
+    await tick();
+  }
+
+  // Remove workspace directly from selection display
+  async function removeWorkspace(event, workspaceId) {
+    // Prevent dropdown from toggling
+    event.stopPropagation();
+
+    // Remove the workspace
+    const updatedSelection = selectedWorkspaces.filter((w) => w.id !== workspaceId);
 
     // Update selection and notify parent
     selectedWorkspaces = updatedSelection;
@@ -91,9 +108,10 @@
   <!-- Dropdown Trigger Button with dynamic border color based on error state -->
   <button
     type="button"
-    class="bg-surface-400 flex w-full cursor-pointer items-center justify-between rounded-sm border p-2.5 text-left {hasError
-      ? 'border-red-300'
-      : 'border-surface-400'}"
+    class="bg-surface-400 flex w-full cursor-pointer items-center justify-between rounded-sm border {selectedWorkspaces?.length >
+    0
+      ? 'p-[7px]'
+      : 'p-2'} text-left {hasError ? 'border-red-300' : 'border-surface-400'}"
     on:click={toggleDropdown}
   >
     <!-- Display Selected Workspaces or Placeholder -->
@@ -104,13 +122,22 @@
         {#each selectedWorkspaces as workspace, i (workspace.id)}
           {#if i < 2 || selectedWorkspaces.length <= 3}
             <span
-              class="bg-surface-500 text-fs-ds-12 flex items-center rounded px-2 py-0.5 text-neutral-50"
+              class="bg-surface-100 text-fs-ds-12 flex items-center rounded px-1.5 text-neutral-50"
             >
-              {workspace.name}
+              <span class="mr-1">{workspace.name}</span>
+              <!-- X button to remove workspace -->
+              <button
+                type="button"
+                class="ml-1 cursor-pointer hover:text-red-300 focus:outline-none"
+                on:click|stopPropagation={(e) => removeWorkspace(e, workspace.id)}
+                aria-label="Remove {workspace.name}"
+              >
+                <CloseIcon />
+              </button>
             </span>
           {:else if i === 2}
             <span
-              class="bg-surface-500 text-fs-ds-12 flex items-center rounded px-2 py-0.5 text-neutral-50"
+              class="bg-surface-100 text-fs-ds-12 flex items-center rounded px-1.5 text-neutral-50"
             >
               +{selectedWorkspaces.length - 2} more
             </span>
@@ -126,7 +153,7 @@
   <!-- Dropdown Menu -->
   {#if isOpen}
     <div
-      class="bg-surface-600 absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-sm shadow-lg"
+      class="bg-surface-600 custom-scroll absolute z-10 mt-1 max-h-38 w-full overflow-y-auto rounded-sm shadow-lg"
     >
       <!-- Select All Option -->
       <div class="border-surface-300 border-b p-2">
@@ -175,3 +202,23 @@
     <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{errorMessage}</p>
   {/if}
 </div>
+
+<style>
+  .custom-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scroll {
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-width: thin;
+  }
+</style>
