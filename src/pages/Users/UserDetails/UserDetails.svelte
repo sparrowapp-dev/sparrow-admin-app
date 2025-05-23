@@ -1,14 +1,14 @@
 <script lang="ts">
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
-  import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
+  import ChangeUserRole from '@/components/ChangeUserRole/ChangeUserRole.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
   import Table from '@/components/Table/Table.svelte';
   import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
+  import { ModalData, UserDetailsResponse } from '@/interface/Users';
   import { createQuery } from '@/services/api.common';
-  import { hubsService } from '@/services/hubs.service';
   import { userService } from '@/services/users.service';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
 
@@ -40,13 +40,13 @@
     unsubscribe?.();
   });
 
-  const { data, isFetching, refetch } = createQuery(async () => {
+  const { data, isFetching, refetch } = createQuery<UserDetailsResponse>(async () => {
     if (!params) return;
     return userService.getUserDetails({ userId: params });
   });
 
   let showModal = false;
-  let modalData = { data: null };
+  let modalData: ModalData = { data: null };
   let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
 
   function onClick({ data, click }) {
@@ -151,9 +151,9 @@
           aValue = (a.teamName || '').toLowerCase();
           bValue = (b.teamName || '').toLowerCase();
           break;
-        case 'joinedAt':
-          aValue = new Date(a.joinedAt || 0).getTime();
-          bValue = new Date(b.joinedAt || 0).getTime();
+        case 'teamJoiningData':
+          aValue = new Date(a.teamJoiningData || 0).getTime();
+          bValue = new Date(b.teamJoiningData || 0).getTime();
           break;
         default:
           return 0;
