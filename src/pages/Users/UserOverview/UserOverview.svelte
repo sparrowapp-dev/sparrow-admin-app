@@ -31,9 +31,9 @@
 
   const { data, isFetching, refetch } = createQuery(async () => userService.getUsers());
 
-  $: users = ($data?.users || []).filter((user) => user.id !== $userId);
+  $: users = ($data?.data?.users || []).filter((user) => user.id !== $userId);
 
-  $: teams = ($data?.teams || []).filter((team) => {
+  $: teams = ($data?.data?.teams || []).filter((team) => {
     const teamUsers = team.users || [];
     return teamUsers.length > 1 || !teamUsers.some((user) => user.id === $userId);
   });
@@ -102,12 +102,12 @@
   let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
 
   function onClick({ data, click }) {
-    handleshowModal(data);
+    handleShowModal(data);
     modalVariants.changeRole = click === 'changeRole';
     modalVariants.removeUser = click === 'removeUser';
   }
 
-  function handleshowModal(data: any) {
+  function handleShowModal(data: any) {
     showModal = true;
     modalData.data = data;
   }

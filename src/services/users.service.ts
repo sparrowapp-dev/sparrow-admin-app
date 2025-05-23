@@ -106,7 +106,7 @@ export class UserService {
     const url = '/api/admin/enterpriseUsers';
 
     const res = await makeRequest('GET', url);
-    return res?.data?.data;
+    return res?.data;
   }
   public async getUserDetails(params): Promise<any> {
     if (!params.userId) {
@@ -117,7 +117,7 @@ export class UserService {
     const url = `/api/admin/enterpriseUsers-details?${queryParams.toString()}`;
     const res = await makeRequest('GET', url);
 
-    return res.data.data;
+    return res?.data;
   }
 }
 

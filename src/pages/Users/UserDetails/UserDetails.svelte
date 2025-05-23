@@ -69,9 +69,9 @@
   }
 
   // Reactive values
-  $: username = $data?.userDetails?.name || '';
-  $: userEmail = $data?.userDetails?.email || '';
-  $: teamsData = $data?.hubDetails || [];
+  $: username = $data?.data?.userDetails?.name || '';
+  $: userEmail = $data?.data.userDetails?.email || '';
+  $: teamsData = $data?.data.hubDetails || [];
 
   const columns = [
     { accessorKey: 'teamName', header: 'Name', enableSorting: true },
