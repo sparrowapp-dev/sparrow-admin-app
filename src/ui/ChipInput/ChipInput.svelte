@@ -144,7 +144,9 @@
 
 <div class="relative">
   <div
-    class="bg-surface-400 flex flex-wrap items-center gap-2 rounded-sm border {emails?.length > 0 ? 'p-[3px]' : 'p-2 '} hover:border-neutral-400 {hasError
+    class="bg-surface-400 flex flex-wrap items-center gap-2 rounded-sm border {emails?.length > 0
+      ? 'p-[3px]'
+      : 'p-2 '} hover:border-neutral-400 {hasError
       ? 'border-red-300'
       : 'border-surface-400'}  max-h-[120px] min-h-[36px] overflow-y-auto"
     on:click={() => inputElement.focus()}
@@ -173,7 +175,7 @@
       bind:value={inputValue}
       type="text"
       {placeholder}
-      class="text-fs-ds-14 placeholder:font-fw-ds-300 min-w-[120px] flex-grow bg-transparent text-neutral-50 focus:outline-none"
+      class="text-fs-ds-14 placeholder:font-fw-ds-300 min-w-[120px] flex-grow bg-transparent text-neutral-50 placeholder:text-neutral-400 focus:outline-none"
       on:keydown={handleKeyDown}
       on:blur={handleBlur}
       on:paste={handlePaste}

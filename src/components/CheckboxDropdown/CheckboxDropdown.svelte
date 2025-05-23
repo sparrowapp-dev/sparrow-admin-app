@@ -117,7 +117,7 @@
     <!-- Display Selected Workspaces or Placeholder -->
     <div class="flex flex-wrap gap-1 overflow-hidden">
       {#if selectedWorkspaces.length === 0}
-        <span class="text-fs-ds-14 text-neutral-300">{placeholder}</span>
+        <span class="text-fs-ds-14 text-neutral-400 font-fw-ds-300">{placeholder}</span>
       {:else}
         {#each selectedWorkspaces as workspace, i (workspace.id)}
           {#if i < 2 || selectedWorkspaces.length <= 3}
