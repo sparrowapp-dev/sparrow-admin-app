@@ -14,9 +14,6 @@
   let dropdownEl: HTMLDivElement;
   let position = { top: 0, left: 0, width: 0 };
 
-  // Launch URL for external links
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
-
   async function toggleDropdown(event) {
     // Stop propagation to prevent the row click event
     event.stopPropagation();
@@ -80,12 +77,6 @@
   function handleUpgrade(event, hub) {
     event.stopPropagation();
     // Your upgrade logic here
-    closeDropdown();
-  }
-
-  function handleLaunch(event) {
-    event.stopPropagation();
-    window.open(`${launchUrl}`, '_blank');
     closeDropdown();
   }
 

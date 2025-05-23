@@ -17,6 +17,7 @@
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
   import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -27,13 +28,14 @@
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
-  let modalVariants = { changeRole: false, removeUser: false };
+  let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
   let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
   function closePopups() {
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
+    modalVariants.changingRole = false;
     showModal = false;
     modalData.data = null;
   }
@@ -395,11 +397,24 @@
             modalVariants.changeRole = false;
             modalVariants.removeUser = true;
           }}
+          changingRolePopupOpen={() => {
+            modalVariants.changeRole = false;
+            modalVariants.removeUser = false;
+            modalVariants.changingRole = true;
+          }}
           hubId={params}
           onSuccess={() => refetchMembers()}
         />
       {:else if modalVariants.removeUser}
         <RemoveuserPopup
+          onSuccess={() => refetchMembers()}
+          onClose={closePopups}
+          {hubName}
+          data={modalData.data}
+          hubId={params}
+        />
+      {:else if modalVariants.changingRole}
+        <ChangingRolesPopup
           onSuccess={() => refetchMembers()}
           onClose={closePopups}
           {hubName}

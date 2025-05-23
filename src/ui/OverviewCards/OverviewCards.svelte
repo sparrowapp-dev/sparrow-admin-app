@@ -12,7 +12,7 @@
   export let loading = false;
 </script>
 
-<section class="bg-surface-600 w-[32%] rounded-[8px] p-6">
+<section class="bg-surface-600 w-[32%] rounded-lg p-6">
   <div class="flex justify-between">
     <div class="flex flex-col gap-1">
       <div class="flex flex-col gap-2">

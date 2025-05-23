@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
+  import ArrowVertical from '@/assets/icons/ArrowVertical.svelte';
 
   export let selected: { id: string; name: string };
   export let placeholder = 'Select the role';
@@ -123,11 +124,11 @@
     bind:this={triggerEl}
     {disabled}
     type="button"
-    class="bg-surface-400 {disabled
+    class=" {disabled
       ? 'cursor-not-allowed opacity-50'
-      : ''} flex w-full min-w-[104px] cursor-pointer items-center justify-between rounded-sm border p-2.5 text-left {hasError
-      ? 'border-red-300'
-      : 'border-surface-400'}"
+      : ''} flex w-full min-w-[98px] cursor-pointer items-center justify-between rounded-sm p-2.5 text-left {isOpen
+      ? 'bg-surface-400'
+      : ''} {hasError ? 'border border-red-300' : ''}"
     on:click={toggleDropdown}
     aria-haspopup="listbox"
     aria-expanded={isOpen}
@@ -137,7 +138,7 @@
     >
       {selected.id ? selected.name : placeholder}
     </span>
-    <ArrowVerticalV2 open={isOpen} />
+    <ArrowVertical open={isOpen} />
   </button>
 
   {#if isOpen}
@@ -152,23 +153,25 @@
           <button
             {disabled}
             type="button"
-            class="relative flex w-full flex-col p-3 text-left {role.id === selected.id
-              ? 'bg-surface-500'
-              : 'hover:bg-surface-500'}"
+            class="relative flex w-full flex-col p-3 text-left {role.id.toLowerCase() ===
+            selected.id.toLowerCase()
+              ? ''
+              : 'hover:bg-surface-700'}"
             on:click={(e) => selectRole(role, e)}
             role="option"
-            aria-selected={role.id === selected.id}
+            aria-selected={role.id.toLowerCase() === selected.id.toLowerCase()}
           >
             <div class="flex items-center justify-between">
               {#if role.id !== 'Remove User'}
                 <span
-                  class="text-fs-ds-12 font-fw-ds-400 {role.id === selected.id
+                  class="text-fs-ds-12 font-fw-ds-400 {role.id.toLowerCase() ===
+                  selected.id.toLowerCase()
                     ? 'text-blue-300'
                     : 'text-neutral-50'}"
                 >
                   {role.name}
                 </span>
-                {#if role.id === selected.id}
+                {#if role.id.toLowerCase() === selected.id.toLowerCase()}
                   <BlueCheckIcon />
                 {/if}
               {:else}

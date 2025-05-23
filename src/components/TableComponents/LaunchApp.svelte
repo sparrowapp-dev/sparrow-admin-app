@@ -10,7 +10,7 @@
 
     if (workspaceId) {
       // Build URL with required query parameters
-      const baseUrl = `${SPARROW_LAUNCH_URL}/collections`;
+      const baseUrl = `${SPARROW_LAUNCH_URL}/app/collections`;
       const params = new URLSearchParams();
 
       // Add workspaceId parameter
