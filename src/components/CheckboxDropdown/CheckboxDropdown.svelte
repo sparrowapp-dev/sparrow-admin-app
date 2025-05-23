@@ -3,7 +3,7 @@
   import CheckboxChecked from '@/assets/icons/CheckboxChecked.svelte';
   import CheckboxUnchecked from '@/assets/icons/CheckboxUnchecked.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
-  import CloseIcon from '@/assets/icons/CloseIcon.svelte'; // Add this import or use your own close icon
+  import CloseIcon from '@/assets/icons/CloseIcon.svelte';
 
   // Props with better defaults and customization
   export let workspaces: { id: string; name: string }[] = [];
@@ -153,7 +153,7 @@
   <!-- Dropdown Menu -->
   {#if isOpen}
     <div
-      class="bg-surface-600 custom-scroll absolute z-10 mt-1 max-h-38 w-full overflow-y-auto rounded-sm shadow-lg"
+      class="bg-surface-600 absolute z-10 mt-1 max-h-38 w-full overflow-y-auto rounded-sm shadow-lg"
     >
       <!-- Select All Option -->
       <div class="border-surface-300 border-b p-2">
@@ -202,23 +202,3 @@
     <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{errorMessage}</p>
   {/if}
 </div>
-
-<style>
-  .custom-scroll::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scroll {
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-    scrollbar-width: thin;
-  }
-</style>
