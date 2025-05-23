@@ -15,7 +15,7 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
-  import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
+  import ChangeUserRole from '@/components/ChangeUserRole/ChangeUserRole.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
 

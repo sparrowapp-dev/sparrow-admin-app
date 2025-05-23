@@ -27,7 +27,7 @@
   }
 </script>
 
-<div class="bg-surface-600 rounded-[8px] p-6">
+<div class="bg-surface-600 rounded-lg p-6">
   <div class="flex flex-col gap-6">
     <div class="flex justify-between">
       <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">

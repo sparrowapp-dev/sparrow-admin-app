@@ -3,7 +3,6 @@
   import MemberRolesDropdown from '../MemberRoleDropdown/MemberRolesDropdown.svelte';
   import { hubsService } from '@/services/hubs.service';
   import { notification } from '../Toast';
-  import { userRole } from '@/store/auth';
 
   export let onClose: () => void;
   export let data: {
@@ -79,7 +78,7 @@
           workspaceId: workspace?.workspace?._id,
         });
         notification.success(
-          `"${data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}" is removed from "${workspace.workspace.name.length > 20 ? `${workspace.workspace.name.slice(0, 20)}` : workspace?.workspace.name}".`,
+          `"${data?.name ? (data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name) : ''}" is removed from "${workspace.workspace.name.length > 20 ? `${workspace.workspace.name.slice(0, 20)}` : workspace?.workspace.name}".`,
         );
         onClose();
       } else {
@@ -97,7 +96,7 @@
     } catch (error) {
       if (selectedRole === 'Remove User') {
         notification.error(
-          `Failed to remove “${data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}” from “${workspace?.workspace.name.length > 20 ? `${workspace?.workspace.name.slice(0, 20)}` : workspace?.workspace.name}”. Please try again.`,
+          `Failed to remove “${data?.name ? (data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name) : ''}” from “${workspace?.workspace.name.length > 20 ? `${workspace?.workspace.name.slice(0, 20)}` : workspace?.workspace.name}”. Please try again.`,
         );
       } else {
         notification.error(
@@ -124,10 +123,18 @@
         <div class="flex justify-between">
           <div class="flex flex-col">
             <h2 class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
-              {data?.name?.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name}
+              {data?.name
+                ? data?.name?.length > 15
+                  ? `${data?.name.slice(0, 15)}...`
+                  : data?.name
+                : ''}
             </h2>
             <h2 class="font-inter font-fw-ds-300 text-fs-ds-12 leading-lh-ds-150 text-neutral-300">
-              {data?.email.length > 20 ? `${data?.email.slice(0, 20)}...` : data?.email}
+              {data?.email
+                ? data?.email?.length > 20
+                  ? `${data?.email.slice(0, 20)}...`
+                  : data?.email
+                : ''}
             </h2>
           </div>
           <div class="relative">

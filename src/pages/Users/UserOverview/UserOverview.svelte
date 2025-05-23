@@ -1,7 +1,7 @@
 <script lang="ts">
   import AllHubsIcon from '@/assets/icons/AllHubsIcon.svelte';
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
-  import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
+  import ChangeUserRole from '@/components/ChangeUserRole/ChangeUserRole.svelte';
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import InviteCollaborators from '@/components/InviteCollaborators/InviteCollaborators.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
@@ -10,6 +10,7 @@
   import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
+  import { ModalData } from '@/interface/Users';
 
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
@@ -60,7 +61,7 @@
 
   $: totalItems = filteredUsers.length;
 
-  let hubId = null;
+  let hubId: string | null = null;
 
   const {
     data: membersData,
@@ -93,12 +94,12 @@
   function handleSelect(event: CustomEvent<{ value: string; label: string }>) {
     selected = event.detail;
     pagination.pageIndex = 0;
-    hubId = selected.value !== 'all' ? selected.value : null;
+    hubId = selected?.value !== 'all' ? selected.value : null;
     if (hubId) refetchMembers();
   }
 
   let showModal = false;
-  let modalData = { data: null };
+  let modalData: ModalData = { data: null };
   let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
 
   function onClick({ data, click }) {
@@ -286,7 +287,7 @@
         <ChangeUserRole
           onClose={closePopups}
           data={$membersData.data?.members?.find(
-            (data) => data.id.toString() === modalData?.data?.id.toString(),
+            (data) => data.id.toString() === modalData?.data?.id?.toString(),
           )}
           removeUserPopupOpen={() => {
             modalVariants.changeRole = false;
@@ -298,7 +299,6 @@
             modalVariants.changingRole = true;
           }}
           hubId={selected.value !== 'all' ? selected.value : ''}
-          hubName={currentHubName}
           onSuccess={() => refetch()}
         />
       {:else if modalVariants.removeUser}
