@@ -48,7 +48,7 @@
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <div
-            class="text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] bg-purple-400 text-neutral-50"
+            class="border-surface-50 text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] border bg-purple-400 text-neutral-50"
           >
             {data.name.charAt(0).toUpperCase()}
           </div>
@@ -69,19 +69,21 @@
               for all assigned workspaces.
             </div>
           {:else}
-            <div class="font-fw-ds-300 text-fs-ds-14 leading-lh-ds-143 font-inter text-neutral-200">
-              You are assigning the role of <span class="text-neutral-50">'Admin'</span> to
+            <div class="font-fw-ds-600 text-fs-ds-14 leading-lh-ds-143 font-inter text-neutral-200">
+              You are assigning the role of an <span class="text-neutral-50">'Admin'</span> to
               {data.name.length > 20 ? `${data.name.slice(0, 10)}...` : data.name}. Following access
               will be provided to
-              {data.name.length > 20 ? `${data.name.slice(0, 10)}...` : data.name}:
+              {data.name.length > 20 ? `${data.name.slice(0, 10)}...` : data.name}
 
-              <ul class="mt-2 ml-5 list-disc space-y-1">
-                <li>Create New Workspaces</li>
+              <ul
+                class="font-fw-ds-300 text-fs-ds-12 leading-lh-ds-150 mt-2 ml-5 list-disc space-y-1 text-neutral-200"
+              >
+                <li>Create New Workspaces.</li>
                 <li>Send Invites</li>
                 <li>Change role of Admin and Members</li>
-                <li>View/edit all the workspaces in the team</li>
-                <li>See all the user,their email and roles</li>
-                <li>See access details of user</li>
+                <li>View/edit all the workspaces in the team.</li>
+                <li>See all the user,their email and roles.</li>
+                <li>See access details of user.</li>
               </ul>
             </div>
           {/if}
@@ -90,11 +92,11 @@
       <div class="mt-2 flex w-full justify-between gap-2">
         <div class="flex items-center gap-2">
           <div
-            class="text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] bg-purple-400 text-neutral-50"
+            class="border-surface-50 text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] border bg-purple-400 text-neutral-50"
           >
             {hubName.charAt(0)}
           </div>
-          <div class="font-inter text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
+          <div class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
             {hubName.length > 20 ? `${hubName.slice(0, 20)}...` : hubName}
           </div>
         </div>

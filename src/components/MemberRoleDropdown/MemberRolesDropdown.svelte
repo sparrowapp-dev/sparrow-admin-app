@@ -153,7 +153,7 @@
           <button
             {disabled}
             type="button"
-            class="relative flex w-full flex-col p-3 text-left {role.id.toLowerCase() ===
+            class="relative flex w-full cursor-pointer flex-col p-3 text-left {role.id.toLowerCase() ===
             selected.id.toLowerCase()
               ? ''
               : 'hover:bg-surface-700'}"
