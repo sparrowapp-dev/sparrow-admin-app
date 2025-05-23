@@ -10,7 +10,7 @@
   import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
-  import { SPARROW_APP_URL, SPARROW_DOCS_URL } from '@/constants/environment';
+  import { SPARROW_LAUNCH_URL } from '@/constants/environment';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -25,7 +25,7 @@
     isInviteModal: boolean;
   };
   export let params;
-  const baseUrl = SPARROW_APP_URL;
+  const baseUrl = SPARROW_LAUNCH_URL;
   let workspaces: { id: string; name: string }[] = [];
   onMount(async () => {
     if (modalVariants.isEditWorkspaceModalOpen) {
@@ -148,7 +148,7 @@
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
         });
-        notification.success(`Workspace Published."${formData.workspaceName}" is now public.`);
+        notification.success(`Workspace Published. "${formData.workspaceName}" is now public.`);
       } else if (modalVariants.isDeleteWorkspaceModalOpen) {
         // Handle deleting workspace
         const response = await hubsService.deleteWorkspace({
@@ -223,7 +223,7 @@
     </div>
 
     <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
-      Edit your workspace name to reflect its purpose .
+      Edit your workspace name to reflect its purpose.
     </p>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-6">
@@ -266,9 +266,9 @@
     </div>
     <span class="flex flex-col gap-1">
       <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
-        Publish "
-        <p class="max-w-[8rem] truncate">{data.title}</p>
-        " Workspace
+        Publish
+        <p class="max-w-[8rem] truncate">"{data.title}"</p>
+        Workspace
       </span>
       <span class="mb-1">
         <p class="font-inter leading-lh-ds-150 text-fs-ds-12 text-left font-light text-neutral-400">
@@ -323,7 +323,7 @@
         errorMessage={errors.publishnameMismatchError || ''}
         bind:value={formData.publishWorkspaceName}
       />
-      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-light text-neutral-400"
+      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-fw-ds-300 text-neutral-400"
         ><button
           class="cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
           on:click={() => {
@@ -332,7 +332,7 @@
             // Open in a new tab
             window.open(url, '_blank');
           }}>Learn more</button
-        > how public workspaces work .</span
+        > how public workspaces work.</span
       >
       <div class="mt-6 flex w-full items-center justify-end gap-3">
         <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
