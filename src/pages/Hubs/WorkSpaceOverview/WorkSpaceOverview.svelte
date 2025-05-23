@@ -162,8 +162,8 @@
 
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
-    { label: $topData?.data?.hubName, path: `/hubs/workspace/${hubId}` },
-    { label: $topData?.data?.title, path: `/hubs/workspace-details/${params}/${hubId}` },
+    { label: $topData?.data?.hubName || '', path: `/hubs/workspace/${hubId}` },
+    { label: $topData?.data?.title || '', path: `/hubs/workspace-details/${params}/${hubId}` },
   ];
 </script>
 

@@ -72,7 +72,7 @@
     { value: 'all', label: 'All Resources' },
   ];
 
-  let selected = { value: '', label: 'All Workspaces' };
+  let selected = { value: 'all', label: 'All Resources' };
 
   // ─── DATA REFETCH TRIGGER ────────────────────────────
   function triggerRefresh() {
@@ -119,19 +119,40 @@
           {
             accessorKey: 'name',
             header: 'Name',
+            enableSorting: false,
           },
           {
             accessorKey: 'keyStats',
             header: 'Key Stats',
+            enableSorting: false,
+            cell: ({ row }) => {
+              const stats = row.original.keyStats;
+              const resourceType = row.original.resourceType;
+              // Example: Append strings based on some condition
+              let extra;
+              if (resourceType === 'environments') {
+                extra = 'Variables';
+              }
+              if (resourceType === 'testflows') {
+                extra = 'Steps';
+              }
+              if (resourceType === 'collections') {
+                extra = 'Apis';
+              }
+              return `${stats} ${extra}`;
+            },
           },
           {
             accessorKey: 'updatedAt',
             header: 'Last Updated',
             enableSorting: true,
-            cell: ({ getValue }) => {
+            cell: ({ getValue, row }) => {
               const date = getValue();
               const relativeTime = getRelativeTime(date);
-              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${relativeTime}</span>`;
+              return `<div class="flex flex-col">
+  <span class="text-neutral-50 text-fs-ds-12 leading-lh-ds-130 font-inter" title="${new Date(date).toLocaleString()}">${relativeTime}</span>
+  <span class="text-neutral-300 text-fs-ds-12 leading-lh-ds-150 font-light">By ${row.original.updatedBy.name || row.original.updatedBy}</span>
+</div>`;
             },
           },
           {
@@ -253,12 +274,12 @@
     </button>
   </div>
   <div class="bg-surface-900">
-    <div class="flex items-center gap-3 py-6">
+    <div class="flex items-center gap-3 pt-2 pb-6">
       <TableSearch
         value={filters.searchTerm}
         on:search={handleSearchChange}
         {isLoading}
-        placeholder="Search Workspace"
+        placeholder={`Search ${selectedTab === 'resources' ? 'Resources' : 'workspace Members'}`}
       />{#if selectedTab === 'resources'}
         <DropdownNoSearch
           {options}
@@ -271,25 +292,32 @@
         />
       {/if}
     </div>
+    {#if totalItems < 1 && !isLoading}
+      <div class="flex flex-col items-center justify-center py-16">
+        <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
+          No {selectedTab === 'resources' ? 'Resources' : 'Members'} Found
+        </p>
+      </div>
+    {:else}
+      <Table
+        {columns}
+        data={processedData.workspaces}
+        {isLoading}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        on:sortingChange={handleSortingChange}
+        on:rowClick={(e) => console.log('Row clicked:', e.detail)}
+      />
 
-    <Table
-      {columns}
-      data={processedData.workspaces}
-      {isLoading}
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      on:sortingChange={handleSortingChange}
-      on:rowClick={(e) => console.log('Row clicked:', e.detail)}
-    />
-
-    <TablePagination
-      pageIndex={pagination.pageIndex}
-      pageSize={pagination.pageSize}
-      {totalItems}
-      {isLoading}
-      on:pageChange={handlePageChange}
-      on:pageSizeChange={handlePageSizeChange}
-    />
+      <TablePagination
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        {totalItems}
+        {isLoading}
+        on:pageChange={handlePageChange}
+        on:pageSizeChange={handlePageSizeChange}
+      />
+    {/if}
   </div>
 </div>
