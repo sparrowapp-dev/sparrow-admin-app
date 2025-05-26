@@ -21,6 +21,9 @@
   export let containerClassName = '';
   export let emptyStateComponent = null;
 
+  // Get last column ID for width handling
+  $: lastColumnId = columns[columns.length - 1]?.id;
+
   // Table instance
   $: table = createSvelteTable({
     data,
@@ -76,6 +79,7 @@
                   {cell}
                   className={cellClassName}
                   showOnHover={cell.column.id === 'launch'}
+                  isLastColumn={cell.column.id === lastColumnId}
                 />
               {/each}
             </tr>
