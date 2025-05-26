@@ -61,7 +61,9 @@
   on:mouseleave={forwardEvent}
 >
   {#if iconLeft}
-    <slot name="iconLeft" />
+    <div class="{disabled ? 'cursor-not-allowed opacity-50' : ''} flex items-center">
+      <slot name="iconLeft" />
+    </div>
   {/if}
 
   <slot />

@@ -15,8 +15,10 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import MembersDropdown from '@/components/TableComponents/MembersDropdown.svelte';
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
-  import ChangeUserRole from '@/components/changeUserRole/ChangeUserRole.svelte';
+  import ChangeUserRole from '@/components/ChangeUserRole/ChangeUserRole.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -27,13 +29,14 @@
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
-  let modalVariants = { changeRole: false, removeUser: false };
+  let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
   let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
   function closePopups() {
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
+    modalVariants.changingRole = false;
     showModal = false;
     modalData.data = null;
   }
@@ -259,160 +262,181 @@
 </script>
 
 <section class="w-full">
-  <Breadcrumbs items={breadcrumbItems} />
-  <div class="flex items-center justify-between">
-    <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
-      {hubName}
-    </h1>
-    <Button
-      variant="filled-primary"
-      size="small"
-      iconLeft={true}
-      on:click={() => (showModal = true)}
-    >
-      <svelte:fragment slot="iconLeft">
-        <ManageMembersIcon />
-      </svelte:fragment>
-      Invite Collaborators
-    </Button>
-  </div>
-
-  <!-- Tab Navigation -->
-  <div class="flex">
-    <button
-      class="font-inter text-fs-ds-12 bord font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
-      'members'
-        ? 'border-b-2 text-neutral-50'
-        : 'border-b-2 border-transparent text-neutral-100'}"
-      on:click={() => setActiveTab('members')}
-    >
-      Members
-      <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{membersCount}</span>
-    </button>
-    <button
-      class="font-inter text-fs-ds-12 font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
-      'invites'
-        ? 'border-b-2 text-neutral-50'
-        : 'border-b-2 border-transparent text-neutral-100'}"
-      on:click={() => setActiveTab('invites')}
-    >
-      Manage Invites
-      <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{invitesCount}</span>
-    </button>
-  </div>
-
-  <!-- Members Tab Content -->
-  {#if activeTab === 'members'}
-    <div class="bg-surface-900">
-      <div class="flex items-center justify-between py-6">
-        <TableSearch
-          value={membersFilters.searchTerm}
-          on:search={handleMembersSearch}
-          isLoading={$isMembersFetching}
-          placeholder="Search user in {hubName}"
-          width="max-w-[300px]"
-        />
-      </div>
-
-      {#if membersTotalCount === 0 && !$isMembersFetching}
-        <div class="flex flex-col items-center justify-center py-16">
-          <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No members found.</p>
-        </div>
-      {:else}
-        <Table
-          columns={membersColumns}
-          data={members}
-          isLoading={$isMembersFetching}
-          pageIndex={membersPagination.pageIndex}
-          pageSize={membersPagination.pageSize}
-          totalItems={membersTotalCount}
-        />
-
-        <TablePagination
-          pageIndex={membersPagination.pageIndex}
-          pageSize={membersPagination.pageSize}
-          totalItems={membersTotalCount}
-          isLoading={$isMembersFetching}
-          on:pageChange={handleMembersPageChange}
-          on:pageSizeChange={handleMembersPageSizeChange}
-        />
-      {/if}
+  {#if !$membersData?.httpStatusCode}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
     </div>
-  {/if}
-
-  <!-- Invites Tab Content -->
-  {#if activeTab === 'invites'}
-    <div class="bg-surface-900">
-      <div class="flex items-center justify-between py-6">
-        <TableSearch
-          value={invitesFilters.searchTerm}
-          on:search={handleInvitesSearch}
-          isLoading={$isInvitesFetching}
-          placeholder="Search invites by email"
-          width="max-w-[300px]"
-        />
-      </div>
-
-      {#if invitesTotalCount === 0 && !$isInvitesFetching}
-        <div class="flex flex-col items-center justify-center py-16">
-          <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No pending invites.</p>
-        </div>
-      {:else}
-        <Table
-          columns={invitesColumns}
-          data={invites}
-          isLoading={$isInvitesFetching}
-          pageIndex={invitesPagination.pageIndex}
-          pageSize={invitesPagination.pageSize}
-          totalItems={invitesTotalCount}
-        />
-
-        <TablePagination
-          pageIndex={invitesPagination.pageIndex}
-          pageSize={invitesPagination.pageSize}
-          totalItems={invitesTotalCount}
-          isLoading={$isInvitesFetching}
-          on:pageChange={handleInvitesPageChange}
-          on:pageSizeChange={handleInvitesPageSizeChange}
-        />
-      {/if}
+  {:else}
+    <Breadcrumbs items={breadcrumbItems} />
+    <div class="flex items-center justify-between">
+      <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
+        {hubName}
+      </h1>
+      <Button
+        variant="filled-primary"
+        size="small"
+        iconLeft={true}
+        on:click={() => (showModal = true)}
+      >
+        <svelte:fragment slot="iconLeft">
+          <ManageMembersIcon />
+        </svelte:fragment>
+        Invite Collaborators
+      </Button>
     </div>
-  {/if}
 
-  <!-- Invite Modal -->
-  {#if showModal}
-    <Modal
-      on:close={() => {
-        closePopups();
-        showModal = false;
-      }}
-    >
-      {#if modalVariants.changeRole}
-        <ChangeUserRole
-          onClose={closePopups}
-          data={modalData.data}
-          removeUserPopupOpen={() => {
-            modalVariants.changeRole = false;
-            modalVariants.removeUser = true;
-          }}
-          hubId={params}
-          onSuccess={() => refetchMembers()}
-        />
-      {:else if modalVariants.removeUser}
-        <RemoveuserPopup
-          onSuccess={() => refetchMembers()}
-          onClose={closePopups}
-          {hubName}
-          data={modalData.data}
-          hubId={params}
-        />
-      {:else}
-        <InviteCollaborators
-          onClose={() => (showModal = false)}
-          hubId={params}
-          {hubName}
-          onSuccess={handleInviteComplete}
-        />{/if}
-    </Modal>
+    <!-- Tab Navigation -->
+    <div class="flex">
+      <button
+        class="font-inter text-fs-ds-12 bord font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
+        'members'
+          ? 'border-b-2 text-neutral-50'
+          : 'border-b-2 border-transparent text-neutral-100'}"
+        on:click={() => setActiveTab('members')}
+      >
+        Members
+        <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{membersCount}</span>
+      </button>
+      <button
+        class="font-inter text-fs-ds-12 font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
+        'invites'
+          ? 'border-b-2 text-neutral-50'
+          : 'border-b-2 border-transparent text-neutral-100'}"
+        on:click={() => setActiveTab('invites')}
+      >
+        Manage Invites
+        <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{invitesCount}</span>
+      </button>
+    </div>
+
+    <!-- Members Tab Content -->
+    {#if activeTab === 'members'}
+      <div class="bg-surface-900">
+        <div class="flex items-center justify-between py-6">
+          <TableSearch
+            value={membersFilters.searchTerm}
+            on:search={handleMembersSearch}
+            isLoading={$isMembersFetching}
+            placeholder="Search user in {hubName}"
+            width="max-w-[300px]"
+          />
+        </div>
+
+        {#if membersTotalCount === 0 && !$isMembersFetching}
+          <div class="flex flex-col items-center justify-center py-16">
+            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No members found.</p>
+          </div>
+        {:else}
+          <Table
+            columns={membersColumns}
+            data={members}
+            isLoading={$isMembersFetching}
+            pageIndex={membersPagination.pageIndex}
+            pageSize={membersPagination.pageSize}
+            totalItems={membersTotalCount}
+          />
+
+          <TablePagination
+            pageIndex={membersPagination.pageIndex}
+            pageSize={membersPagination.pageSize}
+            totalItems={membersTotalCount}
+            isLoading={$isMembersFetching}
+            on:pageChange={handleMembersPageChange}
+            on:pageSizeChange={handleMembersPageSizeChange}
+          />
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Invites Tab Content -->
+    {#if activeTab === 'invites'}
+      <div class="bg-surface-900">
+        <div class="flex items-center justify-between py-6">
+          <TableSearch
+            value={invitesFilters.searchTerm}
+            on:search={handleInvitesSearch}
+            isLoading={$isInvitesFetching}
+            placeholder="Search invites by email"
+            width="max-w-[300px]"
+          />
+        </div>
+
+        {#if invitesTotalCount === 0 && !$isInvitesFetching}
+          <div class="flex flex-col items-center justify-center py-16">
+            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No pending invites.</p>
+          </div>
+        {:else}
+          <Table
+            columns={invitesColumns}
+            data={invites}
+            isLoading={$isInvitesFetching}
+            pageIndex={invitesPagination.pageIndex}
+            pageSize={invitesPagination.pageSize}
+            totalItems={invitesTotalCount}
+          />
+
+          <TablePagination
+            pageIndex={invitesPagination.pageIndex}
+            pageSize={invitesPagination.pageSize}
+            totalItems={invitesTotalCount}
+            isLoading={$isInvitesFetching}
+            on:pageChange={handleInvitesPageChange}
+            on:pageSizeChange={handleInvitesPageSizeChange}
+          />
+        {/if}
+      </div>
+    {/if}
+
+    <!-- Invite Modal -->
+    {#if showModal}
+      <Modal
+        on:close={() => {
+          closePopups();
+          showModal = false;
+        }}
+      >
+        {#if modalVariants.changeRole}
+          <ChangeUserRole
+            onClose={closePopups}
+            data={$membersData.data?.members?.find(
+              (data) => data.id.toString() === modalData?.data?.id.toString(),
+            )}
+            removeUserPopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = true;
+            }}
+            changingRolePopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = false;
+              modalVariants.changingRole = true;
+            }}
+            hubId={params}
+            onSuccess={() => refetchMembers()}
+          />
+        {:else if modalVariants.removeUser}
+          <RemoveuserPopup
+            onSuccess={() => refetchMembers()}
+            onClose={closePopups}
+            {hubName}
+            data={modalData.data}
+            hubId={params}
+          />
+        {:else if modalVariants.changingRole}
+          <ChangingRolesPopup
+            onSuccess={() => refetchMembers()}
+            onClose={closePopups}
+            {hubName}
+            data={modalData.data}
+            hubId={params}
+          />
+        {:else}
+          <InviteCollaborators
+            onClose={() => (showModal = false)}
+            hubId={params}
+            {hubName}
+            onSuccess={handleInviteComplete}
+          />{/if}
+      </Modal>
+    {/if}
   {/if}
 </section>

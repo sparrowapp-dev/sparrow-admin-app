@@ -14,6 +14,7 @@
   import { navigate, useLocation } from 'svelte-routing';
   import { hubsService } from '@/services/hubs.service';
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   // ─── STATE VARIABLES ────────────────────────────────
   let showModal = false;
@@ -162,40 +163,46 @@
 
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
-    { label: $topData?.data?.hubName, path: `/hubs/workspace/${hubId}` },
-    { label: $topData?.data?.title, path: `/hubs/workspace-details/${params}/${hubId}` },
+    { label: $topData?.data?.hubName || '', path: `/hubs/workspace/${hubId}` },
+    { label: $topData?.data?.title || '', path: `/hubs/workspace-details/${params}/${hubId}` },
   ];
 </script>
 
 <section class="font-inter w-full text-neutral-50">
-  <Breadcrumbs items={breadcrumbItems} />
-  <div class="flex flex-col gap-6 pt-6">
-    <TopWorkspace
-      {hubId}
-      topData={$topData?.data}
-      {openModal}
-      isLoading={$overviewDataRefetching}
-      workspaceId={params}
-    />
-    <BottomWorkspace
-      data={$workspacesData?.data}
-      onRefresh={handleRefresh}
-      isLoading={$isFetching}
-      {params}
-      {overviewRefetch}
-    />
-  </div>
-  {#if showModal}
-    <Modal on:close={closeAllModals}>
-      <PopupModal
-        workspaceId={params}
-        onClose={closeAllModals}
-        data={$topData.data}
-        onSuccess={handleOnSuccess}
-        {modalVariants}
-        {params}
+  {#if !$workspacesData?.httpStatusCode}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
+    </div>
+  {:else}
+    <Breadcrumbs items={breadcrumbItems} />
+    <div class="flex flex-col gap-6 pt-6">
+      <TopWorkspace
         {hubId}
+        topData={$topData?.data}
+        {openModal}
+        isLoading={$overviewDataRefetching}
+        workspaceId={params}
       />
-    </Modal>
+      <BottomWorkspace
+        data={$workspacesData?.data}
+        onRefresh={handleRefresh}
+        isLoading={$isFetching}
+        {params}
+        {overviewRefetch}
+      />
+    </div>
+    {#if showModal}
+      <Modal on:close={closeAllModals}>
+        <PopupModal
+          workspaceId={params}
+          onClose={closeAllModals}
+          data={$topData.data}
+          onSuccess={handleOnSuccess}
+          {modalVariants}
+          {params}
+          {hubId}
+        />
+      </Modal>
+    {/if}
   {/if}
 </section>

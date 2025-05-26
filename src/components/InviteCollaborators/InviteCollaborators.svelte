@@ -78,7 +78,7 @@
 
     // Validate emails
     if (emails.length === 0) {
-      emailError = 'Please enter at least one email address';
+      emailError = 'Please enter email ID.';
       isValid = false;
     } else if (hasInvalidEmails) {
       // Check for invalid emails
@@ -88,7 +88,7 @@
 
     // Validate role selection
     if (!selectedRole.id) {
-      roleError = 'Please select a role';
+      roleError = 'Please select role of the user.';
       isValid = false;
     }
 
@@ -125,9 +125,13 @@
       notification.success('Invite sent successfully.');
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error inviting users:', error);
-      notification.error('Failed to send invite. Please try again.');
+      if (error.message === 'An invite has already been sent to this email.') {
+        notification.error('An invite has already been sent to this email.');
+      } else {
+        notification.error('Failed to send invite. Please try again.');
+      }
     } finally {
       isSubmitting = false;
     }
@@ -155,7 +159,7 @@
         Invite by email
         <span class="ml-1 text-red-400">*</span>
       </label>
-      <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">You can add multiple emails.</p>
+      <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">You can add multiple emails</p>
       <ChipInput
         bind:this={chipInputComponent}
         {emails}

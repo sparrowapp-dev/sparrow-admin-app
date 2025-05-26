@@ -71,7 +71,7 @@
 >
   <button
     bind:this={triggerRef}
-    class="bg-surface-600 hover:bg-surface-400 flex min-w-[133px] cursor-pointer items-center justify-between rounded-sm border border-gray-700 px-3 py-2 font-medium text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+    class="bg-surface-600 hover:bg-surface-400 text-fs-ds-12 flex min-h-[28px] min-w-[133px] cursor-pointer items-center justify-between rounded-sm px-3 py-1 font-medium text-neutral-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     on:click={toggleDropdown}
     {disabled}
   >

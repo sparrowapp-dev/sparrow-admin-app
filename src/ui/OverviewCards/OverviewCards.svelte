@@ -9,18 +9,24 @@
   export let value: number;
   export let points: Point[] = [];
   export let history: string;
+  export let loading = false;
 </script>
 
-<section class="bg-surface-600 w-[32%] rounded-[8px] p-6">
+<section class="bg-surface-600 w-[32%] rounded-lg p-6">
   <div class="flex justify-between">
     <div class="flex flex-col gap-1">
       <div class="flex flex-col gap-2">
         <div class="font-inter font-regular leading-lh-ds-143 text-fs-ds-14 text-neutral-50">
           {title}
         </div>
-        <div class="font-inter leading-lh-ds-120 text-fs-ds-24 font-medium text-neutral-50">
-          {value}
-        </div>
+        {#if loading}
+          <!-- Show skeleton loader -->
+          <div class="bg-surface-300 h-5 w-20 rounded-b-sm animate-pulse rounded"></div>
+        {:else}
+          <div class="font-inter leading-lh-ds-120 text-fs-ds-24 font-medium text-neutral-50">
+            {value}
+          </div>
+        {/if}
       </div>
       <div class="flex flex-row gap-1">
         {#if points.length > 0}

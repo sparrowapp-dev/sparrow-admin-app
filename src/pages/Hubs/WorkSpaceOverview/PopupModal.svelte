@@ -10,6 +10,7 @@
   import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
+  import { SPARROW_LAUNCH_URL } from '@/constants/environment';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -24,6 +25,7 @@
     isInviteModal: boolean;
   };
   export let params;
+  const baseUrl = SPARROW_LAUNCH_URL;
   let workspaces: { id: string; name: string }[] = [];
   onMount(async () => {
     if (modalVariants.isEditWorkspaceModalOpen) {
@@ -78,7 +80,7 @@
   let isLoading = false;
   let formData: FormData = {
     workspaceName: data.title ?? '',
-    summary: data.summary ?? '',
+    summary: data.description ?? '',
     emails: [],
     selectedRole: { id: '', name: '' },
     publishWorkspaceName: '',
@@ -104,11 +106,21 @@
     if (modalVariants.isInviteModal) {
     }
 
-    if (modalVariants.isDeleteWorkspaceModalOpen && formData.deleteworkspaceName !== data?.title) {
-      newErrors.deleteNameMismatchError = 'Workspace name does not match.';
+    if (modalVariants.isDeleteWorkspaceModalOpen) {
+      if (!formData.deleteworkspaceName.trim()) {
+        newErrors.deleteNameMismatchError =
+          'Workspace name cannot be empty. Please enter the workspace name.';
+      } else if (formData.deleteworkspaceName !== data?.title) {
+        newErrors.deleteNameMismatchError = 'Workspace name does not match.';
+      }
     }
     if (modalVariants.isMakeItPublicModalOpen && formData.publishWorkspaceName !== data?.title) {
-      newErrors.publishnameMismatchError = 'Workspace name does not match';
+      if (!formData.publishWorkspaceName.trim()) {
+        newErrors.publishnameMismatchError =
+          'Workspace name cannot be empty. Please enter the workspace name.';
+      } else if (formData.publishWorkspaceName !== data?.title) {
+        newErrors.publishnameMismatchError = 'Workspace name does not match';
+      }
     }
 
     errors = newErrors;
@@ -136,14 +148,14 @@
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
         });
-        notification.success(`"${formData.workspaceName}" is now public.`);
+        notification.success(`Workspace Published. "${formData.workspaceName}" is now public.`);
       } else if (modalVariants.isDeleteWorkspaceModalOpen) {
         // Handle deleting workspace
         const response = await hubsService.deleteWorkspace({
           params: { workspaceId: params, hubId: hubId },
         });
         notification.success(
-          `"Workspace "${formData.workspaceName}" has been deleted successfully.`,
+          `Workspace "${formData.workspaceName}" has been deleted successfully.`,
         );
       } else if (modalVariants.isInviteModal) {
         // Handle inviting collaborators
@@ -211,7 +223,7 @@
     </div>
 
     <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
-      Edit your workspace name to reflect its purpose
+      Edit your workspace name to reflect its purpose.
     </p>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-6">
@@ -253,9 +265,11 @@
       </button>
     </div>
     <span class="flex flex-col gap-1">
-      <p class="text-fs-ds-14 font-fw-ds-300 font-inter text-neutral-200">
-        Publish "{data.title}" Workspace
-      </p>
+      <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
+        Publish
+        <p class="max-w-[8rem] truncate">"{data.title}"</p>
+        Workspace
+      </span>
       <span class="mb-1">
         <p class="font-inter leading-lh-ds-150 text-fs-ds-12 text-left font-light text-neutral-400">
           Anyone with the link can view this workspace, but only collaborators you've added can make
@@ -268,6 +282,12 @@
             <button
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
+              on:click={() => {
+                const url = `${baseUrl}/terms-of-service`;
+
+                // Open in a new tab
+                window.open(url, '_blank');
+              }}
             >
               Terms of services
             </button>
@@ -275,6 +295,12 @@
             <button
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
+              on:click={() => {
+                const url = `${baseUrl}/privacy-policy/`;
+
+                // Open in a new tab
+                window.open(url, '_blank');
+              }}
             >
               Privacy Policy
             </button>
@@ -297,11 +323,16 @@
         errorMessage={errors.publishnameMismatchError || ''}
         bind:value={formData.publishWorkspaceName}
       />
-      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-neutral-400 font-light"
+      <span class="font-inter text-fs-ds-12 leading-lh-ds-150 font-fw-ds-300 text-neutral-400"
         ><button
           class="cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
-          >Learn more</button
-        > how public workspaces work</span
+          on:click={() => {
+            const url = `${SPARROW_DOCS_URL}`;
+
+            // Open in a new tab
+            window.open(url, '_blank');
+          }}>Learn more</button
+        > how public workspaces work.</span
       >
       <div class="mt-6 flex w-full items-center justify-end gap-3">
         <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
@@ -324,11 +355,17 @@
         Enter workspace name to confirm <span class="ml-1 text-red-400">*</span>
       </p>
 
-      <p class="font-inter leading-lh-ds-150 text-fs-ds-12 pr-2 text-left text-neutral-400">
-        Everything in {data.title} Workspace will be permanently removed, all contributors will lose
-        access. This action cannot be undone.
-      </p></span
-    >
+      <span
+        class="font-inter leading-lh-ds-150 text-fs-ds-12 items-center pr-2 text-left text-neutral-400"
+      >
+        Everything in
+
+        {data.title.length > 10 ? `${data.title.slice(0, 10)}...` : data.title}
+
+        will be permanently removed, all contributors will lose access. This action cannot be
+        undone.
+      </span>
+    </span>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-2">
       <Input
@@ -349,7 +386,8 @@
               {data?.hubName?.[0]?.toUpperCase() || ''}
             </span>
           </div>
-          <span class="font-inter text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 text-neutral-50"
+          <span
+            class="font-inter text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 w-[8rem] truncate text-neutral-50"
             >{data?.hubName}</span
           >
         </div>
@@ -382,7 +420,7 @@
           <span class="ml-1 text-red-400">*</span>
         </label>
         <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">
-          You can add multiple emails.
+          You can add multiple emails
         </p>
         <ChipInput
           bind:this={chipInputComponent}

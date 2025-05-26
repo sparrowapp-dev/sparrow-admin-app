@@ -75,7 +75,7 @@
 
     if (workspaceId) {
       // Build URL with required query parameters
-      const baseUrl = `${SPARROW_LAUNCH_URL}/collections`;
+      const baseUrl = `${SPARROW_LAUNCH_URL}/app/collections`;
       const params = new URLSearchParams();
 
       // Add workspaceId parameter
@@ -126,15 +126,17 @@
     <div class="flex w-full flex-col gap-3">
       <div class="header flex w-full flex-row items-center justify-between">
         <div class="flex max-h-[20px] items-center gap-3">
-          <h2 class="font-inter text-fs-ds-28 leading-lh-ds-120 font-medium text-neutral-50">
-            {topData?.title}
+          <h2
+            class="font-inter text-fs-ds-28 leading-lh-ds-120 max-w-[300px] overflow-hidden font-medium text-ellipsis whitespace-nowrap text-neutral-50"
+          >
+            {topData?.title || ''}
           </h2>
           {#if topData?.WorkspaceType === 'PRIVATE'}
             <span>
               <PrivateIcon />
             </span>
           {:else}
-            <span class="rounded-[2px] border border-green-700 bg-green-900"><PublicRight /></span>
+            <span class="rounded-[2px]"><PublicRight /></span>
           {/if}
         </div>
         <div class="flex gap-2">
@@ -208,7 +210,7 @@
             Last Updated :
           </p>
           <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {getRelativeTime(topData?.updatedAt)}
+            {getRelativeTime(topData?.updatedAt) || ''}
           </p>
         </div>
         <div class="ml-1 h-full border-r border-r-neutral-500" />
@@ -216,16 +218,21 @@
           <div class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-400">
             Updated By :
           </div>
-          <div class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 text-neutral-50">
-            {topData?.updatedBy}
+          <div
+            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 max-w-[125px] overflow-hidden text-ellipsis whitespace-nowrap text-neutral-50"
+          >
+            {topData?.updatedBy || ''}
           </div>
         </div>
       </div>
     </div>
-    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 text-neutral-400">
-      You are viewing details for the workspace '{topData?.title}'s Workspace'. This workspace
-      contains API collections, test flows, and environments that are organized for collaborative
-      development and testing.
+    <div class="font-inter text-fs-ds-12 leading-lh-ds-150 flex text-neutral-400">
+      You are viewing details for the workspace '
+
+      {topData?.title?.length > 10 ? `${topData?.title?.slice(0, 10)}...` : topData?.title}
+
+      '. This workspace contains API collections, test flows, and environments that are organized
+      for collaborative development and testing.
     </div>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {#each stats as stat (stat?.label)}
