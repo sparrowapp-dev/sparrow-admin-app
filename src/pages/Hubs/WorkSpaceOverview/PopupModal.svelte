@@ -420,7 +420,7 @@
           <span class="ml-1 text-red-400">*</span>
         </label>
         <p class="text-fs-ds-12 font-fw-ds-300 mb-2 text-neutral-400">
-          You can add multiple emails.
+          You can add multiple emails
         </p>
         <ChipInput
           bind:this={chipInputComponent}

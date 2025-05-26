@@ -41,6 +41,7 @@ export interface HubDetail {
   }[];
 }
 export interface UserDetailsResponse {
+  httpStatusCode: number;
   data: {
     userDetails: UserDetails;
     hubDetails: HubDetail[];

@@ -60,7 +60,7 @@
 <div class="relative" bind:this={dropdownElement}>
   <button
     type="button"
-    class="bg-surface-400 flex w-full cursor-pointer items-center justify-between rounded-sm border p-2.5 text-left {hasError
+    class="bg-surface-400 flex w-full cursor-pointer items-center justify-between rounded-sm border p-2 text-left {hasError
       ? 'border-red-300'
       : 'border-surface-400'}"
     on:click|stopPropagation={toggleDropdown}

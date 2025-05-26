@@ -11,6 +11,7 @@
   import { createQuery } from '@/services/api.common';
   import { userService } from '@/services/users.service';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
@@ -205,6 +206,11 @@
 </script>
 
 <section>
+  {#if !$data?.httpStatusCode}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
+    </div>
+  {/if}
   <div class="bg-surface-900 flex w-full flex-col px-4 text-left">
     <div class="flex flex-col gap-6">
       <Breadcrumbs items={breadcrumbItems} />
@@ -276,7 +282,7 @@
         {#if modalVariants.changeRole}
           <ChangeUserRole
             onClose={closePopups}
-            data={modalData?.data}
+            data={teamsData.find((data) => data.id.toString() === modalData?.data?.id.toString())}
             removeUserPopupOpen={() => {
               modalVariants.changeRole = false;
               modalVariants.removeUser = true;

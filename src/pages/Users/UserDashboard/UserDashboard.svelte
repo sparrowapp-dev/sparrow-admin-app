@@ -10,6 +10,7 @@
   import { pieChartConfig, trendLineConfig } from './dashboardData';
   import ActivityList from '@/ui/ActivityList/ActivityList.svelte';
   import NewInvites from '@/assets/icons/NewInvites.svelte';
+    import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   // Fetch dashboard stats using createQuery
   const { data: dashboardStats, isFetching: isLoadingStats } = createQuery(async () => {
@@ -81,89 +82,95 @@
 </script>
 
 <div class="bg-surface-900 w-full">
-  <h1 class="font-fw-ds-500 font-inter text-fs-ds-20 leading-lh-ds-120 text-neutral-50">
-    User Management Dashboard
-  </h1>
-  <p class="font-inter text-fs-ds-14 font-fw-ds-300 text-neutral-100">
-    Manage your users and collaborators
-  </p>
-  <div class="mt-6 flex flex-row justify-between">
-    {#each cardsData as card}
-      <OverviewCards
-        icon={card.icon}
-        title={card.title}
-        value={card.value}
-        history={card.history}
-        loading={card.loading}
-      />
-    {/each}
-  </div>
+  {#if !$userTrends?.httpStatusCode}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
+    </div>
+  {:else}
+    <h1 class="font-fw-ds-500 font-inter text-fs-ds-20 leading-lh-ds-120 text-neutral-50">
+      User Management Dashboard
+    </h1>
+    <p class="font-inter text-fs-ds-14 font-fw-ds-300 text-neutral-100">
+      Manage your users and collaborators
+    </p>
+    <div class="mt-6 flex flex-row justify-between">
+      {#each cardsData as card}
+        <OverviewCards
+          icon={card.icon}
+          title={card.title}
+          value={card.value}
+          history={card.history}
+          loading={card.loading}
+        />
+      {/each}
+    </div>
 
-  <!-- User Distribution Chart Section -->
-  <div class="grid grid-cols-2 gap-6">
+    <!-- User Distribution Chart Section -->
+    <div class="grid grid-cols-2 gap-6">
+      <div class="bg-surface-700 mt-6 rounded-lg p-6">
+        <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
+          User Distribution by Role
+        </h2>
+        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
+          Track of Admins and Members
+        </p>
+
+        <div class="relative h-[358px] pt-6">
+          {#if $isLoadingDistribution}
+            <!-- Loading state for pie chart -->
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div
+                class="border-t-primary-500 h-12 w-12 animate-spin rounded-full border-4 border-neutral-400"
+              ></div>
+            </div>
+          {:else if $userDistribution?.data}
+            <PieGraph data={$userDistribution.data} config={pieChartConfig} showTotal={true} />
+          {/if}
+        </div>
+
+        <div class="py-6">
+          <ChartLegend items={legendItems} horizontal={true} />
+        </div>
+      </div>
+      <div class="bg-surface-700 mt-6 rounded-lg p-6">
+        <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
+          Recent Activity
+        </h2>
+        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
+          Timeline of recent events
+        </p>
+        <div class="mt-6 h-[420px] overflow-y-auto">
+          <ActivityList
+            activities={$userActivity?.data?.activities || []}
+            loading={$isLoadingActivity}
+          />
+        </div>
+      </div>
+    </div>
     <div class="bg-surface-700 mt-6 rounded-lg p-6">
       <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
-        User Distribution by Role
+        Monthly Role Trends
       </h2>
       <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
-        Track of Admins and Members
+        View monthly admin and member counts to understand team growth and balance roles.
       </p>
 
-      <div class="relative h-[358px] pt-6">
-        {#if $isLoadingDistribution}
-          <!-- Loading state for pie chart -->
+      <div class="relative h-[400px] pt-4">
+        {#if $isLoadingTrends}
+          <!-- Loading state for trend line chart -->
           <div class="absolute inset-0 flex items-center justify-center">
             <div
               class="border-t-primary-500 h-12 w-12 animate-spin rounded-full border-4 border-neutral-400"
             ></div>
           </div>
-        {:else if $userDistribution?.data}
-          <PieGraph data={$userDistribution.data} config={pieChartConfig} showTotal={true} />
+        {:else if $userTrends?.data}
+          <TrendLineGraph data={$userTrends.data} config={trendLineConfig} />
         {/if}
       </div>
 
-      <div class="py-6">
-        <ChartLegend items={legendItems} horizontal={true} />
+      <div class="py-4">
+        <ChartLegend items={trendLegendItems} horizontal={true} trendLineLegend={true} />
       </div>
     </div>
-    <div class="bg-surface-700 mt-6 rounded-lg p-6">
-      <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
-        Recent Activity
-      </h2>
-      <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
-        Timeline of recent events
-      </p>
-      <div class="mt-6 h-[420px] overflow-y-auto">
-        <ActivityList
-          activities={$userActivity?.data?.activities || []}
-          loading={$isLoadingActivity}
-        />
-      </div>
-    </div>
-  </div>
-  <div class="bg-surface-700 mt-6 rounded-lg p-6">
-    <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
-      Monthly Role Trends
-    </h2>
-    <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
-      View monthly admin and member counts to understand team growth and balance roles.
-    </p>
-
-    <div class="relative h-[400px] pt-4">
-      {#if $isLoadingTrends}
-        <!-- Loading state for trend line chart -->
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div
-            class="border-t-primary-500 h-12 w-12 animate-spin rounded-full border-4 border-neutral-400"
-          ></div>
-        </div>
-      {:else if $userTrends?.data}
-        <TrendLineGraph data={$userTrends.data} config={trendLineConfig} />
-      {/if}
-    </div>
-
-    <div class="py-4">
-      <ChartLegend items={trendLegendItems} horizontal={true} trendLineLegend={true} />
-    </div>
-  </div>
+  {/if}
 </div>
