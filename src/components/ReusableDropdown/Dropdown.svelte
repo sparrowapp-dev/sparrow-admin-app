@@ -9,11 +9,10 @@
   export let showPlans: boolean = false;
   export let onSelect: (value: any) => void = () => {};
 
-  let selected: { label: string; id: string } = label;
+  export let selected: { label: string; id: string } = label;
   export let open = false;
   let searchMode = false;
   let searchTerm = '';
-
   $: filteredOptions = searchTerm
     ? options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
@@ -51,40 +50,54 @@
         return '';
     }
   }
+  let searchInput: HTMLInputElement;
+
+  $: if (searchMode && open && searchInput) {
+    searchInput.focus();
+  }
+
+  let isTyping = false;
+  function handleInput() {
+    isTyping = true;
+  }
 </script>
 
 <section class="relative w-full max-w-xs">
   <div
     class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
-      ? 'border border-blue-300'
+      ? ''
       : 'py-3'} {searchMode || open
       ? 'bg-surface-600'
-      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
+      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 {isTyping
+      ? 'focus-within:outline-1 focus-within:outline-blue-300'
+      : 'focus-within:outline-2 focus-within:outline-blue-300'} "
   >
     <svelte:component this={icon} />
 
     {#if !searchMode}
-      <div
-        class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 cursor-pointer truncate text-neutral-50"
+      <button
+        class="font-inter text-fs-ds-12 fw-ds-500 focus-within:bg-surface-500 max-w-[186px] flex-1 cursor-pointer truncate text-start text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
         on:click={openSearchMode}
       >
         {label.label}
-      </div>
+      </button>
     {:else}
       <div class="">
         <input
+          bind:this={searchInput}
           type="text"
           class="font-inter text-fs-ds-12 max-w-[186px] flex-1 text-neutral-50 outline-none"
           placeholder="Search"
           bind:value={searchTerm}
+          on:input={handleInput}
         />
       </div>
     {/if}
 
     <!-- Always-visible arrow -->
-    <div class="cursor-pointer" on:click={toggleDropdown}>
+    <button class="cursor-pointer" on:click={toggleDropdown}>
       <DropdownArrow {open} />
-    </div>
+    </button>
   </div>
 
   {#if open}
@@ -96,31 +109,31 @@
           <div
             class="leading-lh-ds-143 text-fs-ds-14 flex items-center justify-center p-6 text-neutral-400"
           >
-            No result found.
+            No results found.
           </div>
         {:else}
           {#each filteredOptions as option, index}
             <button
-              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected.id ===
-              option.id
+              class="font-inter font-fw-ds-400 text-fs-ds-12 hover:bg-surface-400 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between rounded-sm p-1 py-2 focus-within:outline-2 focus-within:outline-blue-300 {selected.id.toString() ===
+              option.id.toString()
                 ? 'text-blue-300'
                 : 'text-neutral-50'}"
               on:click={() => selectOption(option)}
             >
-              <Tooltip
+              <!-- <Tooltip
                 text={option.label}
                 position={index === 0 ? 'bottom' : 'top'}
                 mode="hover"
                 size="xs"
-              >
-                <!-- Add max-width and truncation to prevent long text from breaking layout -->
-                <span class="block max-w-[100px] truncate text-left" title={option.label}>
-                  {option.label}
-                </span>
-              </Tooltip>
+              > -->
+              <!-- Add max-width and truncation to prevent long text from breaking layout -->
+              <span class="block truncate text-left" title={option.label}>
+                {option.label}
+              </span>
+              <!-- </Tooltip> -->
 
               <div class="ml-2 flex-shrink-0">
-                {#if selected.id === option.id}
+                {#if selected.id.toString() === option.id.toString()}
                   <span>
                     <svg
                       width="12"
