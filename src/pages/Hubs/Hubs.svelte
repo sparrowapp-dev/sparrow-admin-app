@@ -47,6 +47,28 @@
       dropdownOptions = [];
     }
   }
+
+  const hubsPathMatcher = (pathname: string, dropdownOptions: any[]) => {
+    let currentId;
+
+    const workspaceDetailsMatch = pathname.match(/\/hubs\/workspace-details\/([^\/]+)\/([^\/]+)/);
+
+    if (workspaceDetailsMatch) {
+      currentId = workspaceDetailsMatch[2];
+    } else {
+      const match = pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
+      currentId = match?.[1];
+    }
+
+    if (currentId) {
+      const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);
+      if (foundTeam) {
+        return { currentId, selectOption: foundTeam?.value };
+      }
+    }
+
+    return { currentId: null, selectOption: null };
+  };
 </script>
 
 <div>
@@ -54,7 +76,16 @@
     <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
       <!-- Sidebar - no longer passing data prop -->
       <div class="max-w-[266px] min-w-[266px]">
-        <ReusableSideNav />
+        <ReusableSideNav
+          link={'/hubs'}
+          options={[
+            { label: 'Workspaces', id: 'workspace' },
+            { label: 'Members', id: 'members' },
+            { label: 'Settings', id: 'settings' },
+          ]}
+          placeholder={'Select your Hub'}
+          pathMatcher={hubsPathMatcher}
+        />
       </div>
 
       <!-- Nested Route Content -->

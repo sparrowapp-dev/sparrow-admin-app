@@ -6,6 +6,8 @@
   import PrivateRoute from './PrivateRoute.svelte';
   import Login from '@/pages/Login/Login.svelte';
   import Users from '@/pages/Users/Users.svelte';
+  import Private from '@/assets/icons/Private.svelte';
+  import Payment from '@/pages/Payment/Payment.svelte';
 
   // URL passed from parent component
   export let url: string = '';
@@ -20,6 +22,7 @@
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
   <PrivateRoute path="/hubs/*" component={Hubs} />
   <PrivateRoute path="/users/*" component={Users} />
+  <PrivateRoute path="/payment/*" component={Payment} />
 
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />

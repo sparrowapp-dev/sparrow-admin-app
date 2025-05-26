@@ -18,78 +18,50 @@
   interface ApiResponse {
     data: Team[];
   }
-  export let link = '/hubs';
-  export let options = [
-    { label: 'Workspaces', id: 'workspace' },
-    { label: 'Members', id: 'members' },
-    { label: 'Settings', id: 'settings' },
-  ];
+
+  export let link: string;
+  export let options: Array<{ label: string; id: string }>;
+  export let placeholder: string;
+  export let pathMatcher: (path: string, dropdownOptions: any[]) => { selectOption: Team | null };
+  export let selectOption: Team | null = null;
+
   let dropdownOpen = false;
-  let selectOption: Team | null = null;
   let dropdownOptions: Array<any> = [];
-
-  // Get current location for active link highlighting with proper typing
-  const location: any = useLocation();
-
-  // Get current path safely
+  const location = useLocation();
   let currentPath = '';
+
   $: if ($location) {
     currentPath = $location.pathname || '';
   }
 
   $: activeId = options.find((opt) => currentPath.includes(`/${opt.id}`))?.id || null;
 
-  // Move API call here
   const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
     hubsService.getAllHubs(),
   );
-
-  // Transform data into dropdown options
   $: {
-    if ($data && $data?.data?.length > 0) {
-      dropdownOptions = $data.data.map((team) => {
-        return {
-          id: team?.teamId,
-          label: team?.teamName || '',
-          value: team,
-          plan: null,
-        };
-      });
+    if ($data?.data?.length) {
+      dropdownOptions = $data.data.map((team) => ({
+        id: team.teamId,
+        label: team.teamName || '',
+        value: team,
+        plan: null,
+      }));
     } else {
       dropdownOptions = [];
     }
   }
-
-  // Navigate when a selection is made
-  function handleSelection(val: any) {
+  export function handleSelection(val: Team) {
     selectOption = val;
-
     if (val?.teamId) {
-      navigate(`/hubs/workspace/${val.teamId}`);
+      navigate(`${link}/${options[0].id}/${val.teamId}`);
     }
   }
-
-  // reactively update selected value if id is present in query
   $: {
-    if (!selectOption && dropdownOptions.length > 0 && $location) {
-      let currentId;
-
-      const workspaceDetailsMatch = $location.pathname.match(
-        /\/hubs\/workspace-details\/([^\/]+)\/([^\/]+)/,
-      );
-
-      if (workspaceDetailsMatch) {
-        currentId = workspaceDetailsMatch[2];
-      } else {
-        const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
-        currentId = match?.[1];
-      }
-
-      if (currentId) {
-        const foundTeam = dropdownOptions.find((team) => team?.value?.teamId === currentId);
-        if (foundTeam) {
-          selectOption = foundTeam?.value;
-        }
+    if (!selectOption && dropdownOptions.length && $location) {
+      const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
+      if (newSelection) {
+        selectOption = newSelection;
       }
     }
   }
@@ -102,7 +74,7 @@
         bind:open={dropdownOpen}
         icon={GiftIcon}
         label={{
-          label: selectOption?.teamName ? selectOption?.teamName : 'Select your Hub',
+          label: selectOption?.teamName ? selectOption?.teamName : placeholder,
           id: selectOption?.teamId || '',
         }}
         options={dropdownOptions}
