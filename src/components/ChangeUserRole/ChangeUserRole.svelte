@@ -80,7 +80,6 @@
         notification.success(
           `"${data?.name ? (data?.name.length > 15 ? `${data?.name.slice(0, 15)}...` : data?.name) : ''}" is removed from "${workspace.workspace.name.length > 20 ? `${workspace.workspace.name.slice(0, 20)}` : workspace?.workspace.name}".`,
         );
-        onClose();
       } else {
         await hubsService.changeRoles({
           params: { workspaceId: workspace?.workspace?._id, userId: data?.id },
