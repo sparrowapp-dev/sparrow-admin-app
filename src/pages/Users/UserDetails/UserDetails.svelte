@@ -282,7 +282,7 @@
         {#if modalVariants.changeRole}
           <ChangeUserRole
             onClose={closePopups}
-            data={modalData?.data}
+            data={teamsData.find((data) => data.id.toString() === modalData?.data?.id.toString())}
             removeUserPopupOpen={() => {
               modalVariants.changeRole = false;
               modalVariants.removeUser = true;
