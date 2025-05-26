@@ -269,7 +269,7 @@
   {:else}
     <Breadcrumbs items={breadcrumbItems} />
     <div class="flex items-center justify-between">
-      <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 py-4 text-neutral-50">
+      <h1 class="font-inter text-fs-ds-28 font-fw-ds-500 w-[30rem] truncate py-4 text-neutral-50">
         {hubName}
       </h1>
       <Button
