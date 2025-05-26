@@ -51,6 +51,11 @@
         return '';
     }
   }
+  let searchInput: HTMLInputElement;
+
+  $: if (searchMode && open && searchInput) {
+    searchInput.focus();
+  }
 </script>
 
 <section class="relative w-full max-w-xs">
@@ -64,15 +69,16 @@
     <svelte:component this={icon} />
 
     {#if !searchMode}
-      <div
-        class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 cursor-pointer truncate text-neutral-50"
+      <button
+        class="font-inter text-fs-ds-12 fw-ds-500 focus-within:bg-surface-500 max-w-[186px] flex-1 cursor-pointer truncate text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
         on:click={openSearchMode}
       >
         {label.label}
-      </div>
+      </button>
     {:else}
       <div class="">
         <input
+          bind:this={searchInput}
           type="text"
           class="font-inter text-fs-ds-12 max-w-[186px] flex-1 text-neutral-50 outline-none"
           placeholder="Search"
@@ -82,9 +88,9 @@
     {/if}
 
     <!-- Always-visible arrow -->
-    <div class="cursor-pointer" on:click={toggleDropdown}>
+    <button class="cursor-pointer" on:click={toggleDropdown}>
       <DropdownArrow {open} />
-    </div>
+    </button>
   </div>
 
   {#if open}

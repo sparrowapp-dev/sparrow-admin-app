@@ -1,15 +1,9 @@
 <script lang="ts">
-  import { Router, Route, Link, useLocation } from 'svelte-routing';
-  import Workspace from './Workspace/Workspace.svelte';
-  import Settings from './Settings/Settings.svelte';
-  import Members from './Members/Members.svelte';
-  import HubsSideNav from '@/components/HubsSideNav/HubsSideNav.svelte';
-  import HubsOverview from './Overview/HubsOverview.svelte';
-  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
-  import WorkSpaceOverview from './WorkSpaceOverview/WorkSpaceOverview.svelte';
+  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
-  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+  import { useLocation } from 'svelte-routing';
+
   interface Team {
     teamId: string;
     teamName: string;

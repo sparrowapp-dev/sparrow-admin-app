@@ -119,7 +119,7 @@
         newErrors.publishnameMismatchError =
           'Workspace name cannot be empty. Please enter the workspace name.';
       } else if (formData.publishWorkspaceName !== data?.title) {
-        newErrors.publishnameMismatchError = 'Workspace name does not match';
+        newErrors.publishnameMismatchError = "Workspace name doesn't  match";
       }
     }
 
@@ -216,14 +216,14 @@
   <!-- Edit Workspace Modal -->
   {#if modalVariants.isEditWorkspaceModalOpen}
     <div class="flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Edit WorkSpace</h2>
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Edit Workspace</h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
         <CloseIcon />
       </button>
     </div>
 
     <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-4 text-neutral-100">
-      Edit your workspace name to reflect its purpose.
+      Edit your workspace name that reflects its purpose.
     </p>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-6">
@@ -259,7 +259,7 @@
     <!-- Publish Workspace Modal -->
   {:else if modalVariants.isMakeItPublicModalOpen}
     <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Publish WorkSpace</h2>
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Publish Workspace</h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
         <CloseIcon />
       </button>
@@ -267,7 +267,7 @@
     <span class="flex flex-col gap-1">
       <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
         Publish
-        <p class="max-w-[8rem] truncate">"{data.title}"</p>
+        <p class="max-w-[8rem] truncate px-2">"{data.title}"</p>
         Workspace
       </span>
       <span class="mb-1">
