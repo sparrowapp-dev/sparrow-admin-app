@@ -233,36 +233,36 @@
   <div class="flex flex-col items-center justify-center">
     <!-- Billing Icon -->
     <Tooltip
-      text="Billing Details"
+      text="Coming soon"
       position="right"
       mode="controlled"
-      show={focusedPath === '/payment' || hoveredPath === '/payment'}
+      show={focusedPath === '/billing' || hoveredPath === '/billing'}
       size="sm"
     >
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
-        class:active={isPathActive('/payment')}
-        on:click={() => navigate('/payment')}
-        on:mouseenter={() => (hoveredPath = '/payment')}
+        class:active={isPathActive('/billing')}
+        on:click={() => navigate('/billing')}
+        on:mouseenter={() => (hoveredPath = '/billing')}
         on:mouseleave={() => (hoveredPath = null)}
-        on:focus={() => (focusedPath = '/payment')}
+        on:focus={() => (focusedPath = '/billing')}
         on:blur={() => (focusedPath = null)}
-        on:pointerdown={() => handlePointerDown('/payment')}
+        on:pointerdown={() => handlePointerDown('/billing')}
       >
         <div class="pointer-events-none rounded px-3 py-3">
           <BillingIcon
-            variant={hoveredPath === '/payment' &&
-            !isPathActive('/payment') &&
-            pressedPath !== '/payment'
+            variant={hoveredPath === '/billing' &&
+            !isPathActive('/billing') &&
+            pressedPath !== '/billing'
               ? 'hover'
-              : pressedPath === '/payment'
+              : pressedPath === '/billing'
                 ? 'selected'
                 : billingVariant}
           />
         </div>
         <div
           class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${
-            isPathActive('/payment') ? 'bg-blue-500' : ''
+            isPathActive('/billing') ? 'bg-blue-500' : ''
           }`}
         ></div>
       </button>
