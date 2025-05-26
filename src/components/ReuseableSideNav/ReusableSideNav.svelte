@@ -60,6 +60,7 @@
   $: {
     if (!selectOption && dropdownOptions.length && $location) {
       const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
+      console.log(newSelection);
       if (newSelection) {
         selectOption = newSelection;
       }
@@ -80,6 +81,10 @@
           }}
           options={dropdownOptions}
           onSelect={handleSelection}
+          selected={{
+            label: selectOption?.teamName,
+            id: selectOption?.teamId || '',
+          }}
         />
       </div>{/if}
     {#if selectOption}

@@ -9,11 +9,10 @@
   export let showPlans: boolean = false;
   export let onSelect: (value: any) => void = () => {};
 
-  let selected: { label: string; id: string } = label;
+  export let selected: { label: string; id: string } = label;
   export let open = false;
   let searchMode = false;
   let searchTerm = '';
-
   $: filteredOptions = searchTerm
     ? options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
@@ -107,8 +106,8 @@
         {:else}
           {#each filteredOptions as option, index}
             <button
-              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected.id ===
-              option.id
+              class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between p-1 py-2 {selected.id.toString() ===
+              option.id.toString()
                 ? 'text-blue-300'
                 : 'text-neutral-50'}"
               on:click={() => selectOption(option)}
@@ -126,7 +125,7 @@
               </Tooltip>
 
               <div class="ml-2 flex-shrink-0">
-                {#if selected.id === option.id}
+                {#if selected.id.toString() === option.id.toString()}
                   <span>
                     <svg
                       width="12"
