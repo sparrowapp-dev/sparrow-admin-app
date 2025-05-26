@@ -305,7 +305,10 @@
             modalVariants.changingRole = true;
           }}
           hubId={selected.value !== 'all' ? selected.value : ''}
-          onSuccess={() => refetch()}
+          onSuccess={() => {
+            refetch();
+            refetchMembers();
+          }}
         />
       {:else if modalVariants.removeUser}
         <RemoveuserPopup
