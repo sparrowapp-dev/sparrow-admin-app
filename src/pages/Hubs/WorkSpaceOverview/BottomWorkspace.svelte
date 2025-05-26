@@ -139,7 +139,7 @@
               if (resourceType === 'collections') {
                 extra = 'Apis';
               }
-              return `${stats} ${extra}`;
+              return `${stats}`;
             },
           },
           {
