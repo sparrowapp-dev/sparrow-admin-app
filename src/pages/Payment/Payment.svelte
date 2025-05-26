@@ -7,6 +7,7 @@
   import Overview from './Overview/Overview.svelte';
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
+  import HubsOverview from './PaymentHubsPage/HubsOverview.svelte';
 
   interface Team {
     teamId: string;
@@ -89,29 +90,34 @@
 </script>
 
 <div>
-  <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-    <!-- Sidebar - no longer passing data prop -->
-    <div class="max-w-[266px] min-w-[266px]">
-      <ReusableSideNav
-        link={'/payment'}
-        options={[
-          { label: 'Overview', id: 'PaymentOverview' },
-          { label: 'Payment Information', id: 'PaymentInformation' },
-          { label: 'Invoices', id: 'PaymentInvoices' },
-        ]}
-        pathMatcher={paymentPathMatcher}
-        placeholder="Search your Hub"
-      />
-    </div>
+  {#if $location.pathname.startsWith('/payment/PaymentOverview') || $location.pathname.startsWith('/payment/PaymentInformation') || $location.pathname.startsWith('/payment/PaymentInvoices')}
+    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
+      <!-- Sidebar - no longer passing data prop -->
+      <div class="max-w-[266px] min-w-[266px]">
+        <ReusableSideNav
+          link={'/payment'}
+          options={[
+            { label: 'Overview', id: 'PaymentOverview' },
+            { label: 'Payment Information', id: 'PaymentInformation' },
+            { label: 'Invoices', id: 'PaymentInvoices' },
+          ]}
+          pathMatcher={paymentPathMatcher}
+          placeholder="Search your Hub"
+        />
+      </div>
 
-    <!-- Nested Route Content -->
-    <div class="w-[100%] overflow-auto p-4">
-      <Breadcrumbs />
-      <Router>
-        <Route path="PaymentOverview/:id" component={Overview} />
-        <Route path="PaymentInformation/:id" component={PaymentInformation} />
-        <Route path="PaymentInvoices/:id" component={PaymentInvoices} />
-      </Router>
+      <!-- Nested Route Content -->
+      <div class="w-[100%] overflow-auto p-4">
+        <Breadcrumbs />
+        <Router>
+          <Route path="PaymentOverview/:id" component={Overview} />
+          <Route path="PaymentInformation/:id" component={PaymentInformation} />
+          <Route path="PaymentInvoices/:id" component={PaymentInvoices} />
+        </Router>
+      </div>
+    </div>{:else}
+    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
+      <HubsOverview />
     </div>
-  </div>
+  {/if}
 </div>

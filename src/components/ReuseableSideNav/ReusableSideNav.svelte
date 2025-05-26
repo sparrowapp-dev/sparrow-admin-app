@@ -24,7 +24,7 @@
   export let placeholder: string;
   export let pathMatcher: (path: string, dropdownOptions: any[]) => { selectOption: Team | null };
   export let selectOption: Team | null = null;
-
+  export let isDropdownRequired = true;
   let dropdownOpen = false;
   let dropdownOptions: Array<any> = [];
   const location = useLocation();
@@ -69,18 +69,19 @@
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
   <div class="flex flex-col gap-3">
-    <div class="border-surface-100 border-b pb-3">
-      <Dropdown
-        bind:open={dropdownOpen}
-        icon={GiftIcon}
-        label={{
-          label: selectOption?.teamName ? selectOption?.teamName : placeholder,
-          id: selectOption?.teamId || '',
-        }}
-        options={dropdownOptions}
-        onSelect={handleSelection}
-      />
-    </div>
+    {#if isDropdownRequired}
+      <div class="border-surface-100 border-b pb-3">
+        <Dropdown
+          bind:open={dropdownOpen}
+          icon={GiftIcon}
+          label={{
+            label: selectOption?.teamName ? selectOption?.teamName : placeholder,
+            id: selectOption?.teamId || '',
+          }}
+          options={dropdownOptions}
+          onSelect={handleSelection}
+        />
+      </div>{/if}
     {#if selectOption}
       <nav class="flex flex-col gap-0.5 p-2">
         {#if !dropdownOpen}
