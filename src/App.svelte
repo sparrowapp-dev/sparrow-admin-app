@@ -11,6 +11,7 @@
   let tokenCheckInterval: number;
 
   onMount(() => {
+    
     // Check immediately
     if ($auth.isLoggedIn) {
       checkAndRefreshToken();
