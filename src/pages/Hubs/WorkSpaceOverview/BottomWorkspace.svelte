@@ -149,10 +149,14 @@
             cell: ({ getValue, row }) => {
               const date = getValue();
               const relativeTime = getRelativeTime(date);
-              return `<div class="flex flex-col">
-  <span class="text-neutral-50 text-fs-ds-12 leading-lh-ds-130 font-inter" title="${new Date(date).toLocaleString()}">${relativeTime}</span>
-  <span class="text-neutral-300 text-fs-ds-12 leading-lh-ds-150 font-light">By ${row.original.updatedBy.name || row.original.updatedBy}</span>
-</div>`;
+              const updatedBy = row.original?.updatedBy;
+              const updatedByName = updatedBy?.name || updatedBy;
+
+              return `
+    <div class="flex flex-col">
+      <span class="text-neutral-50 text-fs-ds-12 leading-lh-ds-130 font-inter" title="${new Date(date).toLocaleString()}">${relativeTime}</span>
+      ${updatedByName ? `<span class="text-neutral-300 text-fs-ds-12 leading-lh-ds-150 font-light">By ${updatedByName}</span>` : ''}
+    </div>`;
             },
           },
           {
