@@ -10,7 +10,7 @@
   import RoleDropdown from '@/components/RoleDropdown/RoleDropdown.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
-  import { SPARROW_LAUNCH_URL } from '@/constants/environment';
+  import { SPARROW_DOCS_URL, SPARROW_LAUNCH_URL } from '@/constants/environment';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -283,7 +283,7 @@
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
               on:click={() => {
-                const url = `${baseUrl}/terms-of-service`;
+                const url = `${baseUrl}terms-of-service`;
 
                 // Open in a new tab
                 window.open(url, '_blank');
@@ -296,7 +296,7 @@
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
               on:click={() => {
-                const url = `${baseUrl}/privacy-policy/`;
+                const url = `${baseUrl}privacy-policy/`;
 
                 // Open in a new tab
                 window.open(url, '_blank');

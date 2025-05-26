@@ -111,13 +111,25 @@
       notification.error('Failed to copy the link');
     }
   }
-
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      isOpen &&
+      dropdownEl &&
+      triggerEl &&
+      !dropdownEl.contains(event.target as Node) &&
+      !triggerEl.contains(event.target as Node)
+    ) {
+      closeDropdown();
+    }
+  }
   onMount(() => {
     window.addEventListener('close-all-dropdowns', closeDropdown);
+    document.addEventListener('click', handleClickOutside);
   });
 
   onDestroy(() => {
     window.removeEventListener('close-all-dropdowns', closeDropdown);
+    document.removeEventListener('click', handleClickOutside);
   });
 </script>
 

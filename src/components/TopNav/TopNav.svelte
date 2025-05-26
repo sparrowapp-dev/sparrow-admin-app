@@ -8,14 +8,17 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { userName } from '@/store/auth';
   import { onDestroy, onMount } from 'svelte';
+  import { SPARROW_DOCS_URL } from '@/constants/environment';
   let focusedPath: string | null = null;
   let hoveredPath: string | null = null;
   let isPressed: string | null = null;
   function launcSparrow() {
     navigate('https://web.sparrowapp.dev/app/collections');
   }
+
+  const docsUrl = SPARROW_DOCS_URL;
   function navigateToSparrowDocs() {
-    navigate('https://docs.sparrowapp.dev/');
+    navigate(`${docsUrl}`);
   }
   onMount(() => {
     window.addEventListener('pointerup', handleGlobalPointerUp);
