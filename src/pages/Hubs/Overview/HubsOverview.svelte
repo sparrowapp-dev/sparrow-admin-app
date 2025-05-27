@@ -211,14 +211,14 @@
   $: totalItems = $hubsData?.data?.totalCount || 0;
 </script>
 
-<section class="bg-surface-900 flex min-h-screen w-full flex-col gap-4 pt-4">
+<section class="bg-surface-900 flex w-full flex-col gap-4 pt-4">
   <!-- Overview Cards Section -->
   {#if !$hubsData?.httpStatusCode}
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
   {:else}
-    <div class="flex flex-col gap-4 px-4">
+    <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
           Overview
@@ -240,8 +240,8 @@
     </div>
 
     <!-- Hubs Table Section -->
-    <div>
-      <div class="flex flex-col gap-2 px-4">
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
         <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
         <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
           All your Hub's in one place, manage access, manage members, or dive into details with
@@ -249,8 +249,8 @@
         </h2>
       </div>
 
-      <div class="table-container bg-surface-900 min-h-full">
-        <div class="table-header">
+      <div class="bg-surface-900 flex min-h-full flex-col gap-4">
+        <div class="flex justify-between">
           <TableSearch
             value={filters.searchTerm}
             on:search={handleSearchChange}
@@ -304,20 +304,3 @@
     {/if}
   {/if}
 </section>
-
-<style>
-  .table-container {
-    width: 100%;
-    margin: 0 auto;
-    padding: 1.5rem;
-  }
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-</style>

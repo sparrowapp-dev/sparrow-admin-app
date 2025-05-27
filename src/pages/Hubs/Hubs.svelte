@@ -100,7 +100,7 @@
       </div>
     </div>
   {:else}
-    <div class="">
+    <div class="bg-surface-900 flex p-4" style="height: calc(100vh - 48px);">
       <HubsOverview />
     </div>
   {/if}
