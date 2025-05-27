@@ -130,7 +130,7 @@
     {
       accessorKey: 'contributors',
       header: 'Contributors',
-      enableSortingRemoval: false,
+      enableSorting: false,
       cell: ({ getValue }) => getValue().total,
     },
     {
