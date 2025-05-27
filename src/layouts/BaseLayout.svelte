@@ -17,7 +17,9 @@
     <SideNav />
 
     <!--  Main Content -->
-    <div class="relative flex flex-1 overflow-auto transition-all duration-300 ease-in-out">
+    <div
+      class="bg-surface-900 relative flex flex-1 overflow-auto transition-all duration-300 ease-in-out"
+    >
       <!-- Main Content Area -->
       <div
         class={`flex-1 transition-all duration-300 ease-in-out ${$showOptionalSideNav ? 'ml-0' : ''}`}
