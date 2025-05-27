@@ -160,6 +160,7 @@
       id: 'launch',
       header: '',
       enableSorting: false,
+      size: 300,
       cell: ({ row }) => ({
         Component: LaunchApp,
         props: {
@@ -172,6 +173,7 @@
       id: 'actions',
       header: '',
       enableSorting: false,
+      size: 50,
       cell: ({ row }: CellContext<any, any>) => ({
         Component: HubsDropdown,
         props: { row },

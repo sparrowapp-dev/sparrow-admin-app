@@ -75,7 +75,16 @@
   $: teamsData = $data?.data.hubDetails || [];
 
   const columns = [
-    { accessorKey: 'teamName', header: 'Name', enableSorting: true },
+    {
+      accessorKey: 'teamName',
+      header: 'Name',
+      enableSorting: true,
+      sortingFn: (rowA, rowB, columnId) => {
+        const a = (rowA.getValue(columnId) || '').toLowerCase();
+        const b = (rowB.getValue(columnId) || '').toLowerCase();
+        return a.localeCompare(b);
+      },
+    },
     {
       accessorKey: 'role',
       header: 'Role',
@@ -110,21 +119,6 @@
   let filters = { searchTerm: '' };
   let pagination = { pageIndex: 0, pageSize: 10 };
   let sorting: SortingState = [];
-
-  function formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return 'N/A';
-    }
-  }
-
   $: transformedTeamsData = teamsData;
 
   // Fixed filtering logic - only searches teamName
@@ -145,27 +139,32 @@
     const { id: columnId, desc } = sortColumn;
 
     return [...filteredData].sort((a, b) => {
-      let aValue, bValue;
+      let aValue = a[columnId];
+      let bValue = b[columnId];
 
-      switch (columnId) {
-        case 'teamName':
-          aValue = (a.teamName || '').toLowerCase();
-          bValue = (b.teamName || '').toLowerCase();
-          break;
-        case 'teamJoiningData':
-          aValue = new Date(a.teamJoiningData || 0).getTime();
-          bValue = new Date(b.teamJoiningData || 0).getTime();
-          break;
-        default:
-          return 0;
+      // Handle null/undefined values
+      if (aValue === null || aValue === undefined) aValue = '';
+      if (bValue === null || bValue === undefined) bValue = '';
+
+      // Convert to lowercase for string comparison
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
 
+      // Handle dates
+      if (columnId === 'teamJoiningData') {
+        aValue = new Date(aValue || 0).getTime();
+        bValue = new Date(bValue || 0).getTime();
+      }
+
+      // Compare values
       if (typeof aValue === 'string') {
         const comparison = aValue.localeCompare(bValue);
         return desc ? -comparison : comparison;
-      } else {
-        return desc ? bValue - aValue : aValue - bValue;
       }
+
+      return desc ? bValue - aValue : aValue - bValue;
     });
   })();
 

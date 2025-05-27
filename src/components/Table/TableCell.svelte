@@ -27,7 +27,7 @@
       ${showOnHover ? 'opacity-0 transition-opacity duration-150 group-hover/row:opacity-100' : ''}
       ${className}
     `}
-  style={`max-width: ${columnWidth};`}
+  style="width: {cell.column.getSize()}px;"
   on:click
 >
   <div class="overflow-hidden text-ellipsis whitespace-nowrap" title={cellValue}>
