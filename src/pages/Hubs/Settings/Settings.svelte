@@ -287,7 +287,7 @@
       </div>
 
       <!-- Vertical divider -->
-      <div class="bg-surface-100 hidden h-[70vh] w-px md:block"></div>
+      <div class="bg-surface-100 hidden h-[50vh] w-px md:block"></div>
 
       <!-- Right column -->
       <div class="flex flex-col gap-6 md:w-1/2 md:pl-6">
