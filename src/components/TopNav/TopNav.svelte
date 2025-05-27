@@ -47,7 +47,6 @@
   async function handleLogout() {
     try {
       isProfileDropdownOpen = false;
-      navigate(LOGIN_REDIRECT_URL);
 
       setTimeout(async () => {
         await clearTokens();
