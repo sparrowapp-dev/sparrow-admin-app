@@ -3,7 +3,7 @@
   import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
-  import { Route, Router, useLocation } from 'svelte-routing';
+  import { navigate, Route, Router, useLocation } from 'svelte-routing';
   import Overview from './Overview/Overview.svelte';
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
@@ -51,13 +51,18 @@
     currentId: string | null;
     selectOption: Team | null;
   }
+  $: if ($location.pathname === '/billing') {
+    setTimeout(() => {
+      const firstTeamId = $data?.data?.[0]?.teamId || '';
+      navigate(`/billing/billingOverview/${firstTeamId}`);
+    }, 100);
+  }
   const paymentPathMatcher = (
     pathname: string,
     dropdownOptions: DropdownOption[],
   ): PathMatcherResult => {
     let currentId = null;
     let selectOption = null;
-
     // Match any payment route pattern
     const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?/);
 
@@ -75,6 +80,7 @@
       // If no teamId but section matches our known sections, use first team
       else if (['billingOverview', 'billingInformation', 'billingInvoices'].includes(section)) {
         const firstTeam = dropdownOptions[0]?.value || null;
+        navigate(`/billing/billingOverview/${firstTeam?.teamId || ''}`);
         if (firstTeam) {
           currentId = firstTeam.teamId;
           selectOption = firstTeam;
@@ -89,35 +95,28 @@
   };
 </script>
 
-<div>
-  {#if $location.pathname.startsWith('/billing/billingOverview') || $location.pathname.startsWith('/billing/billingInformation') || $location.pathname.startsWith('/billing/billingInvoices')}
-    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-      <!-- Sidebar - no longer passing data prop -->
-      <div class="max-w-[266px] min-w-[266px]">
-        <ReusableSideNav
-          link={'/billing'}
-          options={[
-            { label: 'Overview', id: 'billingOverview' },
-            { label: 'Payment Information', id: 'billingInformation' },
-            { label: 'Invoices', id: 'billingInvoices' },
-          ]}
-          pathMatcher={paymentPathMatcher}
-          placeholder="Search your Hub"
-        />
-      </div>
+<div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
+  <!-- Sidebar - no longer passing data prop -->
+  <div class="max-w-[266px] min-w-[266px]">
+    <ReusableSideNav
+      link={'/billing'}
+      options={[
+        { label: 'Overview', id: 'billingOverview' },
+        { label: 'Payment Information', id: 'billingInformation' },
+        { label: 'Invoices', id: 'billingInvoices' },
+      ]}
+      pathMatcher={paymentPathMatcher}
+      placeholder="Search your Hub"
+    />
+  </div>
 
-      <!-- Nested Route Content -->
-      <div class="w-[100%] overflow-auto p-4">
-        <Breadcrumbs />
-        <Router>
-          <Route path="billingOverview/:id" component={Overview} />
-          <Route path="billingInformation/:id" component={PaymentInformation} />
-          <Route path="billingInvoices/:id" component={PaymentInvoices} />
-        </Router>
-      </div>
-    </div>{:else}
-    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-      <HubsOverview />
-    </div>
-  {/if}
+  <!-- Nested Route Content -->
+  <div class="w-[100%] overflow-auto p-4">
+    <Breadcrumbs />
+    <Router>
+      <Route path="billingOverview/:id" component={Overview} />
+      <Route path="billingInformation/:id" component={PaymentInformation} />
+      <Route path="billingInvoices/:id" component={PaymentInvoices} />
+    </Router>
+  </div>
 </div>

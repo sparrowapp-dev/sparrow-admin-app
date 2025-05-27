@@ -8,7 +8,11 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { userName, userEmail, clearTokens } from '@/store/auth';
   import { onDestroy, onMount } from 'svelte';
-  import { SPARROW_DOCS_URL, SPARROW_LAUNCH_URL } from '@/constants/environment';
+  import {
+    LOGIN_REDIRECT_URL,
+    SPARROW_DOCS_URL,
+    SPARROW_LAUNCH_URL,
+  } from '@/constants/environment';
   import LogOutIcon from '@/assets/icons/LogOutIcon.svelte';
   import { fade } from 'svelte/transition';
   let focusedPath: string | null = null;
@@ -40,10 +44,18 @@
   }
   let isProfileDropdownOpen = false;
   let profileDropdownEl: HTMLDivElement;
-  function handleLogout() {
-    clearTokens();
-    isProfileDropdownOpen = false;
-    location.reload();
+  async function handleLogout() {
+    try {
+      isProfileDropdownOpen = false;
+      navigate(LOGIN_REDIRECT_URL);
+
+      setTimeout(async () => {
+        await clearTokens();
+      }, 100);
+      navigate(LOGIN_REDIRECT_URL);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   }
   function handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;

@@ -60,7 +60,6 @@
   $: {
     if (!selectOption && dropdownOptions.length && $location) {
       const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
-      console.log(newSelection);
       if (newSelection) {
         selectOption = newSelection;
       }
