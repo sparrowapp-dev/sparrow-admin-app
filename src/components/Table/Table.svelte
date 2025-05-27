@@ -57,7 +57,7 @@
 
   <div class={`table-wrapper ${containerClassName}`}>
     <div class="table-scroll-container">
-      <table class="table" style="width: 100%; table-layout: fixed;">
+      <table class="table">
         <thead>
           {#each $table.getHeaderGroups() as headerGroup}
             <tr>
