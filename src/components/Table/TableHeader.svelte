@@ -16,6 +16,7 @@
 
 <th
   class={`group border-surface-600 font-fw-ds-500 text-fs-ds-12 border-b p-2 text-left text-neutral-400 ${className}`}
+  style="width: {header.column.getSize()}px;"
 >
   {#if header.isPlaceholder}
     <span />

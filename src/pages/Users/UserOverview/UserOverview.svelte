@@ -134,7 +134,19 @@
   $: columns =
     selected.value === 'all'
       ? [
-          { accessorKey: 'name', header: 'Users' },
+          {
+            accessorKey: 'name',
+            header: 'Users',
+            sortingFn: (rowA, rowB, columnId) => {
+              const a = (rowA.getValue(columnId) || '').toLowerCase();
+              const b = (rowB.getValue(columnId) || '').toLowerCase();
+              return a.localeCompare(b);
+            },
+            cell: ({ getValue }) => {
+              const value = getValue();
+              return `<span class="text-neutral-50">${value}</span>`;
+            },
+          },
           { accessorKey: 'email', header: 'Email', enableSorting: false },
           { accessorKey: 'teamsAccess', header: 'Hub access', enableSorting: false },
           {
@@ -152,12 +164,24 @@
             header: 'Joining Date',
             cell: ({ getValue }) => {
               const date = getValue();
-              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${getRelativeTime(date, true)}</span>`;
+              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${date ? getRelativeTime(date, true) : ''}</span>`;
             },
           },
         ]
       : [
-          { accessorKey: 'name', header: 'Name' },
+          {
+            accessorKey: 'name',
+            header: 'Name',
+            sortingFn: (rowA, rowB, columnId) => {
+              const a = (rowA.getValue(columnId) || '').toLowerCase();
+              const b = (rowB.getValue(columnId) || '').toLowerCase();
+              return a.localeCompare(b);
+            },
+            cell: ({ getValue }) => {
+              const value = getValue();
+              return `<span class="text-neutral-50">${value}</span>`;
+            },
+          },
           { accessorKey: 'email', header: 'Email', enableSorting: false },
           {
             id: 'teamName',
