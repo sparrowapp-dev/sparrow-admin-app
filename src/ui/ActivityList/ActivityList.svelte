@@ -55,7 +55,7 @@
 
           <!-- Activity content -->
           <div class="flex-1">
-            <p class="font-inter font-fw-ds-400 text-fs-ds-12 text-neutral-50">
+            <p class="font-inter font-fw-ds-400 text-fs-ds-12 break-all text-neutral-50">
               {activity.message}
             </p>
             <span class="font-inter font-fw-ds-300 text-fs-ds-12 text-neutral-300">
