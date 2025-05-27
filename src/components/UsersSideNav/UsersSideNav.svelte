@@ -15,12 +15,10 @@
     navigate(path);
   }
 
-  // Redirect to overview if on the base /users path
-  onMount(() => {
-    if ($location.pathname === '/users') {
-      navigate('/users/users-dashboard', { replace: true });
-    }
-  });
+  // Handle route changes reactively
+  $: if ($location.pathname === '/users') {
+    navigate('/users/users-dashboard', { replace: true });
+  }
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
