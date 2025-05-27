@@ -95,7 +95,7 @@
       size="sm"
     >
       <button
-        class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="group hover:bg-surface-500 active:bg-surface-400 pointer-events-none relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/home')}
         on:click={() => navigate('/home')}
         on:mouseenter={() => (hoveredPath = '/home')}
@@ -105,13 +105,14 @@
         on:pointerdown={() => handlePointerDown('/home')}
       >
         <div class="pointer-events-none rounded px-3 py-3">
-          <HomeIcon
+          <!-- <HomeIcon
             variant={hoveredPath === '/home' && !isPathActive('/home') && pressedPath !== '/home'
               ? 'hover'
               : pressedPath === '/home'
                 ? 'selected'
                 : homeVariant}
-          />
+          /> -->
+          <HomeIcon variant={'disabled'} />
         </div>
         <div
           class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${
@@ -130,7 +131,7 @@
       size="sm"
     >
       <button
-        class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="group hover:bg-surface-500 active:bg-surface-400 pointer-events-none relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/analytics')}
         on:click={() => navigate('/analytics')}
         on:mouseenter={() => (hoveredPath = '/analytics')}
@@ -140,7 +141,7 @@
         on:pointerdown={() => handlePointerDown('/analytics')}
       >
         <div class="pointer-events-none rounded px-3 py-3">
-          <ChartIcon
+          <!-- <ChartIcon
             variant={hoveredPath === '/analytics' &&
             !isPathActive('/analytics') &&
             pressedPath !== '/analytics'
@@ -148,7 +149,8 @@
               : pressedPath === '/analytics'
                 ? 'selected'
                 : dashboardVariant}
-          />
+          /> -->
+          <ChartIcon variant="disabled" />
         </div>
         <div
           class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${
@@ -233,7 +235,7 @@
   <div class="flex flex-col items-center justify-center">
     <!-- Billing Icon -->
     <Tooltip
-      text="Coming soon"
+      text="Billing"
       position="right"
       mode="controlled"
       show={focusedPath === '/payment' || hoveredPath === '/payment'}
@@ -269,7 +271,7 @@
     </Tooltip>
 
     <!-- Audit Icon -->
-    <Tooltip
+    <!-- <Tooltip
       text="Coming soon"
       position="right"
       mode="controlled"
@@ -301,10 +303,10 @@
           }`}
         ></div>
       </button>
-    </Tooltip>
+    </Tooltip> -->
 
     <!-- Security Icon -->
-    <Tooltip
+    <!-- <Tooltip
       text="Coming soon"
       position="right"
       mode="controlled"
@@ -338,10 +340,10 @@
           }`}
         ></div>
       </button>
-    </Tooltip>
+    </Tooltip> -->
 
     <!-- Hosting Icon -->
-    <Tooltip
+    <!-- <Tooltip
       text="Coming soon"
       position="right"
       mode="controlled"
@@ -375,7 +377,7 @@
           }`}
         ></div>
       </button>
-    </Tooltip>
+    </Tooltip> -->
 
     <!-- Settings Icon -->
     <Tooltip
@@ -386,7 +388,7 @@
       size="sm"
     >
       <button
-        class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="group hover:bg-surface-500 active:bg-surface-400 pointer-events-none relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/settings')}
         on:click={() => navigate('/settings')}
         on:mouseenter={() => (hoveredPath = '/settings')}
@@ -396,7 +398,7 @@
         on:pointerdown={() => handlePointerDown('/settings')}
       >
         <div class="pointer-events-none rounded px-3 py-3">
-          <SettingsIcon
+          <!-- <SettingsIcon
             variant={hoveredPath === '/settings' &&
             !isPathActive('/settings') &&
             pressedPath !== '/settings'
@@ -404,7 +406,8 @@
               : pressedPath === '/settings'
                 ? 'selected'
                 : settingsVariant}
-          />
+          /> -->
+          <SettingsIcon variant="disabled" />
         </div>
         <div
           class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${

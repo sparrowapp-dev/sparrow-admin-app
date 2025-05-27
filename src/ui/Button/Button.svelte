@@ -42,7 +42,7 @@
   };
 
   $: baseClasses = `
-      inline-flex items-center justify-center gap-1 transition-all outline-none
+      inline-flex items-center justify-center gap-2 transition-all outline-none
       ${sizeClasses[size]} ${variantClasses[variant]}
       ${disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}
     `;
