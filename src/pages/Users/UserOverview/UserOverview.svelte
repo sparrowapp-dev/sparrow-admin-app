@@ -177,10 +177,6 @@
               const b = (rowB.getValue(columnId) || '').toLowerCase();
               return a.localeCompare(b);
             },
-            cell: ({ getValue }) => {
-              const value = getValue();
-              return `<span class="text-neutral-50">${value}</span>`;
-            },
           },
           { accessorKey: 'email', header: 'Email', enableSorting: false },
           {
