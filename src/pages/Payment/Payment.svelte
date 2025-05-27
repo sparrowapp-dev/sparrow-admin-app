@@ -59,7 +59,7 @@
     let selectOption = null;
 
     // Match any payment route pattern
-    const paymentRouteMatch = pathname.match(/\/payment\/([^/]+)(?:\/([^/]+))?/);
+    const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?/);
 
     if (paymentRouteMatch) {
       const [, section, teamId] = paymentRouteMatch;
@@ -73,7 +73,7 @@
         }
       }
       // If no teamId but section matches our known sections, use first team
-      else if (['PaymentOverview', 'PaymentInformation', 'PaymentInvoices'].includes(section)) {
+      else if (['billingOverview', 'billingInformation', 'billingInvoices'].includes(section)) {
         const firstTeam = dropdownOptions[0]?.value || null;
         if (firstTeam) {
           currentId = firstTeam.teamId;
@@ -90,16 +90,16 @@
 </script>
 
 <div>
-  {#if $location.pathname.startsWith('/payment/PaymentOverview') || $location.pathname.startsWith('/payment/PaymentInformation') || $location.pathname.startsWith('/payment/PaymentInvoices')}
+  {#if $location.pathname.startsWith('/billing/billingOverview') || $location.pathname.startsWith('/billing/billingInformation') || $location.pathname.startsWith('/billing/billingInvoices')}
     <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
       <!-- Sidebar - no longer passing data prop -->
       <div class="max-w-[266px] min-w-[266px]">
         <ReusableSideNav
-          link={'/payment'}
+          link={'/billing'}
           options={[
-            { label: 'Overview', id: 'PaymentOverview' },
-            { label: 'Payment Information', id: 'PaymentInformation' },
-            { label: 'Invoices', id: 'PaymentInvoices' },
+            { label: 'Overview', id: 'billingOverview' },
+            { label: 'Payment Information', id: 'billingInformation' },
+            { label: 'Invoices', id: 'billingInvoices' },
           ]}
           pathMatcher={paymentPathMatcher}
           placeholder="Search your Hub"
@@ -110,9 +110,9 @@
       <div class="w-[100%] overflow-auto p-4">
         <Breadcrumbs />
         <Router>
-          <Route path="PaymentOverview/:id" component={Overview} />
-          <Route path="PaymentInformation/:id" component={PaymentInformation} />
-          <Route path="PaymentInvoices/:id" component={PaymentInvoices} />
+          <Route path="billingOverview/:id" component={Overview} />
+          <Route path="billingInformation/:id" component={PaymentInformation} />
+          <Route path="billingInvoices/:id" component={PaymentInvoices} />
         </Router>
       </div>
     </div>{:else}
