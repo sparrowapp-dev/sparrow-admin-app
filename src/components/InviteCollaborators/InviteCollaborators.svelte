@@ -129,6 +129,8 @@
       console.error('Error inviting users:', error);
       if (error.message === 'An invite has already been sent to this email.') {
         notification.error('An invite has already been sent to this email.');
+      } else if (error.message === 'Hub Member already Exist.') {
+        notification.error('User already in hub.');
       } else {
         notification.error('Failed to send invite. Please try again.');
       }

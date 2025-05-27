@@ -77,7 +77,7 @@
   function handleUpgrade(event, hub) {
     event.stopPropagation();
     // Your upgrade logic here
-    closeDropdown();
+    // closeDropdown();
   }
 
   function handleClickOutside(event) {
@@ -152,11 +152,11 @@
       </button>
 
       <button
-        class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
+        class="hover:bg-surface-300 flex w-full cursor-not-allowed items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
         on:click={(e) => handleUpgrade(e, row.original)}
-      >
-        <UpgradeStandardIcon />
-        <h2 class="text-fs-ds-12 font-regular">Upgrade to Standard</h2>
+        ><span class="opacity-50"> <UpgradeStandardIcon /></span>
+
+        <h2 class="text-fs-ds-12 font-regular opacity-50">Upgrade to Standard</h2>
       </button>
     </div>
   </div>

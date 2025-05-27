@@ -184,7 +184,7 @@
             header: 'Joining Date',
             cell: ({ getValue }) => {
               const date = getValue();
-              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${getRelativeTime(date, true)}</span>`;
+              return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">${date ? getRelativeTime(date, true) : ''}</span>`;
             },
           },
           {

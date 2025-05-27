@@ -10,6 +10,25 @@
   const dispatch = createEventDispatcher();
   let inputValue = '';
   let inputElement: HTMLInputElement;
+  let containerElement: HTMLDivElement;
+  function scrollToInput() {
+    if (containerElement && inputElement) {
+      // Get the input's position relative to the container
+      const containerRect = containerElement.getBoundingClientRect();
+      const inputRect = inputElement.getBoundingClientRect();
+
+      // Calculate if input is below visible area
+      const isInputBelow = inputRect.bottom - containerRect.top > containerRect.height;
+
+      if (isInputBelow) {
+        // Smooth scroll to show input at bottom
+        containerElement.scrollTo({
+          top: containerElement.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }
 
   // Track invalid emails
   let invalidEmails: string[] = [];
@@ -24,6 +43,27 @@
 
     // Check existing emails for validity
     checkEmailsValidity(emails);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            scrollToInput();
+          }
+        });
+      },
+      {
+        root: containerElement,
+        threshold: 1.0,
+      },
+    );
+
+    if (inputElement) {
+      observer.observe(inputElement);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
   });
 
   function validateEmail(email: string): boolean {
@@ -65,6 +105,7 @@
     if (event.key === 'Backspace' && inputValue === '' && emails.length > 0) {
       removeEmail(emails.length - 1);
     }
+    scrollToInput();
   }
 
   function handleBlur() {
@@ -127,7 +168,7 @@
       // Check for validity
       return checkEmailsValidity(newEmails);
     }
-
+    scrollToInput();
     return true;
   }
 
@@ -140,10 +181,14 @@
   export function hasInvalidEmails(): boolean {
     return invalidEmails.length > 0;
   }
+  function handleFocus() {
+    scrollToInput();
+  }
 </script>
 
 <div class="relative">
   <div
+    bind:this={containerElement}
     class="bg-surface-400 flex flex-wrap items-center gap-2 rounded-sm border {emails?.length > 0
       ? 'p-[3px]'
       : 'p-2 '} hover:border-neutral-400 {hasError
@@ -179,6 +224,7 @@
       on:keydown={handleKeyDown}
       on:blur={handleBlur}
       on:paste={handlePaste}
+      on:focus={handleFocus}
     />
   </div>
 

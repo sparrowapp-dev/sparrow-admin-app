@@ -17,7 +17,13 @@
     ? options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
 
-  function toggleDropdown() {
+  function toggleDropdown(event: MouseEvent) {
+    // Don't toggle if clicking the search button
+    const target = event.target as HTMLElement;
+    if (target.closest('.search-button')) {
+      return;
+    }
+
     open = !open;
     searchMode = false;
     if (!open) searchTerm = '';
@@ -64,11 +70,12 @@
 
 <section class="relative w-full max-w-xs">
   <div
+    on:click={toggleDropdown}
     class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
       ? ''
       : 'py-3'} {searchMode || open
       ? 'bg-surface-600'
-      : ''} hover:bg-surface-500 focus-within:bg-surface-500 text-neutral-50 {isTyping
+      : ''} hover:bg-surface-500 focus-within:bg-surface-500 cursor-pointer text-neutral-50 {isTyping
       ? 'focus-within:outline-1 focus-within:outline-blue-300'
       : 'focus-within:outline-2 focus-within:outline-blue-300'} "
   >
@@ -76,8 +83,8 @@
 
     {#if !searchMode}
       <button
-        class="font-inter text-fs-ds-12 fw-ds-500 focus-within:bg-surface-500 max-w-[186px] flex-1 cursor-pointer truncate text-start text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
-        on:click={openSearchMode}
+        class="search-button font-inter text-fs-ds-12 fw-ds-500 focus-within:bg-surface-500 max-w-[186px] flex-1 cursor-pointer truncate text-start text-neutral-50"
+        on:click|stopPropagation={openSearchMode}
       >
         {label.label}
       </button>
@@ -101,7 +108,7 @@
   </div>
 
   {#if open}
-    <div class="bg-surface-600 w-full shadow-2xs">
+    <div class="bg-surface-600 w-full rounded-sm shadow-2xs">
       <div
         class="bg-surface-600 custom-scroll absolute z-10 mt-1 flex max-h-70 w-full flex-col gap-2 overflow-y-auto p-1 shadow"
       >

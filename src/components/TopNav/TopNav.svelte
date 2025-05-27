@@ -8,17 +8,17 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { userName } from '@/store/auth';
   import { onDestroy, onMount } from 'svelte';
-  import { SPARROW_DOCS_URL } from '@/constants/environment';
+  import { SPARROW_DOCS_URL, SPARROW_LAUNCH_URL } from '@/constants/environment';
   let focusedPath: string | null = null;
   let hoveredPath: string | null = null;
   let isPressed: string | null = null;
-  function launcSparrow() {
-    navigate('https://web.sparrowapp.dev/app/collections');
+  function launchSparrow() {
+    window.open(`${SPARROW_LAUNCH_URL}app/collections`, '_blank');
   }
 
   const docsUrl = SPARROW_DOCS_URL;
   function navigateToSparrowDocs() {
-    navigate(`${docsUrl}`);
+    window.open(docsUrl, '_blank');
   }
   onMount(() => {
     window.addEventListener('pointerup', handleGlobalPointerUp);
@@ -52,14 +52,15 @@
     <div class="flex items-center gap-4 px-1">
       <!-- Profile button -->
       <button
-        on:click={launcSparrow}
+        on:click={launchSparrow}
         class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
         ><span><LaunchSparrow /> </span>
         <p class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">Launch Sparrow</p>
         <span><LaunchSparrow2 /> </span></button
       >
       <a
-        href="mailto:contactus@sparrowapp.dev?subject=Sparrow Admin Support"
+        href="https://sparrowapp.canny.io/feedback"
+        target="_blank"
         class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-600 flex min-h-7 min-w-fit cursor-pointer items-center justify-center rounded px-2 py-1 text-center transition-colors focus-visible:outline-2 focus-visible:outline-blue-300"
       >
         Help & Support
@@ -72,7 +73,7 @@
         <span><LaunchSparrow2 /> </span>
       </button>
 
-      <Tooltip
+      <!-- <Tooltip
         text="Notification"
         position="bottom"
         mode="controlled"
@@ -87,7 +88,20 @@
           on:click={() => (isPressed = '/notification')}
           ><BellIcon isPressed={isPressed === '/notification'} />
         </button>
+      </Tooltip> -->
+      <Tooltip text="Notification" position="bottom" mode="controlled" show={false} size="sm">
+        <button
+          class="cursor-not-allowed rounded p-1 opacity-50"
+          on:mouseenter|preventDefault
+          on:mouseleave|preventDefault
+          on:focus|preventDefault
+          on:blur|preventDefault
+          on:click|preventDefault
+        >
+          <BellIcon isPressed={false} />
+        </button>
       </Tooltip>
+
       <button
         class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 h-[24px] w-[24px] rounded-[100px] bg-purple-400 text-center focus-visible:outline-2 focus-visible:outline-blue-300"
         >{$userName?.charAt(0).toUpperCase()}</button

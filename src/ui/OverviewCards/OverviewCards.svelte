@@ -21,7 +21,7 @@
         </div>
         {#if loading}
           <!-- Show skeleton loader -->
-          <div class="bg-surface-300 h-5 w-20 rounded-b-sm animate-pulse rounded"></div>
+          <div class="bg-surface-300 h-5 w-20 animate-pulse rounded rounded-b-sm"></div>
         {:else}
           <div class="font-inter leading-lh-ds-120 text-fs-ds-24 font-medium text-neutral-50">
             {value}
@@ -34,7 +34,7 @@
             <div
               class="font-roboto text-fs-ds-12 inline-flex items-center leading-4 font-light text-neutral-300"
             >
-              <span>{point.value}:{point.count}</span>
+              <span>{point.value}: {point.count}</span>
               {#if i !== points.length - 1}
                 <div class="ml-1 h-[60%] border-r border-r-neutral-300" />
               {/if}

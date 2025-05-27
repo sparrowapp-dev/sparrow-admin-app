@@ -12,6 +12,7 @@
   export let errorMessage: string = '';
   export let placeholder: string = 'Select';
   export let selectAllLabel: string = 'Select All';
+  export let noResultsMessage: string = 'Workspace not found!';
 
   const dispatch = createEventDispatcher();
 
@@ -117,7 +118,7 @@
     <!-- Display Selected Workspaces or Placeholder -->
     <div class="flex flex-wrap gap-1 overflow-hidden">
       {#if selectedWorkspaces.length === 0}
-        <span class="text-fs-ds-14 text-neutral-400 font-fw-ds-300">{placeholder}</span>
+        <span class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">{placeholder}</span>
       {:else}
         {#each selectedWorkspaces as workspace, i (workspace.id)}
           {#if i < 2 || selectedWorkspaces.length <= 3}
@@ -156,44 +157,58 @@
       class="bg-surface-600 absolute z-10 mt-1 max-h-38 w-full overflow-y-auto rounded-sm shadow-lg"
     >
       <!-- Select All Option -->
-      <div class="border-surface-300 border-b p-2">
-        <button
-          type="button"
-          class="flex w-full cursor-pointer items-center space-x-2"
-          on:click|preventDefault|stopPropagation={toggleSelectAll}
-        >
-          <div class="flex h-5 w-5 items-center justify-center">
-            {#if allSelected}
-              <CheckboxChecked />
-            {:else}
-              <CheckboxUnchecked />
-            {/if}
-          </div>
-          <span class="text-fs-ds-12 font-fw-ds-300 text-neutral-50">{selectAllLabel}</span>
-        </button>
-      </div>
-
-      <!-- Workspace Options -->
-      {#each workspaces as workspace (workspace.id)}
-        <div class="hover:bg-surface-500 p-2">
+      {#if workspaces.length === 0}
+        <div class="border-surface-300 border-b p-2">
           <button
             type="button"
             class="flex w-full cursor-pointer items-center space-x-2"
-            on:click|preventDefault|stopPropagation={() => toggleWorkspace(workspace)}
+            on:click|preventDefault|stopPropagation={toggleSelectAll}
           >
-            <div class="flex h-5 w-5 items-center justify-center">
-              {#if selectedIds.has(workspace.id)}
-                <CheckboxChecked />
-              {:else}
-                <CheckboxUnchecked />
-              {/if}
-            </div>
-            <span class="text-fs-ds-12 font-fw-ds-300 truncate text-neutral-50"
-              >{workspace.name}</span
-            >
+            <span class="text-fs-ds-12 font-fw-ds-300 text-neutral-50">{noResultsMessage}</span>
           </button>
         </div>
-      {/each}
+      {:else}
+        <span>
+          <div class="border-surface-300 border-b p-2">
+            <button
+              type="button"
+              class="flex w-full cursor-pointer items-center space-x-2"
+              on:click|preventDefault|stopPropagation={toggleSelectAll}
+            >
+              <div class="flex h-5 w-5 items-center justify-center">
+                {#if allSelected}
+                  <CheckboxChecked />
+                {:else}
+                  <CheckboxUnchecked />
+                {/if}
+              </div>
+              <span class="text-fs-ds-12 font-fw-ds-300 text-neutral-50">{selectAllLabel}</span>
+            </button>
+          </div>
+
+          <!-- Workspace Options -->
+          {#each workspaces as workspace (workspace.id)}
+            <div class="hover:bg-surface-500 p-2">
+              <button
+                type="button"
+                class="flex w-full cursor-pointer items-center space-x-2"
+                on:click|preventDefault|stopPropagation={() => toggleWorkspace(workspace)}
+              >
+                <div class="flex h-5 w-5 items-center justify-center">
+                  {#if selectedIds.has(workspace.id)}
+                    <CheckboxChecked />
+                  {:else}
+                    <CheckboxUnchecked />
+                  {/if}
+                </div>
+                <span class="text-fs-ds-12 font-fw-ds-300 truncate text-neutral-50"
+                  >{workspace.name}</span
+                >
+              </button>
+            </div>
+          {/each}
+        </span>
+      {/if}
     </div>
   {/if}
 
