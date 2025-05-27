@@ -77,7 +77,7 @@
   const columns = [
     {
       accessorKey: 'teamName',
-      header: 'Name',
+      header: 'Sparrow Hubs',
       enableSorting: true,
       sortingFn: (rowA, rowB, columnId) => {
         const a = (rowA.getValue(columnId) || '').toLowerCase();
