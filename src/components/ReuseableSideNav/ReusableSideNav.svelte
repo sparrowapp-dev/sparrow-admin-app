@@ -95,7 +95,7 @@
               to={`${link}/${option.id}/${selectOption.teamId}`}
               class="{activeId === option.id
                 ? 'bg-surface-500'
-                : ''} font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 "
+                : ''} font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
             >
               {option.label}
             </Link>

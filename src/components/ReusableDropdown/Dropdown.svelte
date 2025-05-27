@@ -69,14 +69,14 @@
 </script>
 
 <section class="relative w-full max-w-xs">
-  <div
+  <button
     on:click={toggleDropdown}
     class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
       ? ''
       : 'py-3'} {searchMode || open
       ? 'bg-surface-600'
       : ''} hover:bg-surface-500 focus-within:bg-surface-500 cursor-pointer text-neutral-50 {isTyping
-      ? 'focus-within:outline-1 focus-within:outline-blue-300'
+      ? 'focus-within:outline-2 focus-within:outline-blue-300'
       : 'focus-within:outline-2 focus-within:outline-blue-300'} "
   >
     <svelte:component this={icon} />
@@ -89,23 +89,23 @@
         {label.label}
       </button>
     {:else}
-      <div class="">
+      <button class="">
         <input
           bind:this={searchInput}
           type="text"
-          class="font-inter text-fs-ds-12 max-w-[186px] flex-1 text-neutral-50 outline-none"
+          class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 text-neutral-50 outline-none"
           placeholder="Search"
           bind:value={searchTerm}
           on:input={handleInput}
         />
-      </div>
+      </button>
     {/if}
 
     <!-- Always-visible arrow -->
     <button class="cursor-pointer" on:click={toggleDropdown}>
       <DropdownArrow {open} />
     </button>
-  </div>
+  </button>
 
   {#if open}
     <div class="bg-surface-600 w-full rounded-sm shadow-2xs">
