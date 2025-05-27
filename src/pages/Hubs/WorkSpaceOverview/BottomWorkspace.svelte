@@ -164,14 +164,17 @@
           {
             accessorKey: 'user',
             header: 'Users',
+            enableSorting: false,
           },
           {
             accessorKey: 'email',
             header: 'Email',
+            enableSorting: false,
           },
           {
             accessorKey: 'role',
             header: 'Roles',
+            enableSorting: false,
             cell: ({ row }: CellContext<any, any>) => {
               const userId = row.original._id;
               const role = selectedRoles[userId] || row.original.role;

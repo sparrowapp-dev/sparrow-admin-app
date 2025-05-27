@@ -130,7 +130,7 @@
     {
       accessorKey: 'contributors',
       header: 'Contributors',
-      enableSortingRemoval: false,
+      enableSorting: false,
       cell: ({ getValue }) => getValue().total,
     },
     {
@@ -211,14 +211,14 @@
   $: totalItems = $hubsData?.data?.totalCount || 0;
 </script>
 
-<section class="bg-surface-900 flex min-h-screen w-full flex-col gap-6 p-4">
+<section class="bg-surface-900 flex w-full flex-col gap-4 pt-4">
   <!-- Overview Cards Section -->
   {#if !$hubsData?.httpStatusCode}
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
   {:else}
-    <div class="flex flex-col gap-4 p-4">
+    <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <h1 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">
           Overview
@@ -240,59 +240,62 @@
     </div>
 
     <!-- Hubs Table Section -->
-    <div class="flex flex-col gap-2 px-4">
-      <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
-      <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
-        All your Hub's in one place, manage access, manage members, or dive into details with ease.
-      </h2>
-    </div>
-
-    <div class="table-container bg-surface-900 min-h-full">
-      <div class="table-header">
-        <TableSearch
-          value={filters.searchTerm}
-          on:search={handleSearchChange}
-          isLoading={$isFetching}
-          placeholder={'Search hubs'}
-        />
-        <Button
-          variant="filled-primary"
-          size="small"
-          iconLeft={true}
-          on:click={() => (showModal = true)}
-        >
-          <svelte:fragment slot="iconLeft">
-            <PlusIcon />
-          </svelte:fragment>
-          New Hub
-        </Button>
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
+        <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
+          All your Hub's in one place, manage access, manage members, or dive into details with
+          ease.
+        </h2>
       </div>
 
-      {#if totalItems === 0 && !$isFetching}
-        <div class="flex flex-col items-center justify-center py-16">
-          <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+      <div class="bg-surface-900 flex min-h-full flex-col gap-4">
+        <div class="flex justify-between">
+          <TableSearch
+            value={filters.searchTerm}
+            on:search={handleSearchChange}
+            isLoading={$isFetching}
+            placeholder={'Search hubs'}
+          />
+          <Button
+            variant="filled-primary"
+            size="small"
+            iconLeft={true}
+            on:click={() => (showModal = true)}
+          >
+            <svelte:fragment slot="iconLeft">
+              <PlusIcon />
+            </svelte:fragment>
+            New Hub
+          </Button>
         </div>
-      {:else}
-        <Table
-          {columns}
-          data={$hubsData?.data?.hubs || []}
-          isLoading={$isFetching}
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          on:sortingChange={handleSortingChange}
-          on:rowClick={handleRowClick}
-        />
 
-        <TablePagination
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          {totalItems}
-          isLoading={$isFetching}
-          on:pageChange={handlePageChange}
-          on:pageSizeChange={handlePageSizeChange}
-        />
-      {/if}
+        {#if totalItems === 0 && !$isFetching}
+          <div class="flex flex-col items-center justify-center py-16">
+            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No results found.</p>
+          </div>
+        {:else}
+          <Table
+            {columns}
+            data={$hubsData?.data?.hubs || []}
+            isLoading={$isFetching}
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            {totalItems}
+            on:sortingChange={handleSortingChange}
+            on:rowClick={handleRowClick}
+          />
+
+          <TablePagination
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            {totalItems}
+            isLoading={$isFetching}
+            on:pageChange={handlePageChange}
+            on:pageSizeChange={handlePageSizeChange}
+          />
+        {/if}
+      </div>
     </div>
     {#if showModal}
       <Modal on:close={() => (showModal = false)}>
@@ -301,20 +304,3 @@
     {/if}
   {/if}
 </section>
-
-<style>
-  .table-container {
-    width: 100%;
-    margin: 0 auto;
-    padding: 1.5rem;
-  }
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-</style>
