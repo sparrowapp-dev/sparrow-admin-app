@@ -22,7 +22,7 @@
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
   <PrivateRoute path="/hubs/*" component={Hubs} />
   <PrivateRoute path="/users/*" component={Users} />
-  <PrivateRoute path="/payment/*" component={Payment} />
+  <PrivateRoute path="/billing/*" component={Payment} />
 
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />
