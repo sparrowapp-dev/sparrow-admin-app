@@ -267,8 +267,8 @@
     <span class="flex flex-col gap-1">
       <span class="text-fs-ds-14 font-fw-ds-300 font-inter flex text-neutral-200">
         Publish
-        <p class="max-w-[8rem] truncate px-2">"{data.title}"</p>
-        Workspace
+        <p class="max-w-[8rem] truncate px-2 text-ellipsis">"{data?.title}</p>
+        " Workspace
       </span>
       <span class="mb-1">
         <p class="font-inter leading-lh-ds-150 text-fs-ds-12 text-left font-light text-neutral-400">
@@ -296,7 +296,7 @@
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
               on:click={() => {
-                const url = `${baseUrl}privacy-policy/`;
+                const url = `https://sparrowapp.dev/privacy-policy/`;
 
                 // Open in a new tab
                 window.open(url, '_blank');

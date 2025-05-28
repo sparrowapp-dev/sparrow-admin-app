@@ -177,20 +177,20 @@
               >
                 <div class="flex flex-col py-1">
                   <button
-                    class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
+                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={handleEditWorkspace}
                   >
                     <EditIcon />Edit Workspace
                   </button>
                   <button
-                    class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
+                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={(e) => launchInSparrow(e)}
                   >
                     <LaunchInSparrow /> Launch in Sparrow
                   </button>
 
                   <button
-                    class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
+                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={() => {
                       if (topData.WorkspaceType === 'PRIVATE') {
                         handleMakeItPublic();
@@ -205,7 +205,7 @@
                   </button>
 
                   <button
-                    class="hover:bg-surface-300 flex w-full items-center gap-2 px-4 py-2 text-left text-red-300"
+                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-red-300"
                     on:click={handleDeleteWorkspace}
                   >
                     <DeleteIcon />Delete Workspace
