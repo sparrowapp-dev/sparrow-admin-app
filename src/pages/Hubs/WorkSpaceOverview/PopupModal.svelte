@@ -95,12 +95,13 @@
     if (!formData.workspaceName.trim()) {
       newErrors.workspaceName = 'Workspace name cannot be empty. Please enter the workspace name.';
     }
-    if (
-      modalVariants.isEditWorkspaceModalOpen &&
-      formData.workspaceName.trim() &&
-      workspaces.some((ws) => ws.name === formData.workspaceName.trim())
-    ) {
-      newErrors.workspaceName = 'Workspace with same name already exists';
+    if (modalVariants.isEditWorkspaceModalOpen) {
+      const trimmedName = formData.workspaceName.trim();
+      const isNameTaken = workspaces.some((ws) => ws.name === trimmedName && ws.id !== workspaceId);
+
+      if (isNameTaken) {
+        newErrors.workspaceName = 'Workspace with same name already exists';
+      }
     }
 
     if (modalVariants.isInviteModal) {
