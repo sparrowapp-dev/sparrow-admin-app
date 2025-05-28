@@ -98,7 +98,7 @@
     if (
       modalVariants.isEditWorkspaceModalOpen &&
       formData.workspaceName.trim() &&
-      workspaces.some((ws) => ws.name === formData.workspaceName.trim())
+      workspaces.some((ws) => ws.name === formData.workspaceName.trim() && ws.id !== workspaceId)
     ) {
       newErrors.workspaceName = 'Workspace with same name already exists';
     }
