@@ -24,6 +24,17 @@
   function createChart() {
     if (!svgElement || !data || !data.series.length) return;
 
+    const filteredSeries = data.series.filter((series) => {
+      return series.data.some((point) => point.value !== 0);
+    });
+
+    // If no series have non-zero values, don't render anything
+    if (filteredSeries.length === 0) {
+      d3.select(svgElement).selectAll('*').remove();
+      return;
+    }
+    // Use filtered data for the rest of the chart
+    const chartData = { ...data, series: filteredSeries };
     // Clear previous chart
     d3.select(svgElement).selectAll('*').remove();
 
@@ -50,7 +61,7 @@
     // --- SVG FILTERS FOR SHADOWS ---
     const defs = svg.append('defs');
     if (mergedConfig.useShadows) {
-      data.series.forEach((series, i) => {
+      chartData.series.forEach((series, i) => {
         defs
           .append('filter')
           .attr('id', `shadow-${i}`)
@@ -66,7 +77,7 @@
     }
 
     // Create a gradient for each series
-    data.series.forEach((series, i) => {
+    chartData.series.forEach((series, i) => {
       const gradient = defs
         .append('linearGradient')
         .attr('id', `line-gradient-${i}`)
@@ -89,12 +100,12 @@
     });
 
     // Find the min/max dates across all series
-    const allDates = data.series.flatMap((series) => series.data).map((d) => new Date(d.date));
+    const allDates = chartData.series.flatMap((series) => series.data).map((d) => new Date(d.date));
     const minDate = d3.min(allDates) || new Date();
     const maxDate = d3.max(allDates) || new Date();
 
     // Find the min/max values across all series
-    const allValues = data.series.flatMap((series) => series.data).map((d) => d.value);
+    const allValues = chartData.series.flatMap((series) => series.data).map((d) => d.value);
     const maxValue = d3.max(allValues) || 100;
     const minValue = d3.min(allValues) || 0;
 
@@ -230,7 +241,7 @@
       .curve(curve);
 
     // Draw areas and lines for each series
-    data.series.forEach((series, i) => {
+    chartData.series.forEach((series, i) => {
       // Draw area with gradient fill first (below the line)
       if (mergedConfig.useGradient) {
         g.append('path')

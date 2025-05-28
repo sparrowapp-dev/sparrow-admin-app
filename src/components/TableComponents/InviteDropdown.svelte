@@ -58,7 +58,6 @@
   // Withdraw invite handler
   async function handleWithdrawInvite(event) {
     event.stopPropagation();
-    closeDropdown();
 
     try {
       isLoading.withdraw = true;
@@ -67,6 +66,7 @@
       await hubsService.withdrawInvite(hubId, email);
       notification.success('Invite withdrawn successfully.');
       refetchInvites();
+      closeDropdown();
     } catch (error: any) {
       console.error('Error withdrawing invite:', error);
       notification.error('Failed to withdraw invite. Please try again.');
@@ -78,7 +78,6 @@
   // Resend invite handler
   async function handleResendInvite(event) {
     event.stopPropagation();
-    closeDropdown();
 
     try {
       isLoading.resend = true;
@@ -87,6 +86,7 @@
       await hubsService.resendInvite(hubId, email);
       notification.success('Invite resent successfully.');
       refetchInvites();
+      closeDropdown();
     } catch (error: any) {
       console.error('Error resending invite:', error);
       notification.error('Failed to resend invite. Please try again.');
