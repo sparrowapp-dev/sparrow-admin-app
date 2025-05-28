@@ -345,7 +345,7 @@
     <!-- Delete Workspace Modal -->
   {:else if modalVariants.isDeleteWorkspaceModalOpen}
     <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Delete WorkSpace</h2>
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Delete Workspace</h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
         <CloseIcon />
       </button>
@@ -394,7 +394,7 @@
         <div class="mt-6 flex items-center justify-end gap-3">
           <Button variant="filled-secondary" size="medium" on:click={onClose}>Cancel</Button>
           <Button variant="filled-tertiary" size="medium" type="submit" disabled={isLoading}>
-            Delete WorkSpace
+            Delete Workspace
           </Button>
         </div>
       </div>
