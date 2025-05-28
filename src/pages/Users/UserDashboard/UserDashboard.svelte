@@ -10,7 +10,7 @@
   import { pieChartConfig, trendLineConfig } from './dashboardData';
   import ActivityList from '@/ui/ActivityList/ActivityList.svelte';
   import NewInvites from '@/assets/icons/NewInvites.svelte';
-    import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   // Fetch dashboard stats using createQuery
   const { data: dashboardStats, isFetching: isLoadingStats } = createQuery(async () => {
@@ -111,7 +111,7 @@
         <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
           User Distribution by Role
         </h2>
-        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
+        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-50">
           Track of Admins and Members
         </p>
 
@@ -136,7 +136,7 @@
         <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
           Recent Activity
         </h2>
-        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
+        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-50">
           Timeline of recent events
         </p>
         <div class="mt-6 h-[420px] overflow-y-auto">
@@ -151,7 +151,7 @@
       <h2 class="font-inter font-fw-ds-500 text-fs-ds-16 leading-lh-ds-120 text-neutral-50">
         Monthly Role Trends
       </h2>
-      <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-400">
+      <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 mt-2 text-neutral-50">
         View monthly admin and member counts to understand team growth and balance roles.
       </p>
 
