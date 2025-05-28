@@ -187,7 +187,13 @@
           `Failed to delete "${formData.workspaceName}" workspace. Please try again.`,
         );
       } else if (modalVariants.isInviteModal) {
-        notification.error('Failed to send invite. Please try again.');
+        if (error.message === 'An invite has already been sent to this email.') {
+          notification.error('An invite has already been sent to this email.');
+        } else if (error.message === 'Hub Member already Exist.') {
+          notification.error('User already in hub.');
+        } else {
+          notification.error('Failed to send invite. Please try again.');
+        }
       }
     } finally {
       isLoading = false;
@@ -283,7 +289,7 @@
               type="button"
               class="leading-lh-ds-130 font-fw-ds-400 cursor-pointer text-neutral-200 underline underline-offset-2 hover:text-neutral-50"
               on:click={() => {
-                const url = `${baseUrl}terms-of-service`;
+                const url = ` https://sparrowapp.dev/terms-of-service/`;
 
                 // Open in a new tab
                 window.open(url, '_blank');
