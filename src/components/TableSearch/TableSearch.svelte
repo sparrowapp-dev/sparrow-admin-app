@@ -66,9 +66,9 @@
       bind:value={inputValue}
       on:input={handleInput}
       {placeholder}
-      class="bg-surface-600 text-fs-ds-14 disabled:bg-surface-700 w-full rounded-md border border-transparent py-1.5
-             pr-8 pl-10 text-neutral-50
-             placeholder-neutral-400 focus:border-blue-300 focus:ring-1 focus:ring-blue-300
+      class="bg-surface-600 text-fs-ds-14 disabled:bg-surface-700 placeholder:text-fs-ds-12 placeholder:font-fw-ds-300 w-full rounded-md border
+             border-transparent py-1.5 {inputValue ? 'pr-8' : 'pr-2'} pl-10
+             text-neutral-50 placeholder-neutral-400 focus:border-blue-300 focus:ring-1 focus:ring-blue-300
              focus:outline-none disabled:cursor-not-allowed disabled:opacity-70"
     />
 

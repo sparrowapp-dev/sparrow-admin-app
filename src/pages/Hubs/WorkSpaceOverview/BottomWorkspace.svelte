@@ -211,7 +211,9 @@
                       });
 
                       overviewRefetch();
-                      notification.success(`Role changed to ${newRole}`);
+                      notification.success(
+                        `Role changed to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}`,
+                      );
                     } catch (error) {
                       selectedRoles = {
                         ...selectedRoles,
