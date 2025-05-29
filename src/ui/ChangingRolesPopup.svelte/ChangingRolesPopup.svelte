@@ -94,7 +94,7 @@
           <div
             class="border-surface-50 text-fs-ds-14 leading-lh-ds-143 font-fw-ds-400 flex h-9 w-9 items-center justify-center rounded-[133.33px] border bg-purple-400 text-neutral-50"
           >
-            {hubName.charAt(0)}
+            {hubName.charAt(0).toUpperCase()}
           </div>
           <div class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 text-neutral-50">
             {hubName.length > 20 ? `${hubName.slice(0, 20)}...` : hubName}
