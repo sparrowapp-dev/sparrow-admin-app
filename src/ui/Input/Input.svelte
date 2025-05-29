@@ -76,6 +76,7 @@
         {name}
         type="text"
         {placeholder}
+        {disabled}
         aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}

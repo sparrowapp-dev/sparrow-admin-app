@@ -15,6 +15,7 @@
   import { hubsService } from '@/services/hubs.service';
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import { userService } from '@/services/users.service';
 
   // ─── STATE VARIABLES ────────────────────────────────
   let showModal = false;
@@ -106,6 +107,7 @@
         hubId = hId;
         refetch();
         overviewRefetch();
+        roleRefetch();
       }
     });
   });
@@ -160,7 +162,17 @@
 
     return hubsService.getWorkspaceSummary(queryParams);
   });
-
+  const {
+    data: userRole,
+    isFetching: roleRefetching,
+    refetch: roleRefetch,
+  } = createQuery(async () => {
+    const queryParams: any = {
+      workspaceId: params,
+    };
+    return userService.getUserRole(queryParams);
+  });
+  $: UserRoleData = $userRole?.data;
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
     { label: $topData?.data?.hubName || '', path: `/hubs/workspace/${hubId}` },
@@ -182,6 +194,7 @@
         {openModal}
         isLoading={$overviewDataRefetching}
         workspaceId={params}
+        {UserRoleData}
       />
       <BottomWorkspace
         data={$workspacesData?.data}
@@ -189,6 +202,7 @@
         isLoading={$isFetching}
         {params}
         {overviewRefetch}
+        {UserRoleData}
       />
     </div>
     {#if showModal}

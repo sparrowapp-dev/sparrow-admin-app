@@ -22,6 +22,9 @@
   import type { CellContext, SortingState } from '@tanstack/svelte-table';
   import { hubsService } from '@/services/hubs.service';
   import { notification } from '@/components/Toast';
+  import { userId } from '@/store/auth';
+
+  $: idOfUser = $userId;
 
   // ─── PROPS ───────────────────────────────────────────
   export let data;
@@ -34,6 +37,7 @@
   }) => void;
   export let isLoading: boolean = false;
   export let overviewRefetch;
+  export let UserRoleData;
 
   // ─── ROUTE PARAM ─────────────────────────────────────
   const location = useLocation();
@@ -189,13 +193,17 @@
                 value: 'admin',
                 label: 'Admin',
               };
-
+              let disabled =
+                isAdmin ||
+                UserRoleData === 'viewer' ||
+                row.original.id.toString() === $idOfUser.toString();
               return {
                 Component: RolesDropdown,
                 props: {
+                  UserRoleData: UserRoleData,
                   selected: selectedOption,
                   options: roleOptions,
-                  disabled: isAdmin,
+                  disabled: disabled,
                   onChange: async (newRole: string) => {
                     const previousRole = selectedRoles[userId];
 
@@ -271,9 +279,10 @@
     </button>
 
     <button
-      class={`text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 font-inter cursor-pointer border-b-2 pb-1
+      class={`${UserRoleData === 'editor' || UserRoleData === 'viewer' ? 'cursor-not-allowed' : 'cursor-pointer'} text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400 font-inter border-b-2 pb-1
           ${selectedTab === 'members' ? 'border-blue-500 text-neutral-50' : 'border-transparent text-neutral-100'}`}
       on:click={() => (selectedTab = 'members')}
+      disabled={UserRoleData === 'editor' || UserRoleData === 'viewer'}
     >
       Members
     </button>
