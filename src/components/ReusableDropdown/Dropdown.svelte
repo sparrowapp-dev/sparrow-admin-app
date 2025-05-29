@@ -77,7 +77,7 @@
       ? 'bg-surface-600'
       : ''} hover:bg-surface-500 focus-within:bg-surface-500 cursor-pointer text-neutral-50 {isTyping
       ? 'focus-within:outline-2 focus-within:outline-blue-300'
-      : 'focus-within:outline-2 focus-within:outline-blue-300'} "
+      : 'focus-within:outline-2 focus-within:outline-blue-300'}"
   >
     <svelte:component this={icon} />
 
@@ -120,52 +120,55 @@
           </div>
         {:else}
           {#each filteredOptions as option, index}
-            <button
-              class="font-inter font-fw-ds-400 text-fs-ds-12 hover:bg-surface-400 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between rounded-sm p-1 py-2 focus-within:outline-2 focus-within:outline-blue-300 {selected.id.toString() ===
-              option.id.toString()
-                ? 'text-blue-300'
-                : 'text-neutral-50'}"
-              on:click={() => selectOption(option)}
+            <Tooltip
+              text={option.label}
+              position={index === 0 ? 'bottom' : 'top'}
+              mode={option.label.length > 17 ? 'hover' : 'controlled'}
+              size="xs"
+              maxWidth="300px"
+              allowOverflow={true}
+              show={option.label.length > 17 ? undefined : false}
             >
-              <!-- <Tooltip
-                text={option.label}
-                position={index === 0 ? 'bottom' : 'top'}
-                mode="hover"
-                size="xs"
-              > -->
-              <!-- Add max-width and truncation to prevent long text from breaking layout -->
-              <span class="block truncate text-left" title={option.label}>
-                {option.label}
-              </span>
-              <!-- </Tooltip> -->
+              <button
+                class="font-inter font-fw-ds-400 text-fs-ds-12 hover:bg-surface-400 leading-lh-ds-130 flex w-full cursor-pointer items-center justify-between rounded-sm p-1 py-2 focus-within:outline-2 focus-within:outline-blue-300 {selected.id.toString() ===
+                option.id.toString()
+                  ? 'text-blue-300'
+                  : 'text-neutral-50'}"
+                on:click={() => selectOption(option)}
+              >
+                <!-- Add max-width and truncation to prevent long text from breaking layout -->
+                <span class="block truncate text-left">
+                  {option.label}
+                </span>
 
-              <div class="ml-2 flex-shrink-0">
-                {#if selected.id.toString() === option.id.toString()}
-                  <span>
-                    <svg
-                      width="12"
-                      height="9"
-                      viewBox="0 0 12 9"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                <div class="ml-2 flex-shrink-0">
+                  {#if selected.id.toString() === option.id.toString()}
+                    <span>
+                      <svg
+                        width="12"
+                        height="9"
+                        viewBox="0 0 12 9"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
+                          fill="#6894F9"
+                        />
+                      </svg>
+                    </span>
+                  {:else if showPlans && option.plan}
+                    <span
+                      class="rounded-[2x] border px-1 py-0.5 whitespace-nowrap {getDynamicCssClasses(
+                        option.plan,
+                      )}"
                     >
-                      <path
-                        d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
-                        fill="#6894F9"
-                      />
-                    </svg>
-                  </span>
-                {:else if showPlans && option.plan}
-                  <span
-                    class="rounded-[2x] border px-1 py-0.5 whitespace-nowrap {getDynamicCssClasses(
-                      option.plan,
-                    )}"
-                  >
-                    {option.plan}
-                  </span>
-                {/if}
-              </div>
-            </button>
+                      {option.plan}
+                    </span>
+                  {/if}
+                </div>
+              </button>
+            </Tooltip>
           {/each}
         {/if}
       </div>
