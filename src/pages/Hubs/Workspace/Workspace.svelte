@@ -21,6 +21,7 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import { userService } from '@/services/users.service';
   const location = useLocation();
 
   // State management
@@ -143,10 +144,22 @@
 
     return hubsService.getHubWorkspaces(queryParams);
   });
+  //Function to fetch user Role in Hub
+  const {
+    data: userRole,
+    isFetching: roleRefetching,
+    refetch: roleRefetch,
+  } = createQuery(async () => {
+    const queryParams: any = {
+      hubId: params,
+    };
+    return userService.getUserRole(queryParams);
+  });
 
   // refetch data when params change
   $: if (params) {
     refetch();
+    roleRefetch();
   }
 
   const extractedParam = derived(location, ($location) => {
@@ -207,7 +220,7 @@
     workspaces: $workspacesData?.data?.hubs || [],
     isNewHub: $workspacesData?.data?.isNewHub || false,
   };
-
+  $: userRoleData = $userRole?.data;
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
     { label: data.teamName, path: `/hubs/workspace/${params}` },
@@ -257,6 +270,7 @@
           size="small"
           iconLeft={true}
           on:click={() => (showModal = true)}
+          disabled={userRoleData === 'member'}
         >
           <svelte:fragment slot="iconLeft">
             <PlusIcon />

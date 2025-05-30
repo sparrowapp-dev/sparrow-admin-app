@@ -5,11 +5,13 @@
   import { onMount, onDestroy, tick, createEventDispatcher } from 'svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import RemoveUsers from '@/assets/icons/RemoveUsers.svelte';
+  import { userId } from '@/store/auth';
 
   export let row;
   export let modalVariants;
   export let handleshowModal;
   export let onClick;
+  export let UserRoleData;
   let isOpen = false;
   let openUp = false;
   let triggerEl: HTMLButtonElement;
@@ -108,7 +110,9 @@
   <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
     <button
       bind:this={triggerEl}
-      class="hover:bg-surface-300 cursor-pointer {row.original.role === 'Owner'
+      class="hover:bg-surface-300 cursor-pointer {row.original.role === 'Owner' ||
+      UserRoleData === 'member' ||
+      $userId.toString() === row.original.id.toString()
         ? 'pointer-events-none opacity-0'
         : ''} rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
       on:click={toggleDropdown}

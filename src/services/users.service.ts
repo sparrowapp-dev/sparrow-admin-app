@@ -119,6 +119,18 @@ export class UserService {
 
     return res?.data;
   }
+  public async getUserRole(params): Promise<any> {
+    if (!params.workspaceId && !params.hubId) {
+      return;
+    }
+    const queryParams = new URLSearchParams();
+    if (params.workspaceId) queryParams.append('workspaceId', params.workspaceId);
+    if (params.hubId) queryParams.append('teamId', params.hubId);
+    const url = `/api/admin/auth/get-user-role?${queryParams.toString()}`;
+    const res = await makeRequest('GET', url);
+
+    return res?.data;
+  }
 }
 
 export const userService = new UserService();

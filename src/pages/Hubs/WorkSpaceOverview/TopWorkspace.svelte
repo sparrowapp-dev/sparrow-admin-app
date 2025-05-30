@@ -21,6 +21,7 @@
   export let isLoading;
   export let workspaceId;
   export let hubId;
+  export let UserRoleData;
   $: stats = topData
     ? [
         { label: 'Total Contributors', value: topData.totalContributors },
@@ -154,7 +155,11 @@
         <div class="flex gap-2">
           <button
             on:click={handleInvite}
-            class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 flex cursor-pointer items-center gap-0.5 rounded-sm bg-blue-400 px-2 py-1 text-neutral-50"
+            disabled={UserRoleData === 'viewer' || UserRoleData === 'editor'}
+            class="font-inter font-fw-ds-400 text-fs-ds-12 {UserRoleData === 'editor' ||
+            UserRoleData === 'viewer'
+              ? 'cursor-not-allowed opacity-50'
+              : 'cursor-pointer'} leading-lh-ds-130 flex items-center gap-0.5 rounded-sm bg-blue-400 px-2 py-1 text-neutral-50"
             ><Inviteicon /> Invite Collaborators</button
           >
           <!-- Three dots vertical menu with dropdown -->
@@ -177,8 +182,11 @@
               >
                 <div class="flex flex-col py-1">
                   <button
-                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-neutral-50"
+                    class="hover:bg-surface-300 {UserRoleData === 'viewer'
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={handleEditWorkspace}
+                    disabled={UserRoleData === 'viewer'}
                   >
                     <EditIcon />Edit Workspace
                   </button>
@@ -190,7 +198,10 @@
                   </button>
 
                   <button
-                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-neutral-50"
+                    class="hover:bg-surface-300 {topData.WorkspaceType === 'PRIVATE' &&
+                    (UserRoleData === 'editor' || UserRoleData === 'viewer')
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={() => {
                       if (topData.WorkspaceType === 'PRIVATE') {
                         handleMakeItPublic();
@@ -198,6 +209,8 @@
                         copyLink();
                       }
                     }}
+                    disabled={topData.WorkspaceType === 'PRIVATE' &&
+                      (UserRoleData === 'editor' || UserRoleData === 'viewer')}
                   >
                     {#if topData.WorkspaceType === 'PRIVATE'}<MakeitPublic /> Make it Public{:else if copied}<GreenCheckicon
                       /> Link Copied
@@ -205,8 +218,12 @@
                   </button>
 
                   <button
-                    class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-red-300"
+                    class="hover:bg-surface-300 {UserRoleData === 'viewer' ||
+                    UserRoleData === 'editor'
+                      ? 'cursor-not-allowed opacity-50'
+                      : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-red-300"
                     on:click={handleDeleteWorkspace}
+                    disabled={UserRoleData === 'editor' || UserRoleData === 'viewer'}
                   >
                     <DeleteIcon />Delete Workspace
                   </button>
