@@ -196,7 +196,7 @@
               let disabled =
                 isAdmin ||
                 UserRoleData === 'viewer' ||
-                row.original.id.toString() === $idOfUser.toString();
+                row.original?.id?.toString() === idOfUser?.toString();
               return {
                 Component: RolesDropdown,
                 props: {
