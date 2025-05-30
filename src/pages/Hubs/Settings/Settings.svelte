@@ -254,10 +254,9 @@
         </Button>
       </div>
     </div>
-
-    <div class="mb-8 flex flex-col gap-2">
+    <div class="mb-8 flex flex-col gap-2 {isMember ? 'cursor-not-allowed' : ''}">
       <!-- Logo upload - using small variant -->
-      <div class="relative">
+      <div class={isMember ? 'pointer-events-none' : ''}>
         <FileUploadDragDrop
           label=""
           variant="small"
@@ -265,13 +264,6 @@
           imagePreview={hubData.logoUrl}
           on:change={handleLogoChange}
         />
-
-        {#if isMember}
-          <div
-            class="bg-surface-900/10 absolute inset-0 cursor-not-allowed"
-            style="pointer-events: all;"
-          />
-        {/if}
       </div>
     </div>
     <!-- Wrapper that switches to row layout on md+ screens -->
