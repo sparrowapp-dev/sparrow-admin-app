@@ -144,7 +144,7 @@
 
     return hubsService.getHubWorkspaces(queryParams);
   });
-
+  //Function to fetch user Role in Hub
   const {
     data: userRole,
     isFetching: roleRefetching,
