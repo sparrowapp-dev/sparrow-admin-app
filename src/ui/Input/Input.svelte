@@ -11,6 +11,7 @@
   export let type: 'text' | 'email' | 'password' | 'number' | 'tel' = 'text';
   export let disabled: boolean = false;
   export let hasIcon: boolean = false;
+  export let subtitle: string = '';
 
   // Event dispatcher to forward events to parent
   const dispatch = createEventDispatcher();
@@ -26,6 +27,18 @@
   // Handle blur event and dispatch it to parent
   function handleBlur(event: Event) {
     dispatch('blur', event);
+  }
+
+  // For number inputs, validate on input to ensure only numbers are entered
+  function handleNumberInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Remove non-numeric characters
+    const numericValue = input.value.replace(/[^0-9]/g, '');
+    if (input.value !== numericValue) {
+      input.value = numericValue;
+      value = numericValue;
+    }
+    dispatch('input', event);
   }
 
   // Common class styles for all input types
@@ -56,13 +69,20 @@
   {#if label}
     <label
       for={id}
-      class="text-fs-ds-14 font-fw-ds-400 font-inter mb-2 flex items-center text-neutral-200"
+      class="text-fs-ds-14 font-fw-ds-400 font-inter {subtitle
+        ? 'mb-0.5'
+        : 'mb-2'} flex items-center text-neutral-200"
     >
       {label}
       {#if required}
         <span class="ml-1 text-red-400">*</span>
       {/if}
     </label>
+  {/if}
+  {#if subtitle}
+    <div class="text-fs-ds-12 font-fw-ds-300 font-inter mb-2 flex items-center text-neutral-400">
+      {subtitle}
+    </div>
   {/if}
 
   <div class="relative">
@@ -76,6 +96,7 @@
         {name}
         type="text"
         {placeholder}
+        {disabled}
         aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
@@ -112,17 +133,20 @@
         on:blur={handleBlur}
       />
     {:else if type === 'number'}
+      <!-- Use text type but with pattern and numeric validation -->
       <input
         {id}
         {name}
-        type="number"
+        type="text"
+        pattern="[0-9]*"
+        inputmode="numeric"
         {placeholder}
         {disabled}
         aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
-        on:input={handleInput}
+        on:input={handleNumberInput}
         on:blur={handleBlur}
       />
     {:else if type === 'tel'}
@@ -160,3 +184,17 @@
     <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{errorMessage}</p>
   {/if}
 </div>
+
+<style>
+  /* Remove spinner buttons for number inputs across browsers */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* For Firefox */
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+</style>
