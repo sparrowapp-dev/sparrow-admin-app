@@ -375,7 +375,7 @@
             {paymentMethods}
             on:addCard={openAddCardModal}
             on:cardSelected={handleCardSelected}
-            on:allCardsDeleted={handleAllCardsDeleted}
+            on:requestRefresh={handleAllCardsDeleted}
           />
         </div>
       {/if}
