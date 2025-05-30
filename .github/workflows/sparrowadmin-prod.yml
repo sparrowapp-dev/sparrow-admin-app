@@ -43,4 +43,4 @@ jobs:
               action: deploy
               namespace: sparrow-prod 
               manifests: |
-                 ./deployment/deplyment.yml
+                 ./deployment/deployment.yml
