@@ -274,8 +274,8 @@
   }
 </script>
 
-<div class="add-payment-container">
-  <div class="header flex items-start justify-between p-5">
+<div class="bg-surface-600 w-[650px] rounded-lg p-7">
+  <div class="header flex items-start justify-between">
     <div>
       <h2 class="text-xl font-medium text-white">Add a New Card</h2>
       <p class="text-sm text-gray-400">Enter your card details for your upcoming invoices.</p>
@@ -285,7 +285,7 @@
     </button>
   </div>
 
-  <form on:submit|preventDefault={handleSubmit} class="p-5">
+  <form on:submit|preventDefault={handleSubmit} class="pt-8 pb-5">
     <div class="space-y-5">
       <!-- Payment form in 2x2 grid -->
       <div class="grid grid-cols-2 gap-4">
@@ -398,16 +398,6 @@
 </div>
 
 <style>
-  .add-payment-container {
-    color: white;
-    background-color: #181c26;
-    border-radius: 12px;
-    overflow: hidden;
-    width: 620px;
-    margin: 0 auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  }
-
   :global(.StripeElement) {
     background-color: #222630 !important;
     border: 1px solid transparent;
