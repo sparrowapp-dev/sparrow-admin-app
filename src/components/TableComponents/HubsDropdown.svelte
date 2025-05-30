@@ -3,80 +3,119 @@
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import UpgradeStandardIcon from '@/assets/icons/UpgradeStandardIcon.svelte';
   import { navigate } from 'svelte-routing';
-  interface Workspace {
-    id: string;
-    name: string;
-    type: 'PRIVATE' | 'PUBLIC';
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-  }
-  interface Contributor {
-    id: string;
-    role: string;
-    email: string;
-  }
-  interface Hub {
-    _id: string;
-    name: string;
-    hubUrl: string;
-    workspaceStats: {
-      total: number;
-      private: number;
-      public: number;
-    };
-    workspaces: Workspace[];
-    contributors: {
-      total: number;
-      details: Contributor[];
-    };
-    createdAt: string;
-    updatedAt: string;
-  }
+  import { onMount, onDestroy, tick } from 'svelte';
+  import Tooltip from '../Tooltip/Tooltip.svelte';
+
   export let row;
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
-  function handleLaunch() {
-    window.open(`${launchUrl}`, '_blank');
-  }
-  let activeDropdownId: string | null = null;
-  function toggleDropdown(hubId: string) {
-    if (activeDropdownId === hubId) {
-      activeDropdownId = null; // Close if already open
+
+  let isOpen = false;
+  let openUp = false;
+  let triggerEl: HTMLButtonElement;
+  let dropdownEl: HTMLDivElement;
+  let position = { top: 0, left: 0, width: 0 };
+
+  async function toggleDropdown(event) {
+    // Stop propagation to prevent the row click event
+    event.stopPropagation();
+
+    if (!isOpen) {
+      // Close other dropdowns first
+      window.dispatchEvent(new CustomEvent('close-all-dropdowns'));
+
+      // Set to open
+      isOpen = true;
+
+      // Wait for the dropdown to be rendered
+      await tick();
+
+      // Calculate position after the dropdown is in the DOM
+      calculatePosition();
     } else {
-      activeDropdownId = hubId; // Open this dropdown
+      isOpen = false;
     }
   }
-  function handleManageHub(event: Hub) {
-    const hub = event;
-    navigate(`/hubs/settings/${hub._id}`);
+
+  function calculatePosition() {
+    if (!triggerEl || !dropdownEl) return;
+
+    const triggerRect = triggerEl.getBoundingClientRect();
+    const dropdownHeight = dropdownEl.offsetHeight;
+    const dropdownWidth = dropdownEl.offsetWidth;
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceRight = window.innerWidth - triggerRect.right;
+
+    // Determine if dropdown should open upward
+    openUp = spaceBelow < dropdownHeight + 5;
+
+    // Calculate position
+    position = {
+      top: openUp ? triggerRect.top - dropdownHeight - 5 : triggerRect.bottom + 5,
+      left:
+        spaceRight < dropdownWidth
+          ? triggerRect.right - dropdownWidth
+          : triggerRect.right - dropdownWidth + 30,
+      width: dropdownWidth,
+    };
   }
-  function handleManageMembers(event: Hub) {
-    const hub = event;
-    navigate(`/hubs/members/${hub._id}`);
+
+  function closeDropdown() {
+    isOpen = false;
   }
-  function handleUpgrade(event: Hub) {}
+
+  function handleManageHub(event, hub) {
+    event.stopPropagation();
+    navigate(`/hubs/settings/${hub._id || hub.id}`);
+    closeDropdown();
+  }
+
+  function handleManageMembers(event, hub) {
+    event.stopPropagation();
+    navigate(`/hubs/members/${hub._id || hub.id}`);
+    closeDropdown();
+  }
+
+  function handleUpgrade(event, hub) {
+    event.stopPropagation();
+    // Your upgrade logic here
+    // closeDropdown();
+  }
+
+  function handleClickOutside(event) {
+    if (
+      isOpen &&
+      triggerEl &&
+      !triggerEl.contains(event.target) &&
+      dropdownEl &&
+      !dropdownEl.contains(event.target)
+    ) {
+      closeDropdown();
+    }
+  }
+
+  onMount(() => {
+    // Handle global events
+    document.addEventListener('click', handleClickOutside);
+    window.addEventListener('close-all-dropdowns', closeDropdown);
+    window.addEventListener('scroll', closeDropdown, true);
+  });
+
+  onDestroy(() => {
+    document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('close-all-dropdowns', closeDropdown);
+    window.removeEventListener('scroll', closeDropdown, true);
+  });
 </script>
 
 <div class="relative flex items-center justify-end gap-4">
-  <button
-    class="font-inter text-fs-ds-12 font-regular leading-lh-ds-130 z-10
-             cursor-pointer text-blue-300 opacity-0 transition-opacity
-             duration-200 group-hover:opacity-100 hover:underline"
-    data-action="launch"
-    on:click|stopPropagation={handleLaunch}
-    data-hub-id={row.original._id}
-  >
-    Launch in Sparrow
-  </button>
-
-  <div class="relative">
+  <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
     <button
-      class="cursor-pointer rounded-md p-2 text-neutral-300 transition-colors
-               duration-200 hover:text-neutral-50"
-      on:click|stopPropagation={() => toggleDropdown(row.original._id)}
-      data-action="toggle-menu"
-      data-hub-id={row.original._id}
+      bind:this={triggerEl}
+      class="hover:bg-surface-300 cursor-pointer rounded px-3.5 py-2 text-neutral-300 transition-colors duration-200 hover:text-neutral-50"
+      on:click={toggleDropdown}
       aria-label="More actions"
+      aria-haspopup="true"
+      aria-expanded={isOpen}
+      data-action="toggle-menu"
     >
       {#if typeof row.original.renderThreeDotsIcon === 'function'}
         {@html row.original.renderThreeDotsIcon()}
@@ -84,51 +123,41 @@
         ⋮
       {/if}
     </button>
-
-    {#if activeDropdownId === row.original._id}
-      <div class="bg-surface-600 absolute right-0 z-50 mt-2 w-48 rounded-md shadow-lg">
-        <div class="flex flex-col gap-1 py-1">
-          <button
-            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2
-                     px-2 py-1 text-neutral-50 transition-colors duration-150"
-            data-action="ManageHub"
-            data-hub-id={row.original._id}
-            on:click|stopPropagation={() => {
-              handleManageHub(row.original);
-              activeDropdownId = null;
-            }}
-          >
-            <EditIcon />
-            <h2>Manage Hub</h2>
-          </button>
-          <button
-            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2 px-2
-                     py-1 text-neutral-50 transition-colors duration-150"
-            data-action="manage-members"
-            data-hub-id={row.original._id}
-            on:click|stopPropagation={() => {
-              handleManageMembers(row.original);
-              activeDropdownId = null;
-            }}
-          >
-            <ManageMembersIcon />
-            <h2>Manage Members</h2>
-          </button>
-          <button
-            class="text-fs-ds-14 leading-lh-ds-130 font-inter hover:bg-surface-300 flex w-full cursor-pointer flex-row items-center gap-2 px-2
-                     py-1 text-neutral-50 transition-colors duration-150"
-            data-action="upgrade"
-            data-hub-id={row.original._id}
-            on:click|stopPropagation={() => {
-              handleUpgrade(row.original);
-              activeDropdownId = null;
-            }}
-          >
-            <UpgradeStandardIcon />
-            <h2>Upgrade to Standard</h2>
-          </button>
-        </div>
-      </div>
-    {/if}
-  </div>
+  </Tooltip>
 </div>
+
+<!-- Dropdown menu - use fixed positioning to avoid clipping issues -->
+{#if isOpen}
+  <div
+    bind:this={dropdownEl}
+    class="fixed z-[999] shadow-xl"
+    style="top: {position.top}px; left: {position.left}px; width: {position.width || 180}px;"
+    on:click|stopPropagation
+  >
+    <div class="bg-surface-600 flex flex-col gap-1 overflow-hidden rounded-sm px-1 py-1">
+      <button
+        class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
+        on:click={(e) => handleManageHub(e, row.original)}
+      >
+        <EditIcon />
+        <h2 class="text-fs-ds-12 font-regular">Manage Hub</h2>
+      </button>
+
+      <button
+        class="hover:bg-surface-300 flex w-full cursor-pointer items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
+        on:click={(e) => handleManageMembers(e, row.original)}
+      >
+        <ManageMembersIcon />
+        <h2 class="text-fs-ds-12 font-regular">Manage Members</h2>
+      </button>
+
+      <button
+        class="hover:bg-surface-300 flex w-full cursor-not-allowed items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
+        on:click={(e) => handleUpgrade(e, row.original)}
+        ><span class="opacity-50"> <UpgradeStandardIcon /></span>
+
+        <h2 class="text-fs-ds-12 font-regular opacity-50">Upgrade to Standard</h2>
+      </button>
+    </div>
+  </div>
+{/if}

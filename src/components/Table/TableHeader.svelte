@@ -15,7 +15,7 @@
 </script>
 
 <th
-  class={`group border-surface-600 font-fw-ds-500 text-fs-ds-12 border-b p-3 text-left text-neutral-400 ${className}`}
+  class={`group border-surface-600 font-fw-ds-500 text-fs-ds-12 border-b p-2 text-left text-neutral-400 ${className}`}
 >
   {#if header.isPlaceholder}
     <span />

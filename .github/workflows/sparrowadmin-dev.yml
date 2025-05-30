@@ -1,8 +1,9 @@
-name: Sparrowadmin-dev
+name: Sparrow-admin-dev
 on:
   push:
     branches:
       - development
+    workflow_dispatch:
 
 jobs:
    build:
@@ -18,7 +19,13 @@ jobs:
               password: ${{ secrets.REGISTRY_PASSWORD }}
 
          - run: |
-              docker build -t sparrowprod.azurecr.io/sparrow-admin-app:${{ github.run_number }} .
+              docker build \
+              --build-arg VITE_SPARROW_LAUNCH_URL=${{ vars.VITE_SPARROW_LAUNCH_URL }} \
+              --build-arg VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }} \
+              --build-arg VITE_LOGIN_REDIRECT=${{ vars.VITE_LOGIN_REDIRECT }} \
+              --build-arg VITE_SPARROW_DOCS_URL=${{ vars.VITE_SPARROW_DOCS_URL }} \
+              -t sparrowprod.azurecr.io/sparrow-admin-app:${{ github.run_number }} .
+
               docker push sparrowprod.azurecr.io/sparrow-admin-app:${{ github.run_number }}
 
    deploy:

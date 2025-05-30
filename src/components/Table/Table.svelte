@@ -1,54 +1,34 @@
 <script lang="ts">
   import { createSvelteTable, type ColumnDef } from '@tanstack/svelte-table';
   import { getCoreRowModel, getSortedRowModel } from '@tanstack/svelte-table';
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import type { SortingState } from '@tanstack/table-core';
   import TableHeader from './TableHeader.svelte';
   import TableCell from './TableCell.svelte';
-  import type { TableProps, TableFetchOptions, TableFetchResponse } from './Tabletypes';
 
   const dispatch = createEventDispatcher();
 
-  // Props
+  export let data: any[] = [];
   export let columns: ColumnDef<any, any>[] = [];
-  export let fetchData: (options: TableFetchOptions) => Promise<TableFetchResponse>;
-  export let initialPageSize = 10;
-  export let initialPageIndex = 0;
-  export let initialSearchTerm = '';
   export let isLoading = false;
-  export let customLoading = false;
-  export let loadingComponent = null;
-  export let emptyStateComponent = null;
+  export let sorting: SortingState = [];
+  export let pageSize = 10;
+  export let pageIndex = 0;
+  export let totalItems = 0;
+  export let headerClassName = '';
   export let rowClassName = '';
   export let cellClassName = '';
-  export let headerClassName = '';
   export let containerClassName = '';
-  export let showSearch = true;
-  export let showPagination = true;
+  export let emptyStateComponent = null;
 
-  // Internal state
-  let data: any[] = [];
-  let totalItems = 0;
-  let pageCount = 0;
-  let sorting: SortingState = [];
-  let activeDropdownId: string | null = null;
-
-  // Reactive state
-  $: pagination = {
-    pageIndex: initialPageIndex,
-    pageSize: initialPageSize,
-  };
-
-  $: filters = {
-    searchTerm: initialSearchTerm,
-  };
+  // Get last column ID for width handling
+  $: lastColumnId = columns[columns.length - 1]?.id;
 
   // Table instance
   $: table = createSvelteTable({
     data,
     columns,
     state: {
-      pagination,
       sorting,
     },
     onSortingChange: (updater) => {
@@ -59,64 +39,19 @@
       }
       dispatch('sortingChange', sorting);
     },
-    manualPagination: true,
-    manualSorting: true,
-    pageCount,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Load data function
-  async function loadData() {
-    try {
-      isLoading = true;
-      const result = await fetchData({ pagination, filters, sorting });
-      data = result.data;
-      totalItems = result.totalItems;
-      pageCount = result.pageCount || Math.ceil(totalItems / pagination.pageSize);
-
-      dispatch('stateChange', {
-        pagination,
-        filters,
-        sorting,
-        totalItems,
-        pageCount,
-      });
-    } catch (error) {
-      console.error('Error loading data:', error);
-      dispatch('error', error);
-    } finally {
-      isLoading = false;
-    }
+  function handleRowClick(row: any) {
+    dispatch('rowClick', row.original);
   }
-
-  // Watch for changes to reload data
-  $: pagination, filters, sorting, loadData();
-
-  // Handle outside clicks for dropdowns
-  function handleClickOutside(event: MouseEvent) {
-    if (activeDropdownId && !(event.target as HTMLElement).closest('[data-action="toggle-menu"]')) {
-      activeDropdownId = null;
-    }
-  }
-
-  onMount(() => {
-    loadData();
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  });
 </script>
 
 <div class="table-outer-wrapper">
-  {#if isLoading && !customLoading}
+  {#if isLoading}
     <div class="loading-overlay">
-      {#if loadingComponent}
-        <svelte:component this={loadingComponent} />
-      {:else}
-        <div class="loading-spinner" />
-      {/if}
+      <div class="loading-spinner" />
     </div>
   {/if}
 
@@ -136,29 +71,19 @@
         <tbody>
           {#each $table.getRowModel().rows as row}
             <tr
-              class={`table-row ${rowClassName}`}
-              on:click={(e) => {
-                dispatch('rowClick', row.original);
-                dispatch('click', e);
-              }}
+              class="group/row hover:bg-surface-800 border-surface-600 border-b transition-colors duration-150 {rowClassName}"
+              on:click={() => handleRowClick(row)}
             >
               {#each row.getVisibleCells() as cell}
-                <TableCell {cell} className={cellClassName} on:click />
+                <TableCell
+                  {cell}
+                  className={cellClassName}
+                  showOnHover={cell.column.id === 'launch'}
+                  isLastColumn={cell.column.id === lastColumnId}
+                />
               {/each}
             </tr>
           {/each}
-
-          {#if $table.getRowModel().rows.length === 0}
-            <tr>
-              <td colspan={columns.length} class="empty-state">
-                {#if emptyStateComponent}
-                  <svelte:component this={emptyStateComponent} />
-                {:else}
-                  No data available
-                {/if}
-              </td>
-            </tr>
-          {/if}
         </tbody>
       </table>
     </div>
@@ -214,36 +139,10 @@
     border-collapse: collapse;
   }
 
-  .table-row {
-    transition: background-color 150ms;
-  }
-
-  .table-row:hover {
-    background-color: #181c26;
-  }
-
   .empty-state {
     padding: 2rem;
     text-align: center;
     color: rgb(156 163 175);
-  }
-
-  .table-scroll-container::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-track {
-    background: #1a1a1a;
-    border-radius: 4px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-thumb {
-    background: #4a4a4a;
-    border-radius: 4px;
-  }
-
-  .table-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: #666;
   }
 
   @keyframes spin {
