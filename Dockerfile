@@ -22,11 +22,8 @@ RUN npm run build
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-<<<<<<< Updated upstream
+
 COPY default.conf /etc/nginx/conf.d/default.conf
-=======
-COPY nginx.conf /etc/nginx/conf.d/nginx.conf
->>>>>>> Stashed changes
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
