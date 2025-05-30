@@ -183,7 +183,7 @@
                 <div class="flex flex-col py-1">
                   <button
                     class="hover:bg-surface-300 {UserRoleData === 'viewer'
-                      ? 'cursor-not-allowed'
+                      ? 'cursor-not-allowed opacity-50'
                       : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={handleEditWorkspace}
                     disabled={UserRoleData === 'viewer'}
@@ -200,7 +200,7 @@
                   <button
                     class="hover:bg-surface-300 {topData.WorkspaceType === 'PRIVATE' &&
                     (UserRoleData === 'editor' || UserRoleData === 'viewer')
-                      ? 'cursor-not-allowed'
+                      ? 'cursor-not-allowed opacity-50'
                       : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-neutral-50"
                     on:click={() => {
                       if (topData.WorkspaceType === 'PRIVATE') {
@@ -220,7 +220,7 @@
                   <button
                     class="hover:bg-surface-300 {UserRoleData === 'viewer' ||
                     UserRoleData === 'editor'
-                      ? 'cursor-not-allowed'
+                      ? 'cursor-not-allowed opacity-50'
                       : 'cursor-pointer'} flex w-full items-center gap-2 px-4 py-2 text-left text-red-300"
                     on:click={handleDeleteWorkspace}
                     disabled={UserRoleData === 'editor' || UserRoleData === 'viewer'}
