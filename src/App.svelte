@@ -13,7 +13,7 @@
   onMount(() => {
     
     // Check immediately
-    if ($auth.isLoggedIn) {
+    if (auth.isLoggedIn) {
       checkAndRefreshToken();
     }
 
