@@ -13,13 +13,13 @@
   onMount(() => {
     
     // Check immediately
-    if (auth.isLoggedIn) {
+    if ($auth.isLoggedIn) {
       checkAndRefreshToken();
     }
 
     // Then check periodically (every minute)
     tokenCheckInterval = setInterval(() => {
-      if (auth.isLoggedIn) {
+      if ($auth.isLoggedIn) {
         checkAndRefreshToken();
       }
     }, 60000);
