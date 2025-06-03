@@ -1,7 +1,5 @@
 import { makeRequest } from './api.common';
 
-const API_URL = 'http://localhost:3000';
-
 interface BillingDetailsUpdateParams {
   name: string;
   email: string;
@@ -17,20 +15,11 @@ interface BillingDetailsUpdateParams {
 
 export class BillingService {
   /**
-   * Get customer information
-   */
-  public async getCustomer(): Promise<any> {
-    const url = `${API_URL}/stripe/customer`;
-    const res = await makeRequest('GET', url);
-    return res?.data;
-  }
-
-  /**
    * Create a new customer
    * @param customerData Customer information
    */
   public async createCustomer(customerData: any): Promise<any> {
-    const url = `${API_URL}/stripe/customers`;
+    const url = `/api/stripe/customers`;
     const res = await makeRequest('POST', url, customerData);
     return res?.data;
   }
@@ -39,7 +28,7 @@ export class BillingService {
    * Get Stripe configuration including publishable key
    */
   public async getStripeConfig(): Promise<any> {
-    const url = `${API_URL}/stripe/config`;
+    const url = `/api/stripe/config`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
@@ -48,7 +37,7 @@ export class BillingService {
    * Create a setup intent for adding a payment method
    */
   public async createSetupIntent(customerId: string): Promise<any> {
-    const url = `${API_URL}/stripe/setup-intents`;
+    const url = `/api/stripe/setup-intents`;
     const res = await makeRequest('POST', url, { customerId });
     return res?.data;
   }
@@ -62,7 +51,7 @@ export class BillingService {
       return Promise.resolve({ paymentMethods: [], totalCount: 0 });
     }
 
-    const url = `${API_URL}/payment-methods/customer/${customerId}`;
+    const url = `/api/payment-methods/customer/${customerId}`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
@@ -72,7 +61,7 @@ export class BillingService {
    * @param paymentMethodId The payment method ID
    */
   public async getPaymentMethod(paymentMethodId: string): Promise<any> {
-    const url = `${API_URL}/payment-methods/${paymentMethodId}`;
+    const url = `/api/payment-methods/${paymentMethodId}`;
     const res = await makeRequest('GET', url);
     return res?.data;
   }
@@ -86,7 +75,7 @@ export class BillingService {
     paymentMethodId: string,
     billingDetails: BillingDetailsUpdateParams,
   ): Promise<any> {
-    const url = `${API_URL}/payment-methods/${paymentMethodId}/billing-details`;
+    const url = `/api/payment-methods/${paymentMethodId}/billing-details`;
     const res = await makeRequest('PUT', url, billingDetails);
     return res?.data;
   }
@@ -96,7 +85,7 @@ export class BillingService {
    * @param paymentMethodId The payment method ID
    */
   public async deletePaymentMethod(paymentMethodId: string): Promise<any> {
-    const url = `${API_URL}/payment-methods/${paymentMethodId}`;
+    const url = `/api/payment-methods/${paymentMethodId}`;
     const res = await makeRequest('DELETE', url);
     return res?.data;
   }
