@@ -26,7 +26,7 @@
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import Tooltip from '@/components/Tooltip/Tooltip.svelte';
-  import NameWithTooltip from '@/components/NameWithTooltip/NameWithTooltip.svelte';
+  import NameWithTooltip from '@/components/TableComponents/NameWithTooltip.svelte';
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
