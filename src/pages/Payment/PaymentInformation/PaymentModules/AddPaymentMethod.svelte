@@ -126,7 +126,7 @@
       cardNumber = elements.create('cardNumber', {
         style: baseStyle,
         placeholder: 'Enter Card Number',
-        showIcon: false,
+        showIcon: true,
       });
 
       cardExpiry = elements.create('cardExpiry', {

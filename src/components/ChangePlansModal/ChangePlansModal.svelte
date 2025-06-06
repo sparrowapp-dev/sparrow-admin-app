@@ -1,15 +1,14 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import Button from '@/ui/Button/Button.svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
-  import SelectIcon from '@/assets/icons/SelectIcon.svelte';
-  import CloseIconV2 from '@/assets/icons/CloseIconV2.svelte';
   import Tag from '@/ui/Tag/Tag.svelte';
 
   // Props
   export let hubId = null;
   export let hubName = 'Techdome Hub';
   export let currentPlan = 'Community';
+  export let currentBillingCycle = 'monthly';
+  export let subscriptionId = null;
   export let planDetails = {
     community: {
       monthly: {
@@ -19,8 +18,7 @@
         workspaces: 3,
         collections: 'Unlimited',
         collaborators: 5,
-        selectiveRuns: false,
-        priorityEmail: false,
+
         buttonText: 'Pricing Plans',
       },
       annual: {
@@ -30,8 +28,7 @@
         workspaces: 3,
         collections: 'Unlimited',
         collaborators: 5,
-        selectiveRuns: false,
-        priorityEmail: false,
+
         buttonText: 'Pricing Plans',
       },
     },
@@ -43,9 +40,9 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Upgrade',
+        priceId: 'price_1RWA2cFLRwufXqZC8xD8DFFd',
       },
       annual: {
         price: '$99',
@@ -54,10 +51,10 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Upgrade',
-        discount: 'Save 49%',
+        discount: 'Save 17.4%',
+        priceId: 'price_1RWA3dFLRwufXqZCZtH5Cag1',
       },
     },
     professional: {
@@ -68,9 +65,9 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Upgrade',
+        priceId: 'price_1RWA36FLRwufXqZCI3ZHq47j',
       },
       annual: {
         price: '$199',
@@ -79,10 +76,10 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Upgrade',
-        discount: 'Save 49%',
+        discount: 'Save 17%',
+        priceId: 'price_1RWA4LFLRwufXqZCpE56Ovl5',
       },
     },
     enterprise: {
@@ -93,8 +90,7 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Contact Sales',
       },
       annual: {
@@ -104,17 +100,16 @@
         workspaces: 'Unlimited',
         collections: 'Unlimited',
         collaborators: 'Unlimited',
-        selectiveRuns: true,
-        priorityEmail: true,
+
         buttonText: 'Contact Sales',
-        discount: 'Save 49%',
+        discount: 'Save 16.8%',
       },
     },
   };
 
   // State
-  let billingCycle = 'monthly'; // 'monthly' or 'annual'
-  let userCount = 10; // Default user count for calculation
+  let billingCycle = currentBillingCycle || 'monthly'; // Initialize to current billing cycle
+  let userCount = 1; // Default user count for calculation
 
   // Computed properties
   $: plans = ['community', 'standard', 'professional', 'enterprise'];
@@ -149,8 +144,34 @@
           billingCycle === 'monthly'
             ? planDetails[plan].monthly.price
             : planDetails[plan].annual.price,
+
+        priceId:
+          billingCycle === 'monthly'
+            ? planDetails[plan].monthly.priceId
+            : planDetails[plan].annual.priceId,
       });
     }
+  }
+
+  // Check if a plan is selectable
+  function isPlanSelectable(plan) {
+    // Enterprise plan is always available for contact
+    if (plan === 'enterprise') return true;
+
+    // Cannot select the current plan
+    if (plan === currentPlanLower) return false;
+
+    // Cannot downgrade from Professional to Standard or Community
+    if (currentPlanLower === 'professional' && (plan === 'standard' || plan === 'community')) {
+      return false;
+    }
+
+    // Cannot downgrade from Standard to Community
+    if (currentPlanLower === 'standard' && plan === 'community') {
+      return false;
+    }
+
+    return true;
   }
 
   // Close modal
@@ -165,7 +186,8 @@
       <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Change Your Plan</h2>
       <p class="text-fs-ds-14 font-fw-ds-300 font-inter mt-2 text-neutral-400">
         Select a different plan that fits your needs. Your current plan is highlighted below. The
-        new plan will take effect immediately.
+        new plan will take effect immediately or at the start of your next billing cycle depending
+        on your billing terms.
       </p>
     </div>
     <button class="cursor-pointer" on:click={handleClose}>
@@ -204,7 +226,7 @@
   </div>
 
   <!-- Plan comparison table -->
-  <div class="mb-6 h-[20rem] overflow-x-auto">
+  <div class=" overflow-x-auto">
     <table class="w-full min-w-full">
       <thead class="border-surface-500 border-b">
         <tr>
@@ -215,7 +237,7 @@
             <th class="text-fs-ds-12 font-inter font-fw-ds-500 py-3 text-left text-neutral-400">
               {plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
 
-              <!-- Use new Tag component for "Current Plan" -->
+              <!-- Show Current Plan or discount badge -->
               {#if plan === currentPlanLower}
                 <div class="mt-1">
                   <Tag
@@ -292,57 +314,34 @@
             </td>
           {/each}
         </tr>
-        <tr class="border-surface-700 border-b">
-          <td class="text-fs-ds-12 font-inter font-fw-ds-400 py-3 text-neutral-50"
-            >Selective Runs</td
-          >
-          {#each plans as plan}
-            <td class="py-3">
-              <div class="flex justify-start">
-                {#if planDetails[plan][billingCycle].selectiveRuns}
-                  <SelectIcon />
-                {:else}
-                  <CloseIconV2 />
-                {/if}
-              </div>
-            </td>
-          {/each}
-        </tr>
-        <tr class="border-surface-700 border-b">
-          <td class="text-fs-ds-12 font-inter font-fw-ds-400 py-3 text-neutral-50"
-            >Priority Email</td
-          >
-          {#each plans as plan}
-            <td class="py-3">
-              <div class="flex justify-start">
-                {#if planDetails[plan][billingCycle].priorityEmail}
-                  <SelectIcon />
-                {:else}
-                  <CloseIconV2 />
-                {/if}
-              </div>
-            </td>
-          {/each}
-        </tr>
+
         <tr>
-          <td class="py-3"></td>
+          <td>
+            <button
+              class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-400 underline disabled:cursor-not-allowed"
+            >
+              Pricing Plans
+            </button>
+          </td>
           {#each plans as plan}
-            <td class="py-3">
-              {#if plan === currentPlanLower}
-                <span class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-500"
-                  >Your plan</span
-                >
+            <td class="py-3"
+              >{#if plan === currentPlanLower}
+                <span class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-500">
+                  Your plan
+                </span>
               {:else if plan === 'enterprise'}
                 <button
-                  class="text-fs-ds-12 font-inter font-fw-ds-400 text-blue-400 underline"
+                  class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-400 underline disabled:cursor-not-allowed"
                   on:click={() => selectPlan(plan)}
+                  disabled={!isPlanSelectable(plan)}
                 >
                   Contact Sales
                 </button>
               {:else}
                 <button
-                  class="text-fs-ds-12 font-inter font-fw-ds-400 text-blue-400 underline"
+                  class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-400 underline disabled:cursor-not-allowed"
                   on:click={() => selectPlan(plan)}
+                  disabled={!isPlanSelectable(plan)}
                 >
                   Upgrade
                 </button>
@@ -356,32 +355,8 @@
     <!-- Cost estimate -->
 
     <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
-      Note: With {userCount} users on your team, here's what your estimated {billingCycle} cost would
-      look like for each plan:
-    </p>
-    <ul class="text-fs-ds-14 font-inter font-fw-ds-300 mt-3 list-disc pl-6 text-neutral-400">
-      <li>
-        Community Plan – {billingCycle === 'monthly'
-          ? monthlyCosts.community
-          : annualCosts.community}
-      </li>
-      <li>
-        Standard Plan – {billingCycle === 'monthly' ? monthlyCosts.standard : annualCosts.standard}
-      </li>
-      <li>
-        Professional Plan – {billingCycle === 'monthly'
-          ? monthlyCosts.professional
-          : annualCosts.professional}
-      </li>
-      <li>
-        Enterprise Plan – {billingCycle === 'monthly'
-          ? monthlyCosts.enterprise
-          : annualCosts.enterprise} (Reach out to Sales for more info)
-      </li>
-    </ul>
-
-    <p class="text-fs-ds-14 font-inter font-fw-ds-300 mt-3 text-neutral-400">
-      You'll see the final pricing details on the checkout page.
+      With {userCount} users in your hub, your final cost will be calculated based on the selected plan.
+      A full breakdown will be shown at checkout. Please contact sales for more information
     </p>
   </div>
 </div>
