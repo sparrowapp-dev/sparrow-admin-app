@@ -104,6 +104,16 @@
     }
 
     if (modalVariants.isInviteModal) {
+      if (formData.emails.length === 0) {
+        newErrors.emailError = 'Please enter email ID.';
+      } else if (hasInvalidEmails) {
+        newErrors.emailError = 'Please check and enter correct email address.';
+      }
+
+      // Validate role selection
+      if (!formData.selectedRole.id) {
+        newErrors.roleError = 'Please select role of the user.';
+      }
     }
 
     if (modalVariants.isDeleteWorkspaceModalOpen) {
