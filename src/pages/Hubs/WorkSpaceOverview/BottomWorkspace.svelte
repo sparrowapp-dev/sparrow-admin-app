@@ -141,7 +141,7 @@
                 extra = 'Steps';
               }
               if (resourceType === 'collections') {
-                extra = 'Apis';
+                extra = 'APIs';
               }
               return `${stats} ${extra}`;
             },

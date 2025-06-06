@@ -25,7 +25,8 @@
   import AddHubs from '@/components/AddHubs/AddHubs.svelte';
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-
+  import Tooltip from '@/components/Tooltip/Tooltip.svelte';
+  import NameWithTooltip from '@/components/TableComponents/NameWithTooltip.svelte';
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
@@ -99,6 +100,10 @@
       header: 'Sparrow Hubs',
       enableSorting: true,
       enableSortingRemoval: false,
+      cell: ({ getValue }) => ({
+        Component: NameWithTooltip,
+        props: { Value: getValue() },
+      }),
     },
     {
       accessorKey: 'hubUrl',
@@ -190,7 +195,7 @@
           icon: Hubsicon,
         },
         {
-          title: 'Workspaces',
+          title: 'Total Workspaces',
           value: $summaryData.data.workspaces.total,
           icon: WorkspaceIcon2,
           subData: [
@@ -199,7 +204,7 @@
           ],
         },
         {
-          title: 'Contributors',
+          title: 'Total Contributors',
           value: $summaryData.data.totalContributors.total,
           icon: ContributionIcon,
           subData: [
