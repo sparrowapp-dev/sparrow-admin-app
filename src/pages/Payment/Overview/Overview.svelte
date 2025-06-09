@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
@@ -10,8 +11,43 @@
   import { billingService } from '@/services/billing.service';
   import { navigate } from 'svelte-routing';
   import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
+  import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
 
   const location = useLocation();
+
+  // Add Stripe instance
+  let stripe;
+
+  // Initialize Stripe on mount
+  onMount(async () => {
+    await initializeStripe();
+  });
+
+  // Initialize Stripe with the publishable key from our API
+  async function initializeStripe() {
+    try {
+      // Load Stripe.js if not already loaded
+      if (!window.Stripe) {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.async = true;
+        document.body.appendChild(script);
+
+        // Wait for script to load
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+
+      // Fetch the publishable key from our backend using the service
+      const { publishableKey } = await billingService.getStripeConfig();
+
+      // Initialize Stripe
+      stripe = window.Stripe(publishableKey);
+    } catch (err) {
+      console.error('Error initializing Stripe:', err);
+    }
+  }
 
   // Extract hubId from URL
   let hubId = null;
@@ -24,24 +60,29 @@
     }
   }
 
-  // State
+  // UI state
   let showChangePlanModal = false;
   let showPaymentMethodModal = false;
   let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
-  let currentPlan = 'Community';
+  let isLoadingSubscription = false;
+
+  // Default values - will be updated when subscription data is loaded
   let hubName = 'Techdome Hub';
   let customerId = null;
   let subscriptionData = null;
-  let isLoadingSubscription = false;
 
   // Subscription details
-  let subscriptionId = null;
-  let currentPrice = '$0.00';
-  let currentBillingCycle = 'monthly';
-  let nextBillingDate = '';
-  let lastInvoiceAmount = '$0.00';
-  let totalPaidAmount = '$0.00';
+  let {
+    subscriptionId = null,
+    currentPlan = 'Community',
+    currentPrice = '$0.00',
+    currentBillingCycle = 'monthly',
+    nextBillingDate = '',
+    lastInvoiceAmount = '$0.00',
+    totalPaidAmount = '$0.00',
+    userCount = 1,
+  } = {};
 
   // Selected plan details for payment
   let selectedPlanDetails = {
@@ -51,9 +92,6 @@
     price: '',
     totalAmount: '',
   };
-
-  // User count
-  let userCount = 1;
 
   // Fetch customer ID
   const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
@@ -82,6 +120,7 @@
     return billingService.getCustomerSubscriptions(customerId);
   });
 
+  // Re-fetch subscription data when customerId changes
   $: {
     if (customerId || customerId === null) {
       refetchSubscription();
@@ -93,94 +132,18 @@
     isLoadingSubscription = false;
     subscriptionData = $subscriptionApiData?.subscriptions?.[0] || null;
 
-    if (subscriptionData) {
-      // Extract subscription details
-      subscriptionId = subscriptionData.id;
+    // Process subscription data using the utility function
+    const processedData = processSubscriptionData(subscriptionData);
 
-      // Get metadata
-      const metadata = subscriptionData.metadata || {};
-
-      // Set current plan from metadata or default to 'Community'
-      currentPlan = metadata.planName || 'Community';
-
-      // Get user count from metadata or default to 1
-      userCount = parseInt(metadata.userCount || '1', 10);
-
-      // Get current price details from subscription items
-      if (subscriptionData.items?.data?.length > 0) {
-        const priceDetails = subscriptionData.items.data[0].price;
-        if (priceDetails) {
-          // Format price amount (comes in cents)
-          const unitAmount = priceDetails.unit_amount / 100;
-          currentPrice = `$${unitAmount.toFixed(2)}`;
-
-          // Determine billing cycle
-          currentBillingCycle = priceDetails.recurring?.interval || 'month';
-          currentBillingCycle = currentBillingCycle === 'month' ? 'monthly' : 'annual';
-        }
-      } else if (subscriptionData.plan) {
-        // Fallback to plan object if items are not available
-        const unitAmount = subscriptionData.plan.amount / 100;
-        currentPrice = `$${unitAmount.toFixed(2)}`;
-
-        // Get billing cycle from plan
-        currentBillingCycle = subscriptionData.plan.interval || 'month';
-        currentBillingCycle = currentBillingCycle === 'month' ? 'monthly' : 'annual';
-      }
-
-      // Format next billing date using current_period_end from subscription or items
-      if (subscriptionData.items?.data?.[0]?.current_period_end) {
-        const date = new Date(subscriptionData.items.data[0].current_period_end * 1000);
-        nextBillingDate = date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-      }
-      // If latest_invoice is a string (reference), we can't extract data directly
-      // In a production app, you would fetch the invoice details using that ID
-      if (subscriptionData.latest_invoice && typeof subscriptionData.latest_invoice !== 'string') {
-        if (subscriptionData.latest_invoice.amount_paid) {
-          const amount = subscriptionData.latest_invoice.amount_paid / 100;
-          lastInvoiceAmount = `$${amount.toFixed(2)}`;
-          totalPaidAmount = lastInvoiceAmount; // For now, use last invoice amount
-        }
-      } else {
-        // If latest_invoice is a string ID or not available, use current price as a fallback
-        lastInvoiceAmount = currentPrice;
-        totalPaidAmount = currentPrice;
-      }
-
-      // Check subscription status
-      const isActive = subscriptionData.status === 'active';
-      if (!isActive) {
-        // If subscription is not active, add status indicator to currentPlan
-        currentPlan = `${currentPlan} (${subscriptionData.status.charAt(0).toUpperCase() + subscriptionData.status.slice(1)})`;
-      }
-
-      // Check if subscription is scheduled to be canceled
-      if (subscriptionData.cancel_at_period_end) {
-        // Add indication that the subscription will be canceled
-        const cancelDate = new Date(subscriptionData.current_period_end * 1000);
-        const formattedCancelDate = cancelDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-
-        // Update UI to show cancellation status
-        currentPlan = `${currentPlan} (Cancels on ${formattedCancelDate})`;
-      }
-    } else {
-      // Default values for Community plan
-      currentPlan = 'Community';
-      currentPrice = '$0.00';
-      currentBillingCycle = 'monthly';
-      nextBillingDate = '';
-      lastInvoiceAmount = '$0.00';
-      totalPaidAmount = '$0.00';
-      subscriptionId = null;
-    }
+    // Update all subscription-related variables
+    subscriptionId = processedData.subscriptionId;
+    currentPlan = processedData.currentPlan;
+    currentPrice = processedData.currentPrice;
+    currentBillingCycle = processedData.currentBillingCycle;
+    nextBillingDate = processedData.nextBillingDate;
+    lastInvoiceAmount = processedData.lastInvoiceAmount;
+    totalPaidAmount = processedData.totalPaidAmount;
+    userCount = processedData.userCount;
   }
 
   // Handle upgrade button click
@@ -194,17 +157,15 @@
 
     // Store selected plan details
     selectedPlanDetails = {
-      plan: plan.charAt(0).toUpperCase() + plan.slice(1),
+      plan: capitalizeFirstLetter(plan),
       billingCycle,
       priceId: priceId || '',
       price,
       totalAmount: price,
     };
 
-    // Close the plan selection modal
+    // Close the plan selection modal and show the payment method selection modal
     showChangePlanModal = false;
-
-    // Show the payment method selection modal
     showPaymentMethodModal = true;
   }
 
@@ -219,18 +180,53 @@
     isLoadingSubscription = true;
 
     try {
+      // Prepare common metadata for both create and update operations
+      const metadata = {
+        hubId,
+        userCount: userCount.toString(),
+        planName,
+      };
+
+      let result;
+
       // Determine if we need to create or update a subscription
       if (subscriptionId) {
         // Update existing subscription
-        await billingService.updateSubscription({
+        result = await billingService.updateSubscription({
           subscriptionId,
           priceId,
-          metadata: {
-            hubId,
-            userCount: userCount.toString(),
-            planName,
-          },
+          paymentMethodId,
+          metadata,
         });
+      } else if (customerId) {
+        // Create new subscription
+        result = await billingService.createSubscription({
+          customerId,
+          priceId,
+          paymentMethodId,
+          metadata,
+        });
+      } else {
+        throw new Error('No customer ID available to create subscription');
+      }
+
+      // Handle any required authentication (like 3D Secure)
+      if (result.requiresAction && result.clientSecret) {
+        // Use stripe.confirmCardPayment to handle the 3D Secure challenge
+        const { paymentIntent, error } = await stripe.confirmCardPayment(result.clientSecret);
+
+        if (error) {
+          // Payment failed after user attempted authentication
+          throw new Error(error.message || 'Payment authentication failed. Please try again.');
+        } else if (paymentIntent.status === 'succeeded') {
+          // Payment was successful after authentication
+          console.log('Payment authentication successful');
+        }
+      }
+
+      // Set the subscription ID from the result if it's a new subscription
+      if (!subscriptionId && result.subscriptionId) {
+        subscriptionId = result.subscriptionId;
       }
 
       // Show the confirmation modal
@@ -241,9 +237,12 @@
 
       // Refetch subscription data
       refetchSubscription();
-    } catch (error) {
-      console.error('Error updating subscription:', error);
-      // You could add error handling here
+    } catch (err) {
+      console.error('Error processing subscription:', err);
+      // Show error notification to the user
+      if (window.notification && notification.error) {
+        notification.error(`Subscription failed: ${err.message}`);
+      }
     } finally {
       isLoadingSubscription = false;
     }
@@ -531,15 +530,6 @@
   <!-- Subscription Confirmation Modal -->
   {#if showSubscriptionConfirmModal}
     <Modal width="max-w-xl" on:close={closeModals}>
-      <!-- <SubscriptionConfirmation
-        planName={selectedPlanDetails.plan}
-        billingCycle={selectedPlanDetails.billingCycle}
-        amount={selectedPlanDetails.totalAmount}
-        {userCount}
-        {nextBillingDate}
-        on:close={closeModals}
-        on:viewSubscription={handleViewSubscription}
-      /> -->
       <PlanUpdateSuccess
         hubName="Techdome Hub"
         currentPlan={selectedPlanDetails.plan}

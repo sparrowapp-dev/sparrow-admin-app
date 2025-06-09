@@ -33,10 +33,9 @@
   // Local state
   let selectedPaymentMethodId: string = '';
   let error: any = '';
-  let confirmInProgress = false;
+  let showProratedInfo: boolean = false;
   let proratedAmount: string = totalAmount;
   let proratedDate: string = '';
-  let showProratedInfo: boolean = false;
 
   // Fetch payment methods
   const { data: paymentMethodsData, isFetching: isLoadingPaymentMethods } = createQuery(
@@ -107,64 +106,25 @@
     selectedPaymentMethodId = event.detail.value;
   }
 
-  async function handlePaymentConfirm() {
-    if (!selectedPaymentMethodId || !priceId || !customerId || confirmInProgress) {
+  // Modified to simply dispatch the selected payment method without making API calls
+  function handlePaymentConfirm() {
+    if (!selectedPaymentMethodId || !priceId || !customerId) {
       return;
     }
 
     try {
-      confirmInProgress = true;
       error = null;
 
-      if (subscriptionId) {
-        // Update existing subscription
-        const result = await billingService.updateSubscription({
-          subscriptionId,
-          priceId,
-          metadata: {
-            hubId,
-            userCount: userCount.toString(),
-            planName,
-          },
-        });
-
-        // If subscription update was successful
-        if (result?.subscription) {
-          dispatch('paymentMethodSelected', {
-            paymentMethodId: selectedPaymentMethodId,
-            planName,
-            priceId,
-            billingCycle,
-          });
-        }
-      } else {
-        // Create new subscription
-        const result = await billingService.createSubscription({
-          customerId,
-          priceId,
-          paymentMethodId: selectedPaymentMethodId,
-          metadata: {
-            hubId,
-            userCount: userCount.toString(),
-            planName,
-          },
-        });
-
-        // If subscription creation was successful
-        if (result?.subscription) {
-          dispatch('paymentMethodSelected', {
-            paymentMethodId: selectedPaymentMethodId,
-            planName,
-            priceId,
-            billingCycle,
-          });
-        }
-      }
+      // Dispatch the selected payment method to the parent component
+      dispatch('paymentMethodSelected', {
+        paymentMethodId: selectedPaymentMethodId,
+        planName,
+        priceId,
+        billingCycle,
+      });
     } catch (err: any) {
-      console.error('Error processing subscription:', err);
-      error = err.message || 'Failed to process subscription. Please try again.';
-    } finally {
-      confirmInProgress = false;
+      console.error('Error selecting payment method:', err);
+      error = err.message || 'Failed to select payment method. Please try again.';
     }
   }
 </script>
@@ -300,7 +260,6 @@
     <Button
       variant="filled-primary"
       disabled={!selectedPaymentMethodId ||
-        confirmInProgress ||
         paymentMethods.length === 0 ||
         $isLoadingPaymentMethods ||
         $isLoadingProration}
