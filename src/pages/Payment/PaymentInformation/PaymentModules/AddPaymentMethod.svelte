@@ -221,6 +221,7 @@
           },
         };
 
+        // stripe api requires a hub ID to create a customer
         const { customer } = await billingService.createCustomer(customerData);
         customerId = customer.id;
 
