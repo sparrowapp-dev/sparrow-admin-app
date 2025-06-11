@@ -1,5 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { io } from 'socket.io-client';
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
@@ -12,6 +13,9 @@
   import { navigate } from 'svelte-routing';
   import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
   import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
+  import { notification } from '@/components/Toast';
+  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { API_BASE_URL } from '@/constants/environment';
 
   const location = useLocation();
 
@@ -21,6 +25,14 @@
   // Initialize Stripe on mount
   onMount(async () => {
     await initializeStripe();
+    initializeSocket();
+  });
+
+  // Cleanup socket connection on component destroy
+  onDestroy(() => {
+    if (socket) {
+      socket.disconnect();
+    }
   });
 
   // Initialize Stripe with the publishable key from our API
@@ -49,6 +61,80 @@
     }
   }
 
+  let socket;
+
+  function initializeSocket() {
+    // Connect to the stripe-events namespace
+    socket = io(`${API_BASE_URL}`, {
+      path: '/socket.io',
+      namespace: 'stripe-events',
+      transports: ['polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+    });
+
+    // Connection events
+    socket.on('connect', () => {
+      console.log('Connected to stripe-events socket:', socket.id);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from stripe-events socket:', reason);
+    });
+
+    // Payment events
+    socket.on('payment_success', (data) => {
+      console.log('Payment success:', data);
+      const { team } = data;
+      isProcessingPayment = false;
+
+      // Update selectedPlanDetails with team data
+      selectedPlanDetails = {
+        ...selectedPlanDetails,
+        fromPlan: team?.plan?.name || currentPlan,
+        toPlan: team?.plan?.name || selectedPlanDetails.plan,
+        hubName: team?.name || hubName,
+      };
+
+      showSubscriptionConfirmModal = true;
+      refetchSubscription();
+    });
+
+    socket.on('payment_failed', (data) => {
+      console.log('Payment failed:', data);
+      const { team } = data;
+      isProcessingPayment = false;
+      notification.error('Payment failed. Please try again or contact support.');
+      refetchSubscription();
+    });
+
+    // Subscription events
+    socket.on('subscription_updated', (data) => {
+      console.log('Subscription updated:', data);
+      const { team } = data;
+      refetchSubscription();
+    });
+
+    socket.on('subscription_created', (data) => {
+      console.log('Subscription created:', data);
+      const { team } = data;
+
+      refetchSubscription();
+    });
+
+    socket.on('subscription_canceled', (data) => {
+      console.log('Subscription canceled:', data);
+      const { team } = data;
+
+      refetchSubscription();
+    });
+  }
+
   // Extract hubId from URL
   let hubId = null;
 
@@ -66,6 +152,7 @@
   let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
   let isLoadingSubscription = false;
+  let isProcessingPayment = false;
 
   // Default values - will be updated when subscription data is loaded
   let hubName = 'Techdome Hub';
@@ -173,11 +260,9 @@
   async function handlePaymentMethodSelected(event) {
     const { paymentMethodId, planName, priceId, billingCycle } = event.detail;
 
-    // Close the payment modal
+    // Close the payment modal and show processing state
     showPaymentMethodModal = false;
-
-    // Show loading state
-    isLoadingSubscription = true;
+    isProcessingPayment = true;
 
     try {
       // Prepare common metadata for both create and update operations
@@ -212,15 +297,11 @@
 
       // Handle any required authentication (like 3D Secure)
       if (result.requiresAction && result.clientSecret) {
-        // Use stripe.confirmCardPayment to handle the 3D Secure challenge
         const { paymentIntent, error } = await stripe.confirmCardPayment(result.clientSecret);
 
         if (error) {
-          // Payment failed after user attempted authentication
+          isProcessingPayment = false;
           throw new Error(error.message || 'Payment authentication failed. Please try again.');
-        } else if (paymentIntent.status === 'succeeded') {
-          // Payment was successful after authentication
-          console.log('Payment authentication successful');
         }
       }
 
@@ -229,22 +310,14 @@
         subscriptionId = result.subscriptionId;
       }
 
-      // Show the confirmation modal
-      showSubscriptionConfirmModal = true;
-
-      // Update current plan in UI
-      currentPlan = planName;
-
-      // Refetch subscription data
-      refetchSubscription();
+      // Don't show confirmation modal here - wait for socket event
+      // Update will come through socket events
     } catch (err) {
       console.error('Error processing subscription:', err);
-      // Show error notification to the user
+      isProcessingPayment = false;
       if (window.notification && notification.error) {
         notification.error(`Subscription failed: ${err.message}`);
       }
-    } finally {
-      isLoadingSubscription = false;
     }
   }
 
@@ -304,6 +377,7 @@
     showPaymentMethodModal = false;
     showAddCardModal = false;
     showSubscriptionConfirmModal = false;
+    isProcessingPayment = false;
   }
 </script>
 
@@ -527,15 +601,22 @@
     </Modal>
   {/if}
 
+  <!-- Processing Payment Modal -->
+  {#if isProcessingPayment}
+    <Modal width="max-w-xl" on:close={closeModals}>
+      <PaymentProcessingModal on:close={closeModals} />
+    </Modal>
+  {/if}
+
   <!-- Subscription Confirmation Modal -->
   {#if showSubscriptionConfirmModal}
     <Modal width="max-w-xl" on:close={closeModals}>
       <PlanUpdateSuccess
-        hubName="Techdome Hub"
-        currentPlan={selectedPlanDetails.plan}
+        hubName={selectedPlanDetails.hubName}
+        currentPlan={selectedPlanDetails.toPlan}
         {nextBillingDate}
-        fromPlan={selectedPlanDetails.plan}
-        toPlan="Professional"
+        fromPlan={selectedPlanDetails.fromPlan}
+        toPlan={selectedPlanDetails.toPlan}
         on:close={closeModals}
         on:goToDashboard={handleViewSubscription}
       />
