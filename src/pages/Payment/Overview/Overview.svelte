@@ -16,6 +16,28 @@
   import { notification } from '@/components/Toast';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { API_BASE_URL } from '@/constants/environment';
+  import { hubsService } from '@/services/hubs.service';
+  import Tag from '@/ui/Tag/Tag.svelte';
+  import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
+  import Alert from '@/components/Alert/Alert.svelte';
+
+  const planColors = {
+    Community: {
+      bg: 'bg-neutral-700',
+      text: 'text-neutral-300',
+      border: 'border-neutral-500',
+    },
+    Standard: {
+      bg: 'bg-purple-900',
+      text: 'text-purple-200',
+      border: 'border-purple-700',
+    },
+    Professional: {
+      bg: 'bg-cyan-900',
+      text: 'text-cyan-300',
+      border: 'border-cyan-700',
+    },
+  };
 
   const location = useLocation();
 
@@ -155,9 +177,12 @@
   let isProcessingPayment = false;
 
   // Default values - will be updated when subscription data is loaded
-  let hubName = 'Techdome Hub';
+  let hubName = '';
   let customerId = null;
   let subscriptionData = null;
+  let currentHubData = null;
+  let planStatus = '';
+  let invoiceUrl = '';
 
   // Subscription details
   let {
@@ -207,11 +232,28 @@
     return billingService.getCustomerSubscriptions(customerId);
   });
 
+  const {
+    data: hubData,
+    isFetching: isFetchingHub,
+    refetch: refetchHub,
+  } = createQuery(async () => {
+    return hubsService.getHubDetails(hubId);
+  });
+
   // Re-fetch subscription data when customerId changes
   $: {
     if (customerId || customerId === null) {
       refetchSubscription();
+      refetchHub();
     }
+  }
+
+  $: if ($hubData !== undefined) {
+    currentHubData = $hubData?.data || null;
+    hubName = currentHubData?.name || '';
+    userCount = currentHubData?.users?.length || 1;
+    planStatus = currentHubData?.billing?.status;
+    invoiceUrl = currentHubData?.billing?.failed_invoice_url || '';
   }
 
   // Process subscription data when it changes
@@ -410,6 +452,19 @@
       >
     </div>
   </div>
+  {#if planStatus !== 'active'}
+    <div class="mt-2 mb-8">
+      <Alert
+        title="Payment Issue Detected"
+        subtitle="Your last payment failed, and your plan is at risk of being paused. Please update your payment information to ensure uninterrupted access."
+        showButton={true}
+        buttonText="Fix Payment Issue"
+        on:buttonClick={() => {
+          window.open(invoiceUrl, '_blank');
+        }}
+      />
+    </div>
+  {/if}
 
   <!-- 2x2 Grid Layout -->
   <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -418,30 +473,34 @@
       <div class="flex flex-col gap-1">
         <div class="flex items-start justify-between">
           <div class="flex flex-col gap-1">
-            <h2 class="text-fs-ds-18 font-inter font-fw-ds-300 text-neutral-50">Current Plan</h2>
-            <p class="text-fs-ds-16 font-inter font-fw-ds-400 mt-3 text-neutral-50">
-              {currentPlan}
-            </p>
+            <div class="flex items-center gap-2">
+              <h2
+                class="text-fs-ds-16 font-inter font-fw-ds-400 max-w-[10rem] truncate text-neutral-50"
+              >
+                {hubName}
+              </h2>
+
+              <Tag
+                text={currentPlan}
+                bgColor={planColors[currentPlan]?.bg}
+                textColor={planColors[currentPlan]?.text}
+                borderColor={planColors[currentPlan]?.border}
+                size="xs"
+              />
+            </div>
             <p class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">
               {currentPrice}<span class="text-fs-ds-12 font-fw-ds-400 text-neutral-200"
                 >{currentBillingCycle === 'monthly' ? '/user/month' : '/user/year'}</span
               >
             </p>
           </div>
-          {#if subscriptionId}
-            <button
-              class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200 underline transition-colors hover:text-blue-300"
-              on:click={handleCancelSubscription}
-            >
-              Cancel Subscription
-            </button>
-          {/if}
         </div>
         <div class="pt-0">
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-1">
             {#if nextBillingDate}
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                 Next billing date: {nextBillingDate}
+                {currentBillingCycle === 'monthly' ? '(Billed monthly)' : '(Billed annually)'}
               </p>
             {/if}
             <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
@@ -454,14 +513,14 @@
             </p>
           </div>
           <button
-            class="text-fs-ds-12 font-inter font-fw-ds-400 text-blue-300 underline"
+            class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
             on:click={handleUpgradeClick}
           >
             Change plan
           </button>
         </div>
       </div>
-      <div class="mt-8 flex items-center justify-between">
+      <div class="mt-4 flex items-center justify-between border-t border-neutral-700 pt-4">
         <div class="flex items-center gap-3">
           <!-- Crown icon -->
           <CrownIcon />
@@ -473,14 +532,14 @@
             </p>
           </div>
         </div>
-        <Button variant="filled-primary" size="medium" on:click={handleUpgradeClick}>
+        <Button variant="outline-primary" size="medium" on:click={handleUpgradeClick}>
           Upgrade
         </Button>
       </div>
     </div>
 
     <!-- Need Help Card -->
-    <div class="bg-surface-600 rounded-lg p-6">
+    <div class="bg-surface-600 flex flex-col justify-between rounded-lg p-6">
       <div class="flex flex-col gap-4">
         <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
           Need help with billing or your plan?
@@ -495,9 +554,9 @@
           plans? Just reach out, we'll walk you through it. We're here to make sure you get the most
           value from your subscription. Don't hesitate to contact us.
         </p>
-        <div>
-          <Button variant="filled-secondary" size="medium">Contact Sales</Button>
-        </div>
+      </div>
+      <div class="border-t border-neutral-700 pt-4">
+        <Button variant="outline-primary" size="medium">Contact Sales</Button>
       </div>
     </div>
 
@@ -508,46 +567,52 @@
         <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
           Quick access to commonly used features.
         </p>
-        <ul class="flex flex-col gap-3">
-          <li>
+        <ul class="flex flex-col gap-5">
+          <li class="flex cursor-pointer items-center gap-2">
             <a
-              href="/manage-users"
-              class="text-fs-ds-14 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 hover:text-blue-400"
+              on:click={() => navigate(`/hubs/members/${hubId}`)}
+              class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
             >
               Manage Users
             </a>
+            <RedirectIcon />
           </li>
-          <li>
+          <li class="flex cursor-pointer items-center gap-2">
             <a
-              href={`/hub/${hubId}`}
-              class="text-fs-ds-14 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 hover:text-blue-400"
+              on:click={() => navigate(`/hubs/workspace/${hubId}`)}
+              class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
             >
               Open Hub
             </a>
+            <RedirectIcon />
           </li>
-          <li>
+
+          <li class="flex cursor-pointer items-center gap-2">
             <a
-              href="/workspaces"
-              class="text-fs-ds-14 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 hover:text-blue-400"
-            >
-              View Workspaces
-            </a>
-          </li>
-          <li>
-            <a
-              href={`/billing/billingInvoices/${hubId}`}
-              class="text-fs-ds-14 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 hover:text-blue-400"
+              on:click={() => navigate(`/billing/billingInvoices/${hubId}`)}
+              class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
             >
               View Invoice History
             </a>
+            <RedirectIcon />
           </li>
-          <li>
+          <li class="flex cursor-pointer items-center gap-2">
             <a
-              href={`/billing/billingInformation/${hubId}`}
-              class="text-fs-ds-14 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 hover:text-blue-400"
+              on:click={() => navigate(`/billing/billingInformation/${hubId}`)}
+              class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
             >
               View Payment Information
             </a>
+            <RedirectIcon />
+          </li>
+          <li class="flex cursor-pointer items-center gap-2">
+            <a
+              on:click={() => navigate(`/hubs/settings/${hubId}`)}
+              class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
+            >
+              Settings
+            </a>
+            <RedirectIcon />
           </li>
         </ul>
       </div>

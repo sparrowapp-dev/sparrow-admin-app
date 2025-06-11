@@ -7,7 +7,12 @@
     dispatch(event.type, event);
   }
 
-  export let variant: 'filled-primary' | 'filled-secondary' | 'filled-tertiary' = 'filled-primary';
+  export let variant:
+    | 'filled-primary'
+    | 'filled-secondary'
+    | 'filled-tertiary'
+    | 'outline-secondary'
+    | 'outline-primary' = 'filled-primary';
   export let size: 'small' | 'medium' | 'large' = 'medium';
   export let disabled: boolean = false;
   export let iconLeft: boolean = false;
@@ -38,6 +43,20 @@
         hover:bg-red-300 active:bg-red-400
         focus-visible:ring-2 focus-visible:ring-red-200
         disabled:bg-red-700 disabled:text-neutral-400
+      `,
+    'outline-primary': `
+        bg-transparent text-blue-300 font-inter font-fw-ds-400
+        hover:bg-blue-400 hover:text-neutral-50 active:bg-blue-600
+        focus-visible:ring-2 focus-visible:ring-blue-200
+        disabled:bg-transparent disabled:text-neutral-500 border border-surface-50
+        hover:border-blue-400 active:border-blue-600
+      `,
+    'outline-secondary': `
+        bg-transparent text-neutral-100 font-inter font-fw-ds-400
+        hover:bg-surface-300 hover:text-neutral-50 active:bg-surface-400
+        focus-visible:ring-2 focus-visible:ring-blue-200
+        disabled:bg-transparent disabled:text-neutral-500 border border-surface-50
+        hover:border-transparent active:border-transparent
       `,
   };
 
