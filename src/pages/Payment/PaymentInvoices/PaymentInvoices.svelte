@@ -1,131 +1,81 @@
 <script lang="ts">
   import type { CellContext } from '@tanstack/svelte-table';
   import { createQuery } from '@/services/api.common';
-  import type { SortingState } from '@tanstack/table-core';
-  import { getRelativeTime } from '@/utils/TimeFunction';
   import { onMount } from 'svelte';
-  import { hubsService } from '@/services/hubs.service';
-  import { navigate } from 'svelte-routing';
+  import { useLocation } from 'svelte-routing';
   import { notification } from '@/components/Toast';
-  import type { Hub } from '@/interface/HubsOverview';
+  import { billingService } from '@/services/billing.service';
 
   import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  import HubUrl from '@/components/TableComponents/HubUrl.svelte';
-  import HubsDropdown from '@/components/TableComponents/HubsDropdown.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
-  import AddHubs from '@/components/AddHubs/AddHubs.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-  import TableTag from '@/components/TableComponents/TableTag.svelte';
+  import { derived, get } from 'svelte/store';
+  import InvoiceStatus from '@/components/TableComponents/InvoiceStatus.svelte';
+  import InvoiceTag from '@/components/TableComponents/InvoiceTag.svelte';
+  import InvoiceDropdown from '@/components/TableComponents/InvoiceDropdown.svelte';
+  import InvoiceDetails from '@/components/TableComponents/InvoiceDetails.svelte';
+  import Modal from '@/components/Modal/Modal.svelte';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
-  let filters = { searchTerm: '' };
-  let sorting: SortingState = [{ id: 'createdAt', desc: true }];
   let showModal = false;
+  let selectedInvoice: any = null;
 
-  // Invoices data (replace hardcodedData)
-  const invoices = [
-    {
-      id: 'in_1RY51aFLRwufXqZCdM29zhwo',
-      dueDate: 1749472922,
-      plan: 'Professional',
-      totalUsers: 1,
-      status: 'paid',
-      amount: 179.03,
-      paymentMethod: 'Visa **** 0006',
-      invoiceNumber: 'O6YKFRYK-0003',
-      invoicedTo: 'Customer (mithesh.dev.work@gmail.com)',
-      billingCycle: 'N/A',
-      grossAmount: 179.03,
-      taxAmount: 0,
-      netAmount: 179.03,
-      invoicePdf:
-        'https://pay.stripe.com/invoice/acct_1RRv7hFLRwufXqZC/test_YWNjdF8xUlJ2N2hGTFJ3dWZYcVpDLF9TVDEzMmZpRUhBSkRQQVdjMlRKcjdsOWVqeUcxSm1jLDE0MDE1OTEyNA0200jMwdCwu5/pdf?s=ap',
-      created: 1749472922,
-    },
-    {
-      id: 'in_1RY4LMFLRwufXqZC68F2zQCG',
-      dueDate: 1749470304,
-      plan: 'Professional',
-      totalUsers: 1,
-      status: 'paid',
-      amount: 10,
-      paymentMethod: 'Visa **** 0006',
-      invoiceNumber: 'O6YKFRYK-0002',
-      invoicedTo: 'Customer (mithesh.dev.work@gmail.com)',
-      billingCycle: 'N/A',
-      grossAmount: 10,
-      taxAmount: 0,
-      netAmount: 10,
-      invoicePdf:
-        'https://pay.stripe.com/invoice/acct_1RRv7hFLRwufXqZC/test_YWNjdF8xUlJ2N2hGTFJ3dWZYcVpDLF9TVDBNVVlsNjhnbXhtNkJnU1FxWERGc2d0VmNYTzR6LDE0MDE1OTEyNA0200mnpTxb5b/pdf?s=ap',
-      created: 1749470304,
-    },
-    {
-      id: 'in_1RY4KiFLRwufXqZC5uKGTDWN',
-      dueDate: 1749470264,
-      plan: 'Standard',
-      totalUsers: 1,
-      status: 'paid',
-      amount: 9.99,
-      paymentMethod: 'Visa **** 0006',
-      invoiceNumber: 'O6YKFRYK-0001',
-      invoicedTo: 'Customer (mithesh.dev.work@gmail.com)',
-      billingCycle: 'N/A',
-      grossAmount: 9.99,
-      taxAmount: 0,
-      netAmount: 9.99,
-      invoicePdf:
-        'https://pay.stripe.com/invoice/acct_1RRv7hFLRwufXqZC/test_YWNjdF8xUlJ2N2hGTFJ3dWZYcVpDLF9TVDBMSldqeDZxSlBSbEhoUkpPNXBuaFFMSUt6aVhhLDE0MDE1OTEyNA0200SBaZU7nR/pdf?s=ap',
-      created: 1749470264,
-    },
-  ];
-
-  // Queries
-  const { data: summaryData, isFetching: isSummaryLoading } = createQuery(async () => {
-    return hubsService.gethubsummary();
+  const location = useLocation();
+  const extractedParam = derived(location, ($location) => {
+    const match = $location.pathname.match(/\/billing\/billingInvoices\/([^\/]+)/);
+    return match?.[1];
   });
 
+  // Combined query for customer data and invoices
   const {
-    data: hubsData,
-    isFetching,
+    data: invoiceData,
+    isFetching: isInvoicesLoading,
     refetch,
   } = createQuery(async () => {
-    return hubsService.getAllUserHubs({
-      page: pagination.pageIndex + 1,
-      limit: pagination.pageSize,
-      search: filters.searchTerm,
-      sortBy: sorting[0]?.id || 'createdAt',
-      sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
-    });
+    const hubId = get(extractedParam);
+    if (!hubId) return { customerData: null, invoices: [] };
+
+    try {
+      // First fetch customer data
+      const customerRes = await billingService.fetchCustomerId(hubId);
+      console.log('Fetched customer data:', customerRes);
+
+      // If we have customerId, fetch invoices
+      if (customerRes?.data?.customerId) {
+        try {
+          const invoicesRes = await billingService.getCustomerInvoices(customerRes.data.customerId);
+          console.log('Fetched invoices:', invoicesRes);
+          return {
+            customerData: customerRes,
+            invoices: invoicesRes?.data?.invoices || [],
+          };
+        } catch (e) {
+          console.error('Error fetching invoices:', e);
+          return {
+            customerData: customerRes,
+            invoices: [],
+          };
+        }
+      }
+
+      return {
+        customerData: customerRes,
+        invoices: [],
+      };
+    } catch (e) {
+      console.error('Error fetching customer data:', e);
+      return { customerData: null, invoices: [] };
+    }
   });
 
   // Event Handlers
-  function handleSearchChange(event: CustomEvent<string>) {
-    filters = { ...filters, searchTerm: event.detail };
-    pagination = { ...pagination, pageIndex: 0 };
-    refetch();
-  }
-
   function handlePageChange(event: CustomEvent<number>) {
     pagination = { ...pagination, pageIndex: event.detail };
-    refetch();
   }
 
   function handlePageSizeChange(event: CustomEvent<number>) {
     pagination = { pageSize: event.detail, pageIndex: 0 };
-    refetch();
-  }
-
-  function handleSortingChange(event: CustomEvent<SortingState>) {
-    sorting = event.detail;
-    refetch();
-  }
-
-  function handleRowClick(event: CustomEvent<Hub>) {
-    const hub = event.detail;
-    navigate(`/hubs/workspace/${hub._id}`);
   }
 
   function copyToClipboard(text: string) {
@@ -133,6 +83,11 @@
       .writeText(text)
       .then(() => notification.success('URL successfully copied'))
       .catch(() => notification.error('Failed to copy URL'));
+  }
+
+  function openInvoiceDetails(invoice) {
+    selectedInvoice = invoice;
+    showModal = true;
   }
 
   // Copy URL Event Listener
@@ -148,16 +103,14 @@
       accessorKey: 'dueDate',
       header: 'Due Date',
       enableSorting: true,
-      enableSortingRemoval: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
-        // Convert unix timestamp to readable date in 'MMM d, yyyy' format
+      cell: ({ getValue }) => {
         const ts = getValue();
-        if (!ts) return '';
+        if (!ts) return '-';
         const date = new Date(ts * 1000);
         return date.toLocaleDateString('en-US', {
-          year: 'numeric',
           month: 'short',
           day: 'numeric',
+          year: 'numeric',
         });
       },
     },
@@ -165,8 +118,8 @@
       accessorKey: 'plan',
       header: 'Plan',
       enableSorting: false,
-      cell: ({ getValue, row }: CellContext<any, any>) => ({
-        Component: TableTag,
+      cell: ({ getValue }) => ({
+        Component: InvoiceTag,
         props: { value: getValue() },
       }),
     },
@@ -174,89 +127,136 @@
       accessorKey: 'totalUsers',
       header: 'Total Users',
       enableSorting: false,
+      cell: ({ getValue }) => getValue() || '-',
     },
     {
       accessorKey: 'status',
       header: 'Status',
       enableSorting: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
-        return `<span class="capitalize">${getValue()}</span>`;
-      },
+      cell: ({ getValue }) => ({
+        Component: InvoiceStatus,
+        props: { status: getValue() },
+      }),
     },
     {
       accessorKey: 'amount',
       header: 'Billing Amount',
       enableSorting: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
-        return `$${Number(getValue()).toFixed(2)}`;
+      cell: ({ getValue }) => {
+        const amount = getValue();
+        return amount ? `$${amount}` : '-';
       },
     },
     {
-      accessorKey: 'paymentMethod',
+      id: 'paymentMethod',
       header: 'Payment Method',
       enableSorting: false,
-      cell: ({ getValue }: CellContext<any, any>) => {
-        const value = getValue();
-        // Extract card type and last 4 digits if present
-        const match = value.match(/([A-Za-z]+)\s*\*+\s*(\d{4})/);
-        if (match) {
-          const type = match[1];
-          const last4 = match[2];
-          return `<div><span class=\"capitalize\">${type}</span><p class=\"text-xs text-neutral-400 mt-1\">Ends with ${last4}</p></div>`;
+      cell: ({ row }) => {
+        const brand = row.original.cardBrand;
+        const last4 = row.original.cardLast4;
+        if (brand && last4) {
+          return `<div class='flex flex-col'><span>${brand}</span><span class='text-xs text-neutral-400'>Ending with ${last4}</span></div>`;
         }
-        // fallback: just show the value
-        return `<span class=\"capitalize\">${value}</span>`;
+        return '-';
       },
+    },
+    {
+      id: 'invoicePdf',
+      header: '',
+      enableSorting: false,
+      size: 50,
+      cell: ({ row }) => ({
+        Component: InvoiceDropdown,
+        props: {
+          invoice: row.original,
+          openInvoiceDetails,
+        },
+      }),
     },
   ];
 
-  $: totalItems = $hubsData?.data?.totalCount || 0;
+  // Reactive Statements
+  $: invoices = $invoiceData?.invoices || [];
+  $: customerData = $invoiceData?.customerData || null;
+  $: totalItems = invoices.length;
+  $: paginatedInvoices = invoices.slice(
+    pagination.pageIndex * pagination.pageSize,
+    (pagination.pageIndex + 1) * pagination.pageSize,
+  );
+  $: isLoading = $isInvoicesLoading;
+
+  $: console.log('customerData:', customerData);
+  $: console.log('invoices:', invoices);
 </script>
 
 <section class="bg-surface-900 flex w-full flex-col gap-4 pt-4">
   <!-- Overview Cards Section -->
-  {#if !$hubsData?.httpStatusCode}
+  {#if isLoading}
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
   {:else}
-    <!-- Hubs Table Section -->
+    <!-- Invoices Table Section -->
     <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <h2 class="font-inter text-fs-ds-20 leading-lh-ds-120 font-medium text-neutral-50">Hubs</h2>
-        <h2 class="text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
-          All your Hub's in one place, manage access, manage members, or dive into details with
-          ease.
-        </h2>
+      <div class="mb-6 flex items-end justify-between">
+        <div>
+          <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Invoices</h1>
+          <p class="text-fs-ds-14 font-fw-ds-300 font-inter text-neutral-100">
+            View and download all invoices for your billing cycle.
+          </p>
+        </div>
+        <div class="billing-links flex gap-4">
+          <a
+            href="#"
+            class="text-fs-ds-12 font-fw-ds-400 font-inter cursor-not-allowed text-neutral-500 underline"
+            >Billing Documentation</a
+          >
+          <a
+            href="https://sparrowapp.dev/terms-of-service/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-fs-ds-12 font-fw-ds-400 font-inter text-neutral-200 underline"
+            >Terms of Services</a
+          >
+          <a
+            href="https://sparrowapp.dev/privacy-policy/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-fs-ds-12 font-fw-ds-400 font-inter text-neutral-200 underline"
+            >Privacy Policy</a
+          >
+        </div>
       </div>
 
       <div class="bg-surface-900 flex min-h-full flex-col gap-4">
-        <Table
-          {columns}
-          data={invoices.slice(
-            pagination.pageIndex * pagination.pageSize,
-            (pagination.pageIndex + 1) * pagination.pageSize,
-          )}
-          isLoading={false}
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          totalItems={invoices.length}
-          on:sortingChange={handleSortingChange}
-          on:rowClick={handleRowClick}
-        />
-        <TablePagination
-          pageIndex={pagination.pageIndex}
-          pageSize={pagination.pageSize}
-          totalItems={invoices.length}
-          isLoading={false}
-          on:pageChange={handlePageChange}
-          on:pageSizeChange={handlePageSizeChange}
-        />
+        {#if totalItems === 0 && !isLoading}
+          <div class="flex flex-col items-center justify-center py-16">
+            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No invoices found.</p>
+          </div>
+        {:else}
+          <Table
+            {columns}
+            data={paginatedInvoices}
+            {isLoading}
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            {totalItems}
+          />
+
+          <TablePagination
+            pageIndex={pagination.pageIndex}
+            pageSize={pagination.pageSize}
+            {totalItems}
+            {isLoading}
+            on:pageChange={handlePageChange}
+            on:pageSizeChange={handlePageSizeChange}
+          />
+        {/if}
       </div>
     </div>
     {#if showModal}
       <Modal on:close={() => (showModal = false)}>
-        <AddHubs onClose={() => (showModal = false)} />
+        <InvoiceDetails invoice={selectedInvoice} onClose={() => (showModal = false)} />
       </Modal>
     {/if}
   {/if}
