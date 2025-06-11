@@ -324,7 +324,7 @@
   // Handle add new card
   function handleAddNewCard() {
     showPaymentMethodModal = false;
-    showAddCardModal = true;
+    navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
   }
 
   // Handle payment method added
