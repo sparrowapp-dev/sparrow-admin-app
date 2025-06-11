@@ -2,6 +2,13 @@
   import { createEventDispatcher } from 'svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import Tag from '@/ui/Tag/Tag.svelte';
+  import {
+    DEFAULT_PLAN_DETAILS,
+    AVAILABLE_PLANS,
+    isPlanSelectable as checkPlanSelectable,
+    capitalizeFirstLetter,
+    getPlanId,
+  } from '@/utils/pricing';
 
   // Props
   export let hubId = null;
@@ -9,125 +16,16 @@
   export let currentPlan = 'Community';
   export let currentBillingCycle = 'monthly';
   export let subscriptionId = null;
-  export let planDetails = {
-    community: {
-      monthly: {
-        price: '$0.00',
-        unit: '/user/month',
-        privateHubs: 1,
-        workspaces: 3,
-        collections: 'Unlimited',
-        collaborators: 5,
-
-        buttonText: 'Pricing Plans',
-      },
-      annual: {
-        price: '$0.00',
-        unit: '/user/year',
-        privateHubs: 1,
-        workspaces: 3,
-        collections: 'Unlimited',
-        collaborators: 5,
-
-        buttonText: 'Pricing Plans',
-      },
-    },
-    standard: {
-      monthly: {
-        price: '$9.99',
-        unit: '/user/month',
-        privateHubs: 1,
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Upgrade',
-        priceId: 'price_1RWA2cFLRwufXqZC8xD8DFFd',
-      },
-      annual: {
-        price: '$99',
-        unit: '/user/year',
-        privateHubs: 3,
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Upgrade',
-        discount: 'Save 17.4%',
-        priceId: 'price_1RWA3dFLRwufXqZCZtH5Cag1',
-      },
-    },
-    professional: {
-      monthly: {
-        price: '$19.99',
-        unit: '/user/month',
-        privateHubs: 1,
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Upgrade',
-        priceId: 'price_1RWA36FLRwufXqZCI3ZHq47j',
-      },
-      annual: {
-        price: '$199',
-        unit: '/user/year',
-        privateHubs: 10,
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Upgrade',
-        discount: 'Save 17%',
-        priceId: 'price_1RWA4LFLRwufXqZCpE56Ovl5',
-      },
-    },
-    enterprise: {
-      monthly: {
-        price: '$49.99',
-        unit: '/user/month',
-        privateHubs: 'Unlimited',
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Contact Sales',
-      },
-      annual: {
-        price: '$499',
-        unit: '/user/year',
-        privateHubs: 'Unlimited',
-        workspaces: 'Unlimited',
-        collections: 'Unlimited',
-        collaborators: 'Unlimited',
-
-        buttonText: 'Contact Sales',
-        discount: 'Save 16.8%',
-      },
-    },
-  };
+  export let planDetails = DEFAULT_PLAN_DETAILS;
 
   // State
   let billingCycle = currentBillingCycle || 'monthly'; // Initialize to current billing cycle
   let userCount = 1; // Default user count for calculation
 
   // Computed properties
-  $: plans = ['community', 'standard', 'professional', 'enterprise'];
+  $: plans = AVAILABLE_PLANS;
   $: currentPlanLower = currentPlan.toLowerCase();
-
-  $: monthlyCosts = {
-    community: 'Free',
-    standard: `$${(parseFloat(planDetails.standard.monthly.price.replace('$', '')) * userCount).toFixed(2)}/month`,
-    professional: `$${(parseFloat(planDetails.professional.monthly.price.replace('$', '')) * userCount).toFixed(2)}/month`,
-    enterprise: `$${(parseFloat(planDetails.enterprise.monthly.price.replace('$', '')) * userCount).toFixed(2)}/month`,
-  };
-
-  $: annualCosts = {
-    community: 'Free',
-    standard: `$${(parseFloat(planDetails.standard.annual.price.replace('$', '')) * userCount).toFixed(2)}/year`,
-    professional: `$${(parseFloat(planDetails.professional.annual.price.replace('$', '')) * userCount).toFixed(2)}/year`,
-    enterprise: `$${(parseFloat(planDetails.enterprise.annual.price.replace('$', '')) * userCount).toFixed(2)}/year`,
-  };
+  $: currentPlanId = getPlanId(currentPlanLower, currentBillingCycle);
 
   // Event dispatcher
   const dispatch = createEventDispatcher();
@@ -136,42 +34,62 @@
   function selectPlan(plan) {
     if (plan === 'enterprise') {
       dispatch('contactSales');
-    } else if (plan !== currentPlanLower) {
-      dispatch('selectPlan', {
-        plan,
-        billingCycle,
-        price:
-          billingCycle === 'monthly'
-            ? planDetails[plan].monthly.price
-            : planDetails[plan].annual.price,
+    } else {
+      const targetPlanId = getPlanId(plan, billingCycle);
 
-        priceId:
-          billingCycle === 'monthly'
-            ? planDetails[plan].monthly.priceId
-            : planDetails[plan].annual.priceId,
-      });
+      // Don't allow selecting the current plan
+      if (targetPlanId !== currentPlanId) {
+        dispatch('selectPlan', {
+          plan,
+          billingCycle,
+          price:
+            billingCycle === 'monthly'
+              ? planDetails[plan].monthly.price
+              : planDetails[plan].annual.price,
+          priceId:
+            billingCycle === 'monthly'
+              ? planDetails[plan].monthly.priceId
+              : planDetails[plan].annual.priceId,
+        });
+      }
     }
   }
 
-  // Check if a plan is selectable
+  // Check if a plan is selectable based on current plan and billing cycle
   function isPlanSelectable(plan) {
-    // Enterprise plan is always available for contact
-    if (plan === 'enterprise') return true;
+    return checkPlanSelectable(currentPlanLower, plan, billingCycle, currentBillingCycle);
+  }
 
-    // Cannot select the current plan
-    if (plan === currentPlanLower) return false;
+  // Get button text for a plan
+  function getButtonText(plan) {
+    const isCurrentPlan = plan === currentPlanLower && billingCycle === currentBillingCycle;
 
-    // Cannot downgrade from Professional to Standard or Community
-    if (currentPlanLower === 'professional' && (plan === 'standard' || plan === 'community')) {
-      return false;
+    if (isCurrentPlan) {
+      return 'Your plan';
     }
 
-    // Cannot downgrade from Standard to Community
-    if (currentPlanLower === 'standard' && plan === 'community') {
-      return false;
+    if (plan === 'enterprise') {
+      return 'Contact Sales';
     }
 
-    return true;
+    // Special case for monthly -> annual upgrade of same plan
+    if (
+      plan === currentPlanLower &&
+      billingCycle === 'annual' &&
+      currentBillingCycle === 'monthly'
+    ) {
+      return 'Upgrade';
+    }
+
+    // For downgrades
+    if (
+      (currentPlanLower === 'professional' && plan === 'standard' && billingCycle === 'annual') ||
+      (currentPlanLower === 'standard' && plan === 'community')
+    ) {
+      return 'Downgrade';
+    }
+
+    return 'Upgrade';
   }
 
   // Close modal
@@ -203,7 +121,9 @@
     </div>
     <div>
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Current Plan</p>
-      <p class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">{currentPlan}</p>
+      <p class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
+        {currentPlan} ({currentBillingCycle})
+      </p>
     </div>
   </div>
 
@@ -226,7 +146,7 @@
   </div>
 
   <!-- Plan comparison table -->
-  <div class=" overflow-x-auto">
+  <div class="overflow-x-auto">
     <table class="w-full min-w-full">
       <thead class="border-surface-500 border-b">
         <tr>
@@ -235,10 +155,10 @@
           </th>
           {#each plans as plan}
             <th class="text-fs-ds-12 font-inter font-fw-ds-500 py-3 text-left text-neutral-400">
-              {plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
+              {capitalizeFirstLetter(plan)} Plan
 
               <!-- Show Current Plan or discount badge -->
-              {#if plan === currentPlanLower}
+              {#if plan === currentPlanLower && billingCycle === currentBillingCycle}
                 <div class="mt-1">
                   <Tag
                     text="Current Plan"
@@ -248,8 +168,6 @@
                     size="xs"
                   />
                 </div>
-
-                <!-- Use Tag component for discount badges -->
               {:else if planDetails[plan][billingCycle].discount}
                 <div class="mt-1">
                   <Tag
@@ -324,12 +242,14 @@
             </button>
           </td>
           {#each plans as plan}
-            <td class="py-3"
-              >{#if plan === currentPlanLower}
+            <td class="py-3">
+              {#if plan === currentPlanLower && billingCycle === currentBillingCycle}
+                <!-- Current plan with same billing cycle -->
                 <span class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-500">
                   Your plan
                 </span>
               {:else if plan === 'enterprise'}
+                <!-- Enterprise plan always shows Contact Sales -->
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-400 underline disabled:cursor-not-allowed"
                   on:click={() => selectPlan(plan)}
@@ -338,12 +258,13 @@
                   Contact Sales
                 </button>
               {:else}
+                <!-- All other plans -->
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-400 underline disabled:cursor-not-allowed"
                   on:click={() => selectPlan(plan)}
                   disabled={!isPlanSelectable(plan)}
                 >
-                  Upgrade
+                  {getButtonText(plan)}
                 </button>
               {/if}
             </td>
@@ -353,7 +274,6 @@
     </table>
 
     <!-- Cost estimate -->
-
     <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
       With {userCount} users in your hub, your final cost will be calculated based on the selected plan.
       A full breakdown will be shown at checkout. Please contact sales for more information

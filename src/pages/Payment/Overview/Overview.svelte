@@ -1,4 +1,6 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
+  import { io } from 'socket.io-client';
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import Modal from '@/components/Modal/Modal.svelte';
@@ -10,8 +12,128 @@
   import { billingService } from '@/services/billing.service';
   import { navigate } from 'svelte-routing';
   import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
+  import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
+  import { notification } from '@/components/Toast';
+  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { API_BASE_URL } from '@/constants/environment';
 
   const location = useLocation();
+
+  // Add Stripe instance
+  let stripe;
+
+  // Initialize Stripe on mount
+  onMount(async () => {
+    await initializeStripe();
+    initializeSocket();
+  });
+
+  // Cleanup socket connection on component destroy
+  onDestroy(() => {
+    if (socket) {
+      socket.disconnect();
+    }
+  });
+
+  // Initialize Stripe with the publishable key from our API
+  async function initializeStripe() {
+    try {
+      // Load Stripe.js if not already loaded
+      if (!window.Stripe) {
+        const script = document.createElement('script');
+        script.src = 'https://js.stripe.com/v3/';
+        script.async = true;
+        document.body.appendChild(script);
+
+        // Wait for script to load
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+
+      // Fetch the publishable key from our backend using the service
+      const { publishableKey } = await billingService.getStripeConfig();
+
+      // Initialize Stripe
+      stripe = window.Stripe(publishableKey);
+    } catch (err) {
+      console.error('Error initializing Stripe:', err);
+    }
+  }
+
+  let socket;
+
+  function initializeSocket() {
+    // Connect to the stripe-events namespace
+    socket = io(`${API_BASE_URL}`, {
+      path: '/socket.io',
+      namespace: 'stripe-events',
+      transports: ['polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+    });
+
+    // Connection events
+    socket.on('connect', () => {
+      console.log('Connected to stripe-events socket:', socket.id);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from stripe-events socket:', reason);
+    });
+
+    // Payment events
+    socket.on('payment_success', (data) => {
+      console.log('Payment success:', data);
+      const { team } = data;
+      isProcessingPayment = false;
+
+      // Update selectedPlanDetails with team data
+      selectedPlanDetails = {
+        ...selectedPlanDetails,
+        fromPlan: team?.plan?.name || currentPlan,
+        toPlan: team?.plan?.name || selectedPlanDetails.plan,
+        hubName: team?.name || hubName,
+      };
+
+      showSubscriptionConfirmModal = true;
+      refetchSubscription();
+    });
+
+    socket.on('payment_failed', (data) => {
+      console.log('Payment failed:', data);
+      const { team } = data;
+      isProcessingPayment = false;
+      notification.error('Payment failed. Please try again or contact support.');
+      refetchSubscription();
+    });
+
+    // Subscription events
+    socket.on('subscription_updated', (data) => {
+      console.log('Subscription updated:', data);
+      const { team } = data;
+      refetchSubscription();
+    });
+
+    socket.on('subscription_created', (data) => {
+      console.log('Subscription created:', data);
+      const { team } = data;
+
+      refetchSubscription();
+    });
+
+    socket.on('subscription_canceled', (data) => {
+      console.log('Subscription canceled:', data);
+      const { team } = data;
+
+      refetchSubscription();
+    });
+  }
 
   // Extract hubId from URL
   let hubId = null;
@@ -24,24 +146,30 @@
     }
   }
 
-  // State
+  // UI state
   let showChangePlanModal = false;
   let showPaymentMethodModal = false;
   let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
-  let currentPlan = 'Community';
+  let isLoadingSubscription = false;
+  let isProcessingPayment = false;
+
+  // Default values - will be updated when subscription data is loaded
   let hubName = 'Techdome Hub';
   let customerId = null;
   let subscriptionData = null;
-  let isLoadingSubscription = false;
 
   // Subscription details
-  let subscriptionId = null;
-  let currentPrice = '$0.00';
-  let currentBillingCycle = 'monthly';
-  let nextBillingDate = '';
-  let lastInvoiceAmount = '$0.00';
-  let totalPaidAmount = '$0.00';
+  let {
+    subscriptionId = null,
+    currentPlan = 'Community',
+    currentPrice = '$0.00',
+    currentBillingCycle = 'monthly',
+    nextBillingDate = '',
+    lastInvoiceAmount = '$0.00',
+    totalPaidAmount = '$0.00',
+    userCount = 1,
+  } = {};
 
   // Selected plan details for payment
   let selectedPlanDetails = {
@@ -51,9 +179,6 @@
     price: '',
     totalAmount: '',
   };
-
-  // User count
-  let userCount = 1;
 
   // Fetch customer ID
   const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
@@ -82,6 +207,7 @@
     return billingService.getCustomerSubscriptions(customerId);
   });
 
+  // Re-fetch subscription data when customerId changes
   $: {
     if (customerId || customerId === null) {
       refetchSubscription();
@@ -93,94 +219,18 @@
     isLoadingSubscription = false;
     subscriptionData = $subscriptionApiData?.subscriptions?.[0] || null;
 
-    if (subscriptionData) {
-      // Extract subscription details
-      subscriptionId = subscriptionData.id;
+    // Process subscription data using the utility function
+    const processedData = processSubscriptionData(subscriptionData);
 
-      // Get metadata
-      const metadata = subscriptionData.metadata || {};
-
-      // Set current plan from metadata or default to 'Community'
-      currentPlan = metadata.planName || 'Community';
-
-      // Get user count from metadata or default to 1
-      userCount = parseInt(metadata.userCount || '1', 10);
-
-      // Get current price details from subscription items
-      if (subscriptionData.items?.data?.length > 0) {
-        const priceDetails = subscriptionData.items.data[0].price;
-        if (priceDetails) {
-          // Format price amount (comes in cents)
-          const unitAmount = priceDetails.unit_amount / 100;
-          currentPrice = `$${unitAmount.toFixed(2)}`;
-
-          // Determine billing cycle
-          currentBillingCycle = priceDetails.recurring?.interval || 'month';
-          currentBillingCycle = currentBillingCycle === 'month' ? 'monthly' : 'annual';
-        }
-      } else if (subscriptionData.plan) {
-        // Fallback to plan object if items are not available
-        const unitAmount = subscriptionData.plan.amount / 100;
-        currentPrice = `$${unitAmount.toFixed(2)}`;
-
-        // Get billing cycle from plan
-        currentBillingCycle = subscriptionData.plan.interval || 'month';
-        currentBillingCycle = currentBillingCycle === 'month' ? 'monthly' : 'annual';
-      }
-
-      // Format next billing date using current_period_end from subscription or items
-      if (subscriptionData.items?.data?.[0]?.current_period_end) {
-        const date = new Date(subscriptionData.items.data[0].current_period_end * 1000);
-        nextBillingDate = date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-      }
-      // If latest_invoice is a string (reference), we can't extract data directly
-      // In a production app, you would fetch the invoice details using that ID
-      if (subscriptionData.latest_invoice && typeof subscriptionData.latest_invoice !== 'string') {
-        if (subscriptionData.latest_invoice.amount_paid) {
-          const amount = subscriptionData.latest_invoice.amount_paid / 100;
-          lastInvoiceAmount = `$${amount.toFixed(2)}`;
-          totalPaidAmount = lastInvoiceAmount; // For now, use last invoice amount
-        }
-      } else {
-        // If latest_invoice is a string ID or not available, use current price as a fallback
-        lastInvoiceAmount = currentPrice;
-        totalPaidAmount = currentPrice;
-      }
-
-      // Check subscription status
-      const isActive = subscriptionData.status === 'active';
-      if (!isActive) {
-        // If subscription is not active, add status indicator to currentPlan
-        currentPlan = `${currentPlan} (${subscriptionData.status.charAt(0).toUpperCase() + subscriptionData.status.slice(1)})`;
-      }
-
-      // Check if subscription is scheduled to be canceled
-      if (subscriptionData.cancel_at_period_end) {
-        // Add indication that the subscription will be canceled
-        const cancelDate = new Date(subscriptionData.current_period_end * 1000);
-        const formattedCancelDate = cancelDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-
-        // Update UI to show cancellation status
-        currentPlan = `${currentPlan} (Cancels on ${formattedCancelDate})`;
-      }
-    } else {
-      // Default values for Community plan
-      currentPlan = 'Community';
-      currentPrice = '$0.00';
-      currentBillingCycle = 'monthly';
-      nextBillingDate = '';
-      lastInvoiceAmount = '$0.00';
-      totalPaidAmount = '$0.00';
-      subscriptionId = null;
-    }
+    // Update all subscription-related variables
+    subscriptionId = processedData.subscriptionId;
+    currentPlan = processedData.currentPlan;
+    currentPrice = processedData.currentPrice;
+    currentBillingCycle = processedData.currentBillingCycle;
+    nextBillingDate = processedData.nextBillingDate;
+    lastInvoiceAmount = processedData.lastInvoiceAmount;
+    totalPaidAmount = processedData.totalPaidAmount;
+    userCount = processedData.userCount;
   }
 
   // Handle upgrade button click
@@ -194,17 +244,15 @@
 
     // Store selected plan details
     selectedPlanDetails = {
-      plan: plan.charAt(0).toUpperCase() + plan.slice(1),
+      plan: capitalizeFirstLetter(plan),
       billingCycle,
       priceId: priceId || '',
       price,
       totalAmount: price,
     };
 
-    // Close the plan selection modal
+    // Close the plan selection modal and show the payment method selection modal
     showChangePlanModal = false;
-
-    // Show the payment method selection modal
     showPaymentMethodModal = true;
   }
 
@@ -212,40 +260,64 @@
   async function handlePaymentMethodSelected(event) {
     const { paymentMethodId, planName, priceId, billingCycle } = event.detail;
 
-    // Close the payment modal
+    // Close the payment modal and show processing state
     showPaymentMethodModal = false;
-
-    // Show loading state
-    isLoadingSubscription = true;
+    isProcessingPayment = true;
 
     try {
+      // Prepare common metadata for both create and update operations
+      const metadata = {
+        hubId,
+        userCount: userCount.toString(),
+        planName,
+      };
+
+      let result;
+
       // Determine if we need to create or update a subscription
       if (subscriptionId) {
         // Update existing subscription
-        await billingService.updateSubscription({
+        result = await billingService.updateSubscription({
           subscriptionId,
           priceId,
-          metadata: {
-            hubId,
-            userCount: userCount.toString(),
-            planName,
-          },
+          paymentMethodId,
+          metadata,
         });
+      } else if (customerId) {
+        // Create new subscription
+        result = await billingService.createSubscription({
+          customerId,
+          priceId,
+          paymentMethodId,
+          metadata,
+        });
+      } else {
+        throw new Error('No customer ID available to create subscription');
       }
 
-      // Show the confirmation modal
-      showSubscriptionConfirmModal = true;
+      // Handle any required authentication (like 3D Secure)
+      if (result.requiresAction && result.clientSecret) {
+        const { paymentIntent, error } = await stripe.confirmCardPayment(result.clientSecret);
 
-      // Update current plan in UI
-      currentPlan = planName;
+        if (error) {
+          isProcessingPayment = false;
+          throw new Error(error.message || 'Payment authentication failed. Please try again.');
+        }
+      }
 
-      // Refetch subscription data
-      refetchSubscription();
-    } catch (error) {
-      console.error('Error updating subscription:', error);
-      // You could add error handling here
-    } finally {
-      isLoadingSubscription = false;
+      // Set the subscription ID from the result if it's a new subscription
+      if (!subscriptionId && result.subscriptionId) {
+        subscriptionId = result.subscriptionId;
+      }
+
+      // Don't show confirmation modal here - wait for socket event
+      // Update will come through socket events
+    } catch (err) {
+      console.error('Error processing subscription:', err);
+      isProcessingPayment = false;
+      if (window.notification && notification.error) {
+        notification.error(`Subscription failed: ${err.message}`);
+      }
     }
   }
 
@@ -305,6 +377,7 @@
     showPaymentMethodModal = false;
     showAddCardModal = false;
     showSubscriptionConfirmModal = false;
+    isProcessingPayment = false;
   }
 </script>
 
@@ -528,24 +601,22 @@
     </Modal>
   {/if}
 
+  <!-- Processing Payment Modal -->
+  {#if isProcessingPayment}
+    <Modal width="max-w-xl" on:close={closeModals}>
+      <PaymentProcessingModal on:close={closeModals} />
+    </Modal>
+  {/if}
+
   <!-- Subscription Confirmation Modal -->
   {#if showSubscriptionConfirmModal}
     <Modal width="max-w-xl" on:close={closeModals}>
-      <!-- <SubscriptionConfirmation
-        planName={selectedPlanDetails.plan}
-        billingCycle={selectedPlanDetails.billingCycle}
-        amount={selectedPlanDetails.totalAmount}
-        {userCount}
-        {nextBillingDate}
-        on:close={closeModals}
-        on:viewSubscription={handleViewSubscription}
-      /> -->
       <PlanUpdateSuccess
-        hubName="Techdome Hub"
-        currentPlan={selectedPlanDetails.plan}
+        hubName={selectedPlanDetails.hubName}
+        currentPlan={selectedPlanDetails.toPlan}
         {nextBillingDate}
-        fromPlan={selectedPlanDetails.plan}
-        toPlan="Professional"
+        fromPlan={selectedPlanDetails.fromPlan}
+        toPlan={selectedPlanDetails.toPlan}
         on:close={closeModals}
         on:goToDashboard={handleViewSubscription}
       />

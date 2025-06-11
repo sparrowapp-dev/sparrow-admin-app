@@ -24,7 +24,16 @@ interface CreateSubscriptionParams {
 interface UpdateSubscriptionParams {
   subscriptionId: string;
   priceId: string;
+  paymentMethodId: string;
   metadata?: Record<string, string>;
+}
+
+// Add response interfaces for subscription operations that may require 3DS
+interface SubscriptionResponse {
+  subscriptionId: string;
+  requiresAction?: boolean;
+  clientSecret?: string;
+  status?: string;
 }
 
 interface CancelSubscriptionParams {
@@ -156,6 +165,7 @@ export class BillingService {
   /**
    * Create a new subscription for a customer
    * @param params Subscription details including customerId, priceId, paymentMethodId, and optional metadata
+   * @returns Subscription response with payment intent details if 3DS is required
    */
   public async createSubscription(params: CreateSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions`;
@@ -186,11 +196,13 @@ export class BillingService {
   /**
    * Update a subscription
    * @param params Update parameters including subscriptionId, priceId, and optional metadata
+   * @returns Subscription response with payment intent details if 3DS is required
    */
   public async updateSubscription(params: UpdateSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
     const res = await makeRequest('PUT', url, {
       priceId: params.priceId,
+      paymentMethodId: params.paymentMethodId,
       metadata: params.metadata,
     });
     return res?.data;
