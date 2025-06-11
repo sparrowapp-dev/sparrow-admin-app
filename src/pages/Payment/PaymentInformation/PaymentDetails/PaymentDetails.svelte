@@ -141,9 +141,21 @@
         },
       });
 
-      cardNumber = elements.create('cardNumber', { style: baseStyle, showIcon: true });
-      cardExpiry = elements.create('cardExpiry', { style: baseStyle });
-      cardCvc = elements.create('cardCvc', { style: baseStyle });
+      cardNumber = elements.create('cardNumber', {
+        style: baseStyle,
+        placeholder: 'Enter Card Number',
+        showIcon: true,
+      });
+
+      cardExpiry = elements.create('cardExpiry', {
+        style: baseStyle,
+        placeholder: 'MM / YY',
+      });
+
+      cardCvc = elements.create('cardCvc', {
+        style: baseStyle,
+        placeholder: 'Enter CVV',
+      });
 
       stripeElements = [cardNumber, cardExpiry, cardCvc];
 
@@ -271,7 +283,7 @@
       !cardCvcComplete ||
       requiredFields.includes('')
     ) {
-      error = 'Please fill in all required fields';
+      error = 'Please fill in all required fields correctly';
       return false;
     }
 
@@ -297,7 +309,7 @@
 
 <div class="max-w-[724px]">
   <Breadcrumbs items={breadcrumbItems} />
-  <div class="header flex items-start justify-between">
+  <div class="header mt-6 flex items-start justify-between">
     <div>
       <h2 class="text-xl font-medium text-white">Add a New Card</h2>
       <p class="text-sm text-gray-400">
@@ -309,7 +321,7 @@
   <form on:submit|preventDefault={handleSubmit} class="space-y-8 pt-8">
     <!-- Card Details Section -->
     <section class="space-y-5">
-      <h3 class="text-lg font-medium text-white">Card Details</h3>
+      <h3 class="text-lg font-medium text-neutral-50">Card Details</h3>
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
           <label
@@ -318,7 +330,14 @@
           >
             Card Number <span class="text-red-400">*</span>
           </label>
-          <div id="card-number-element" class="stripe-element" />
+          <div
+            id="card-number-element"
+            class="rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+              (cardNumberEmpty || !cardNumberComplete)) ||
+            cardNumberError
+              ? 'border-red-300'
+              : 'border-transparent'}"
+          />
           {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
             <p class="text-fs-ds-12 mt-1 text-red-300">
               {cardNumberError || 'Please enter your card number'}
@@ -333,7 +352,14 @@
           >
             Expiration Date <span class="text-red-400">*</span>
           </label>
-          <div id="card-expiry-element" class="stripe-element" />
+          <div
+            id="card-expiry-element"
+            class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+              (cardExpiryEmpty || !cardExpiryComplete)) ||
+            cardExpiryError
+              ? 'border-red-300'
+              : 'border-transparent'}"
+          ></div>
           {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
             <p class="text-fs-ds-12 mt-1 text-red-300">
               {cardExpiryError || 'Please enter expiration date'}
@@ -348,10 +374,17 @@
           >
             CVV/Security Code<span class="text-red-400">*</span>
           </label>
-          <div id="card-cvc-element" class="stripe-element" />
+          <div
+            id="card-cvc-element"
+            class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+              (cardCvcEmpty || !cardCvcComplete)) ||
+            cardCvcError
+              ? 'border-red-300'
+              : 'border-transparent'}"
+          ></div>
           {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
             <p class="text-fs-ds-12 mt-1 text-red-300">
-              {cardCvcError || 'Please enter CVV'}
+              {cardCvcError || 'Please enter CVV/security code'}
             </p>
           {/if}
         </div>
@@ -374,14 +407,14 @@
     <div class="border border-neutral-500 px-4"></div>
     <!-- Billing Details Section -->
     <section class="space-y-5">
-      <h3 class="text-lg font-medium text-white">Billing Address Details</h3>
+      <h3 class="text-lg font-medium text-neutral-50">Billing Address Details</h3>
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
           <Input
             label="Name"
             bind:value={billingName}
             required={true}
-            placeholder="Enter Full Name"
+            placeholder="Enter Name"
             hasError={formSubmitted && !billingName}
             errorMessage="Please enter billing name"
           />
@@ -392,9 +425,9 @@
             type="email"
             bind:value={billingEmail}
             required={true}
-            placeholder="Enter Billing Email"
+            placeholder="Enter Billing Address"
             hasError={formSubmitted && !billingEmail}
-            errorMessage="Please enter billing email"
+            errorMessage="Please enter valid billing email."
           />
         </div>
         <div class="form-group">
@@ -402,18 +435,14 @@
             label="Address Line 1"
             bind:value={line1}
             required={true}
-            placeholder="Enter Street Address"
+            placeholder="Enter Address Line 1"
             hasError={formSubmitted && !line1}
-            errorMessage="Please enter street address"
+            errorMessage="Please enter Address"
           />
         </div>
 
         <div class="form-group">
-          <Input
-            label="Address Line 2"
-            bind:value={line2}
-            placeholder="Apartment, Suite, etc. (optional)"
-          />
+          <Input label="Address Line 2" bind:value={line2} placeholder="Enter Address Line 2" />
         </div>
 
         <div class="form-group">
@@ -421,7 +450,6 @@
             Country <span class="text-red-400">*</span>
           </label>
           <div on:click|stopPropagation|preventDefault>
-            <!-- Added wrapper with event modifiers -->
             <SearchableDropdown
               options={countryOptions}
               bind:selected={country}
@@ -434,6 +462,9 @@
               maxHeight="150px"
             />
           </div>
+          {#if formSubmitted && !country}
+            <p class="text-fs-ds-12 mt-1 text-red-300">Please select your country</p>
+          {/if}
         </div>
 
         <div class="form-group">
@@ -443,17 +474,17 @@
             required={true}
             placeholder="Enter City"
             hasError={formSubmitted && !city}
-            errorMessage="Please enter city"
+            errorMessage="Please enter a valid city."
           />
         </div>
         <div class="form-group">
           <Input
-            label="State/Province"
+            label="State"
             bind:value={state}
             required={true}
             placeholder="Enter State"
             hasError={formSubmitted && !state}
-            errorMessage="Please enter state"
+            errorMessage="Please enter a valid state."
           />
         </div>
         <div class="form-group">
@@ -461,9 +492,9 @@
             label="ZIP Code"
             bind:value={postalCode}
             required={true}
-            placeholder="Enter ZIP Code"
+            placeholder="Enter ZIP code"
             hasError={formSubmitted && !postalCode}
-            errorMessage="Please enter ZIP code"
+            errorMessage="Please enter a valid ZIP or postal code."
           />
         </div>
       </div>

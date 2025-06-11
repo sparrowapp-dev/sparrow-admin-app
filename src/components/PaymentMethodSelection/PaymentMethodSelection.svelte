@@ -79,10 +79,10 @@
       return null;
     }
   });
-
+  $: console.log(paymentMethods);
   // Reactive derived values
   $: paymentMethods = $paymentMethodsData?.paymentMethods || [];
-  $: defaultCard = paymentMethods.find((pm) => pm.isDefault === 'true') || paymentMethods[0];
+  $: defaultCard = paymentMethods.find((pm) => pm.isDefault) || paymentMethods[0];
   $: if (defaultCard && !selectedPaymentMethodId) {
     selectedPaymentMethodId = defaultCard.id;
   }
