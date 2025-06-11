@@ -81,7 +81,6 @@
   });
 
   // Reactive derived values
-  $: console.log(paymentMethods);
   $: paymentMethods = $paymentMethodsData?.paymentMethods || [];
   $: defaultCard = paymentMethods.find((pm) => pm.isDefault === 'true') || paymentMethods[0];
   $: if (defaultCard && !selectedPaymentMethodId) {
