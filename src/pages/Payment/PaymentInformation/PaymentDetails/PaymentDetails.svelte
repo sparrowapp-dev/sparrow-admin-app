@@ -239,7 +239,7 @@
 
       notification.success('Payment method added successfully');
 
-      // setTimeout(() => goBack(), 1000);
+      setTimeout(() => goBack(), 1000);
     } catch (err) {
       error = err.message;
       console.error('Error adding payment method:', err);
