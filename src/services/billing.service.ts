@@ -252,6 +252,11 @@ export class BillingService {
     const res = await makeRequest('POST', url, { customerId, priceId });
     return res?.data;
   }
+
+  public async setUpDefaultPaymentMethod(customerId, paymentMethodId) {
+    const url = `/api/payment-methods/default`;
+    const res = makeRequest('POST', url, { customerId, paymentMethodId });
+  }
 }
 
 export const billingService = new BillingService();

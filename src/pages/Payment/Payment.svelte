@@ -7,7 +7,7 @@
   import Overview from './Overview/Overview.svelte';
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
-  import HubsOverview from './PaymentHubsPage/HubsOverview.svelte';
+  import PaymentDetails from './PaymentInformation/PaymentDetails/PaymentDetails.svelte';
 
   interface Team {
     teamId: string;
@@ -63,22 +63,29 @@
   ): PathMatcherResult => {
     let currentId = null;
     let selectOption = null;
-    // Match any payment route pattern
-    const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?/);
+
+    // Match any payment route pattern including addPaymentDetails
+    const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);
 
     if (paymentRouteMatch) {
-      const [, section, teamId] = paymentRouteMatch;
+      const [, section, subsection, teamId] = paymentRouteMatch;
 
-      // If we have a teamId, find the matching team
-      if (teamId) {
-        const foundTeam = dropdownOptions.find((option) => option.value.teamId === teamId);
+      // Handle nested routes like addPaymentDetails
+      const actualTeamId = subsection === 'addPaymentDetails' ? teamId : subsection;
+
+      if (actualTeamId) {
+        const foundTeam = dropdownOptions.find((option) => option.value.teamId === actualTeamId);
         if (foundTeam) {
-          currentId = teamId;
+          currentId = actualTeamId;
           selectOption = foundTeam.value;
         }
       }
-      // If no teamId but section matches our known sections, use first team
-      else if (['billingOverview', 'billingInformation', 'billingInvoices'].includes(section)) {
+      // Handle root sections
+      else if (
+        ['billingOverview', 'billingInformation', 'billingInvoices', 'addPaymentDetails'].includes(
+          section,
+        )
+      ) {
         const firstTeam = dropdownOptions[0]?.value || null;
         navigate(`/billing/billingOverview/${firstTeam?.teamId || ''}`);
         if (firstTeam) {
@@ -116,6 +123,7 @@
     <Router>
       <Route path="billingOverview/:id" component={Overview} />
       <Route path="billingInformation/:id" component={PaymentInformation} />
+      <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
       <Route path="billingInvoices/:id" component={PaymentInvoices} />
     </Router>
   </div>
