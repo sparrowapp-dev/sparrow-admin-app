@@ -200,9 +200,9 @@
     <div class="flex flex-col gap-4">
       <div class="mb-6 flex items-end justify-between">
         <div>
-          <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Your Plan</h1>
+          <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Invoices</h1>
           <p class="text-fs-ds-14 font-fw-ds-300 font-inter text-neutral-100">
-            View and manage your current subscription.
+            View and download all invoices for your billing cycle.
           </p>
         </div>
         <div class="billing-links flex gap-4">
