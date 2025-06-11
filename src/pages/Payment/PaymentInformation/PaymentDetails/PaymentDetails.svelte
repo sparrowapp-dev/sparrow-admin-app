@@ -13,6 +13,7 @@
   import CheckboxChecked from '@/assets/icons/CheckboxChecked.svelte';
   import CheckboxUnchecked from '@/assets/icons/CheckboxUnchecked.svelte';
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import { hubsService } from '@/services/hubs.service';
 
   const location = useLocation();
 
@@ -67,8 +68,14 @@
   const { data: customerData, refetch: refetchCustomer } = createQuery(() =>
     billingService.fetchCustomerId(hubId),
   );
+  const { data: hubDetails, refetch: hubsDataRefetch } = createQuery(() =>
+    hubsService.getHubDetails(hubId),
+  );
+  $: if (hubId) {
+    refetchCustomer();
+    hubsDataRefetch();
+  }
 
-  $: if (hubId) refetchCustomer();
   $: if ($customerData !== undefined) {
     customerId = $customerData?.data?.customerId || null;
   }
@@ -224,12 +231,15 @@
           },
         },
       });
+      if (result?.setupIntent.payment_method && defaultPaymentMethod) {
+        billingService.setUpDefaultPaymentMethod(customerId, result?.setupIntent?.payment_method);
+      }
 
       if (result.error) throw new Error(result.error.message);
 
       notification.success('Payment method added successfully');
 
-      setTimeout(() => goBack(), 1000);
+      // setTimeout(() => goBack(), 1000);
     } catch (err) {
       error = err.message;
       console.error('Error adding payment method:', err);
@@ -279,9 +289,9 @@
   }
   $: breadcrumbItems = [
     { label: 'Home', path: '/hubs' },
-    { label: 'HubName', path: `` },
-    { label: 'Upgrader Plan', path: `` },
-    { label: 'Add Card', path: `` },
+    { label: `${$hubDetails?.data?.name}`, path: `/hubs/workspace/${hubId}` },
+    { label: 'Upgrade Plan', path: `` },
+    { label: 'Add Card', path: `/billing/billingInformation/addPaymentDetails/${hubId}` },
   ];
 </script>
 
