@@ -122,7 +122,10 @@
     <div>
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Current Plan</p>
       <p class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
-        {currentPlan} ({currentBillingCycle})
+        {currentPlan}
+        {currentBillingCycle
+          ? currentBillingCycle.charAt(0).toUpperCase() + currentBillingCycle.slice(1)
+          : '-'}
       </p>
     </div>
   </div>
