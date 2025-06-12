@@ -1,20 +1,27 @@
 <script lang="ts">
-  import type { CellContext } from '@tanstack/svelte-table';
-  import { createQuery } from '@/services/api.common';
+  // Svelte
   import { onMount } from 'svelte';
+  import { derived, get } from 'svelte/store';
   import { useLocation } from 'svelte-routing';
-  import { notification } from '@/components/Toast';
+
+  // Services
+  import { createQuery } from '@/services/api.common';
   import { billingService } from '@/services/billing.service';
 
+  // App Components
   import Table from '@/components/Table/Table.svelte';
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
-  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-  import { derived, get } from 'svelte/store';
+  import Modal from '@/components/Modal/Modal.svelte';
   import InvoiceStatus from '@/components/TableComponents/InvoiceStatus.svelte';
   import InvoiceTag from '@/components/TableComponents/InvoiceTag.svelte';
   import InvoiceDropdown from '@/components/TableComponents/InvoiceDropdown.svelte';
   import InvoiceDetails from '@/components/TableComponents/InvoiceDetails.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
+
+  // UI Components
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+
+  // Utilities
+  import { notification } from '@/components/Toast';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };

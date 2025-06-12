@@ -1,27 +1,42 @@
 <script lang="ts">
-  // Imports
+  // Svelte
   import { onDestroy, onMount } from 'svelte';
   import { navigate, useLocation } from 'svelte-routing';
-  import { notification } from '@/components/Toast';
-  import { createQuery } from '@/services/api.common';
-  import { billingService } from '@/services/billing.service';
+
+  // Store
   import { userEmail, userId, userName } from '@/store/auth';
+
+  // Constants / Options
+  import { countryOptions } from '../PaymentModules/CountryList';
+
+  // Services
+  import { billingService } from '@/services/billing.service';
+  import { hubsService } from '@/services/hubs.service';
+  import { createQuery } from '@/services/api.common';
+
+  // Utils
+  import { initializeStripe, createCardElements, StripeElement } from '@/utils/stripeUtils';
+
+  // UI Components
   import Button from '@/ui/Button/Button.svelte';
   import Input from '@/ui/Input/Input.svelte';
   import SearchableDropdown from '@/ui/SearchableDropdown/SearchableDropdown.svelte';
-  import { countryOptions } from '../PaymentModules/CountryList';
+
+  // App Components
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import { notification } from '@/components/Toast';
+
+  // Icons
   import CheckboxChecked from '@/assets/icons/CheckboxChecked.svelte';
   import CheckboxUnchecked from '@/assets/icons/CheckboxUnchecked.svelte';
-  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
-  import { hubsService } from '@/services/hubs.service';
 
   const location = useLocation();
 
   // Props
-  export let customerId = null;
+  export let customerId: string = '';
 
   // URL parsing for hubId
-  let hubId = null;
+  let hubId: string = '';
   $: {
     const url = $location?.pathname || '';
     const matches = url.match(/\/billing\/billingInformation\/addPaymentDetails\/([a-f0-9]{24})/i);
@@ -31,12 +46,14 @@
   }
 
   // Stripe Elements
-  let stripe;
-  let elements;
-  let stripeElements = [];
+  let stripe: any;
+  let elements: any;
+  let stripeElements: StripeElement[] = [];
 
   // Card Fields
-  let cardNumber, cardExpiry, cardCvc;
+  let cardNumber: StripeElement;
+  let cardExpiry: StripeElement;
+  let cardCvc: StripeElement;
   let cardholderName = '';
   let cardNumberEmpty = true;
   let cardExpiryEmpty = true;
@@ -44,9 +61,9 @@
   let cardNumberComplete = false;
   let cardExpiryComplete = false;
   let cardCvcComplete = false;
-  let cardNumberError = null;
-  let cardExpiryError = null;
-  let cardCvcError = null;
+  let cardNumberError: string | null = null;
+  let cardExpiryError: string | null = null;
+  let cardCvcError: string | null = null;
 
   // Billing Details
   let billingName = '';
@@ -56,20 +73,20 @@
   let city = '';
   let state = '';
   let postalCode = '';
-  let country = null;
+  let country: { label: string; value: string } | null = null;
   let defaultPaymentMethod = false;
 
   // State
   let isLoading = false;
-  let error = null;
+  let error: string | null = null;
   let formSubmitted = false;
 
   // Fetch customer data
   const { data: customerData, refetch: refetchCustomer } = createQuery(() =>
-    billingService.fetchCustomerId(hubId),
+    billingService.fetchCustomerId(hubId || ''),
   );
   const { data: hubDetails, refetch: hubsDataRefetch } = createQuery(() =>
-    hubsService.getHubDetails(hubId),
+    hubsService.getHubDetails(hubId || ''),
   );
   $: if (hubId) {
     refetchCustomer();
@@ -82,15 +99,7 @@
 
   // Mount lifecycle
   onMount(async () => {
-    if (!window.Stripe) {
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.async = true;
-      script.onload = initializeStripe;
-      document.body.appendChild(script);
-    } else {
-      initializeStripe();
-    }
+    await initializeStripeElements();
   });
 
   // Destroy lifecycle
@@ -99,81 +108,45 @@
   });
 
   // Initialize Stripe Elements
-  async function initializeStripe() {
+  async function initializeStripeElements() {
     try {
-      const { publishableKey } = await billingService.getStripeConfig();
-      stripe = window.Stripe(publishableKey);
+      // Initialize Stripe using the utility function
+      stripe = await initializeStripe();
 
-      const baseStyle = {
-        base: {
-          color: '#ffffff',
-          fontFamily: '"Inter", system-ui, sans-serif',
-          fontSmoothing: 'antialiased',
-          fontSize: '14px',
-          '::placeholder': {
-            color: '#82858A',
-            fontWeight: '200',
-            fontSize: '14px',
-          },
-          backgroundColor: '#222630',
-          iconColor: '#ffffff',
-        },
-        invalid: {
-          color: '#F37472',
-          iconColor: '#F37472',
-        },
-      };
+      // Create card elements using utility function
+      const { elements: elementsInstance, cardElements } = createCardElements(stripe);
+      elements = elementsInstance;
 
-      elements = stripe.elements({
-        fonts: [
-          {
-            cssSrc: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap',
-          },
-        ],
-        appearance: {
-          theme: 'night',
-          variables: {
-            colorPrimary: '#4361ee',
-            colorBackground: '#222630',
-            colorText: '#ffffff',
-            colorDanger: '#F37472',
-          },
-        },
-      });
+      // Extract individual card elements
+      cardNumber = cardElements.cardNumber;
+      cardExpiry = cardElements.cardExpiry;
+      cardCvc = cardElements.cardCvc;
 
-      cardNumber = elements.create('cardNumber', {
-        style: baseStyle,
-        placeholder: 'Enter Card Number',
-        showIcon: true,
-      });
-
-      cardExpiry = elements.create('cardExpiry', {
-        style: baseStyle,
-        placeholder: 'MM / YY',
-      });
-
-      cardCvc = elements.create('cardCvc', {
-        style: baseStyle,
-        placeholder: 'Enter CVV',
-      });
-
+      // Save elements for cleanup
       stripeElements = [cardNumber, cardExpiry, cardCvc];
 
+      // Mount elements to their containers
       cardNumber.mount('#card-number-element');
       cardExpiry.mount('#card-expiry-element');
       cardCvc.mount('#card-cvc-element');
 
+      // Setup event listeners for each element
       [cardNumber, cardExpiry, cardCvc].forEach((el) => {
         el.on('change', handleElementChange);
       });
-    } catch (err) {
+
+      // Pre-fill billing email with user's email
+      if ($userEmail) {
+        billingEmail = $userEmail;
+      }
+    } catch (err: any) {
       error = err.message;
       console.error('Error initializing Stripe:', err);
     }
   }
 
   // Handle Stripe Element changes
-  function handleElementChange(event) {
+  function handleElementChange(event: any) {
     const { elementType, empty, complete, error: elementError } = event;
 
     switch (elementType) {
@@ -221,7 +194,9 @@
 
         const { customer } = await billingService.createCustomer(customerData);
         customerId = customer.id;
-        await billingService.saveCustomerId(customerId, hubId);
+        if (hubId) {
+          await billingService.saveCustomerId(customerId, hubId);
+        }
       }
 
       const { clientSecret } = await billingService.createSetupIntent(customerId);
@@ -252,7 +227,7 @@
       notification.success('Payment method added successfully');
 
       setTimeout(() => goBack(), 1000);
-    } catch (err) {
+    } catch (err: any) {
       error = err.message;
       console.error('Error adding payment method:', err);
       notification.error('Failed to add payment method');
@@ -262,7 +237,7 @@
   }
 
   // Form validation
-  function validateForm() {
+  function validateForm(): boolean {
     const requiredFields = [
       cardholderName.trim(),
       billingName.trim(),
@@ -281,7 +256,8 @@
       !cardExpiryComplete ||
       cardCvcEmpty ||
       !cardCvcComplete ||
-      requiredFields.includes('')
+      requiredFields.includes('') ||
+      !country
     ) {
       error = 'Please fill in all required fields correctly';
       return false;
@@ -297,11 +273,16 @@
 
   // Back button handler
   function goBack() {
-    navigate(`/billing/billingOverview/${hubId}`);
+    if (hubId) {
+      navigate(`/billing/billingOverview/${hubId}`);
+    } else {
+      navigate('/hubs');
+    }
   }
+
   $: breadcrumbItems = [
     { label: 'Home', path: '/hubs' },
-    { label: `${$hubDetails?.data?.name}`, path: `/hubs/workspace/${hubId}` },
+    { label: `${$hubDetails?.data?.name || 'Hub'}`, path: `/hubs/workspace/${hubId}` },
     { label: 'Upgrade Plan', path: `` },
     { label: 'Add Card', path: `/billing/billingInformation/addPaymentDetails/${hubId}` },
   ];

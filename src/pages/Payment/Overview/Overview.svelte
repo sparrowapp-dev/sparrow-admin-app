@@ -1,36 +1,100 @@
 <script>
+  // Svelte
   import { onMount, onDestroy } from 'svelte';
-  import { io } from 'socket.io-client';
-  import CrownIcon from '@/assets/icons/CrownIcon.svelte';
-  import Button from '@/ui/Button/Button.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
-  import ChangePlansModal from '@/components/ChangePlansModal/ChangePlansModal.svelte';
-  import PaymentMethodSelection from '@/components/PaymentMethodSelection/PaymentMethodSelection.svelte';
-  import AddPaymentMethod from '@/pages/Payment/PaymentInformation/PaymentModules/AddPaymentMethod.svelte';
-  import { useLocation } from 'svelte-routing';
+  import { useLocation, navigate } from 'svelte-routing';
+
+  // Constants
+  import { API_BASE_URL } from '@/constants/environment';
+
+  // Services
   import { createQuery } from '@/services/api.common';
   import { billingService } from '@/services/billing.service';
-  import { navigate } from 'svelte-routing';
-  import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
-  import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
-  import { notification } from '@/components/Toast';
-  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
-  import { API_BASE_URL } from '@/constants/environment';
   import { hubsService } from '@/services/hubs.service';
-  import Tag from '@/ui/Tag/Tag.svelte';
-  import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
-  import Alert from '@/components/Alert/Alert.svelte';
+
+  // Utils
+  import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
+  import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
+  import { initializeStripeSocket } from '@/utils/socket.io.utils';
+
+  // UI Components
+  import Button from '@/ui/Button/Button.svelte';
+  import Tag from '@/ui/Tag/Tag.svelte';
+
+  // App Components
+  import Modal from '@/components/Modal/Modal.svelte';
+  import Alert from '@/components/Alert/Alert.svelte';
+  import ChangePlansModal from '@/components/ChangePlansModal/ChangePlansModal.svelte';
+  import PaymentMethodSelection from '@/components/PaymentMethodSelection/PaymentMethodSelection.svelte';
+  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
+  import { notification } from '@/components/Toast';
+
+  // Icons
+  import CrownIcon from '@/assets/icons/CrownIcon.svelte';
+  import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
 
   const location = useLocation();
 
   // Add Stripe instance
   let stripe;
+  let socket;
 
   // Initialize Stripe on mount
   onMount(async () => {
-    await initializeStripe();
-    initializeSocket();
+    stripe = await initializeStripe();
+
+    // Initialize socket with event handlers
+    socket = initializeStripeSocket(API_BASE_URL, {
+      onPaymentSuccess: (data) => {
+        console.log('Payment success:', data);
+        const { team } = data;
+        isProcessingPayment = false;
+        showSubscriptionConfirmModal = true;
+
+        // Update selectedPlanDetails with team data
+        selectedPlanDetails = {
+          ...selectedPlanDetails,
+          fromPlan: team?.plan?.name || currentPlan,
+          toPlan: team?.plan?.name || selectedPlanDetails.plan,
+          hubName: team?.name || hubName,
+        };
+
+        refetchSubscription();
+      },
+      onPaymentFailed: (data) => {
+        console.log('Payment failed:', data);
+        const { team } = data;
+        isProcessingPayment = false;
+        showSubscriptionFailedModal = true;
+        notification.error('Payment failed. Please try again or contact support.');
+
+        // Update selectedPlanDetails with team data
+        selectedPlanDetails = {
+          ...selectedPlanDetails,
+          fromPlan: team?.plan?.name || currentPlan,
+          toPlan: team?.plan?.name || selectedPlanDetails.plan,
+          hubName: team?.name || hubName,
+        };
+        refetchSubscription();
+        refetchHub();
+      },
+      onSubscriptionUpdated: (data) => {
+        console.log('Subscription updated:', data);
+        refetchSubscription();
+        refetchHub();
+      },
+      onSubscriptionCreated: (data) => {
+        console.log('Subscription created:', data);
+        refetchSubscription();
+        refetchHub();
+      },
+      onSubscriptionCanceled: (data) => {
+        console.log('Subscription canceled:', data);
+        refetchSubscription();
+        refetchHub();
+      },
+    });
   });
 
   // Cleanup socket connection on component destroy
@@ -39,119 +103,6 @@
       socket.disconnect();
     }
   });
-
-  // Initialize Stripe with the publishable key from our API
-  async function initializeStripe() {
-    try {
-      // Load Stripe.js if not already loaded
-      if (!window.Stripe) {
-        const script = document.createElement('script');
-        script.src = 'https://js.stripe.com/v3/';
-        script.async = true;
-        document.body.appendChild(script);
-
-        // Wait for script to load
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
-      }
-
-      // Fetch the publishable key from our backend using the service
-      const { publishableKey } = await billingService.getStripeConfig();
-
-      // Initialize Stripe
-      stripe = window.Stripe(publishableKey);
-    } catch (err) {
-      console.error('Error initializing Stripe:', err);
-    }
-  }
-
-  let socket;
-
-  function initializeSocket() {
-    // Connect to the stripe-events namespace
-    socket = io(`${API_BASE_URL}`, {
-      path: '/socket.io',
-      namespace: 'stripe-events',
-      transports: ['polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
-    });
-
-    // Connection events
-    socket.on('connect', () => {
-      console.log('Connected to stripe-events socket:', socket.id);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-    });
-
-    socket.on('disconnect', (reason) => {
-      console.log('Disconnected from stripe-events socket:', reason);
-    });
-
-    // Payment events
-    socket.on('payment_success', (data) => {
-      console.log('Payment success:', data);
-      const { team } = data;
-      isProcessingPayment = false;
-      showSubscriptionConfirmModal = true;
-
-      // Update selectedPlanDetails with team data
-      selectedPlanDetails = {
-        ...selectedPlanDetails,
-        fromPlan: team?.plan?.name || currentPlan,
-        toPlan: team?.plan?.name || selectedPlanDetails.plan,
-        hubName: team?.name || hubName,
-      };
-
-      refetchSubscription();
-    });
-
-    socket.on('payment_failed', (data) => {
-      console.log('Payment failed:', data);
-      const { team } = data;
-      isProcessingPayment = false;
-      showSubscriptionFailedModal = true;
-      notification.error('Payment failed. Please try again or contact support.');
-
-      // Update selectedPlanDetails with team data
-      selectedPlanDetails = {
-        ...selectedPlanDetails,
-        fromPlan: team?.plan?.name || currentPlan,
-        toPlan: team?.plan?.name || selectedPlanDetails.plan,
-        hubName: team?.name || hubName,
-      };
-      refetchSubscription();
-      refetchHub();
-    });
-
-    // Subscription events
-    socket.on('subscription_updated', (data) => {
-      console.log('Subscription updated:', data);
-      const { team } = data;
-      refetchSubscription();
-      refetchHub();
-    });
-
-    socket.on('subscription_created', (data) => {
-      console.log('Subscription created:', data);
-      const { team } = data;
-
-      refetchSubscription();
-      refetchHub(); // Added refetchHub here
-    });
-
-    socket.on('subscription_canceled', (data) => {
-      console.log('Subscription canceled:', data);
-      const { team } = data;
-
-      refetchSubscription();
-      refetchHub();
-    });
-  }
 
   // Extract hubId from URL
   let hubId = null;
@@ -167,7 +118,6 @@
   // UI state
   let showChangePlanModal = false;
   let showPaymentMethodModal = false;
-  let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
   let showSubscriptionFailedModal = false;
   let isLoadingSubscription = false;
@@ -211,6 +161,7 @@
   $: {
     if (hubId) {
       refetchCustomer();
+      refetchHub();
     }
   }
 
@@ -336,12 +287,7 @@
 
       // Handle any required authentication (like 3D Secure)
       if (result.requiresAction && result.clientSecret) {
-        const { paymentIntent, error } = await stripe.confirmCardPayment(result.clientSecret);
-
-        if (error) {
-          isProcessingPayment = false;
-          throw new Error(error.message || 'Payment authentication failed. Please try again.');
-        }
+        await handleStripePaymentConfirmation(stripe, result.clientSecret);
       }
 
       // Set the subscription ID from the result if it's a new subscription
@@ -366,19 +312,6 @@
     navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
   }
 
-  // Handle payment method added
-  function handlePaymentMethodAdded(event) {
-    // Get the customer ID from the event if it's a new customer
-    if (event.detail && event.detail.customerId) {
-      customerId = event.detail.customerId;
-      // After setting a new customer ID, we should refetch it to ensure it's saved
-      refetchCustomer();
-    }
-
-    showAddCardModal = false;
-    showPaymentMethodModal = true;
-  }
-
   // Handle contact sales
   function handleContactSales() {
     showChangePlanModal = false;
@@ -392,29 +325,10 @@
     navigate('/billing/billingInvoices/' + hubId);
   }
 
-  // Handle cancel subscription
-  async function handleCancelSubscription() {
-    if (!subscriptionId) return;
-
-    try {
-      await billingService.cancelSubscription({
-        subscriptionId,
-        cancelImmediately: false, // Cancel at period end
-      });
-
-      // Refetch subscription data
-      refetchSubscription();
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      // You could add error handling here
-    }
-  }
-
   // Close all modals
   function closeModals() {
     showChangePlanModal = false;
     showPaymentMethodModal = false;
-    showAddCardModal = false;
     showSubscriptionConfirmModal = false;
     showSubscriptionFailedModal = false;
     isProcessingPayment = false;
@@ -648,18 +562,6 @@
         on:close={closeModals}
         on:paymentMethodSelected={handlePaymentMethodSelected}
         on:addNewCard={handleAddNewCard}
-      />
-    </Modal>
-  {/if}
-
-  <!-- Add Payment Method Modal -->
-  {#if showAddCardModal}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <AddPaymentMethod
-        {customerId}
-        {hubId}
-        on:close={closeModals}
-        on:paymentMethodAdded={handlePaymentMethodAdded}
       />
     </Modal>
   {/if}

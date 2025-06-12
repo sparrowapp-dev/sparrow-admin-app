@@ -1,10 +1,19 @@
 <script>
+  // Svelte
   import { createEventDispatcher } from 'svelte';
-  import Table from '@/components/Table/Table.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
-  import DeleteCard from '@/components/DeleteCard/DeleteCard.svelte';
+
+  // UI Components
   import Button from '@/ui/Button/Button.svelte';
+
+  // App Components
+  import Modal from '@/components/Modal/Modal.svelte';
+  import Table from '@/components/Table/Table.svelte';
+  import DeleteCard from '@/components/DeleteCard/DeleteCard.svelte';
   import DeleteCardDropdown from '@/components/TableComponents/DeleteCardDropdown.svelte';
+  import EditCardDropdown from '@/components/TableComponents/EditCardDropdown.svelte';
+  import DefaultCard from '@/components/TableComponents/DefaultCard.svelte';
+
+  // Icons
   import PlusIcon from '@/assets/icons/PlusIcon.svelte';
 
   const dispatch = createEventDispatcher();
@@ -59,19 +68,22 @@
     dispatch('cardSelected', { index });
   }
 
+  // Handle edit billing details
+  function editBillingDetails(paymentMethod) {
+    dispatch('editBilling', { paymentMethodId: paymentMethod.id });
+  }
+
   // Define table columns
   const columns = [
     {
       accessorKey: 'card.brand',
       header: 'Payment Method',
-      cell: ({ row }) => {
-        const card = row.original.card;
-        return `
-          <div class="flex items-center gap-2">
-            <span class="text-neutral-50 font-fs-ds-12">${card?.brand?.toUpperCase()} ending with ${card.last4}</span>
-          </div>
-        `;
-      },
+      cell: ({ row }) => ({
+        Component: DefaultCard,
+        props: {
+          row: row?.original,
+        },
+      }),
       enableSorting: true,
     },
     {
@@ -100,6 +112,18 @@
         const name = row.original.billing_details?.name;
         return `<span class="text-neutral-50 font-fs-ds-12">${name || 'Not provided'}</span>`;
       },
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableSorting: false,
+      cell: ({ row }) => ({
+        Component: EditCardDropdown,
+        props: {
+          row,
+          on_editBilling: editBillingDetails,
+        },
+      }),
     },
     {
       id: 'actions',
