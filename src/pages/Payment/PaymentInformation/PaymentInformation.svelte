@@ -1,15 +1,23 @@
 <script>
+  // Svelte
+  import { useLocation } from 'svelte-routing';
+
+  // Services
   import { createQuery } from '@/services/api.common';
+  import { billingService } from '@/services/billing.service';
+
+  // UI Components
+  import Button from '@/ui/Button/Button.svelte';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import Tag from '@/ui/Tag/Tag.svelte';
+
+  // App Components
+  import Modal from '@/components/Modal/Modal.svelte';
   import UnifiedPaymentMethodForm from './PaymentModules/UnifiedPaymentMethodForm.svelte';
   import PaymentMethodsList from './PaymentModules/PaymentMethodsList.svelte';
-  import Button from '@/ui/Button/Button.svelte';
+
+  // Icons
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
-  import EditIcon from '@/assets/icons/EditIcon.svelte';
-  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-  import { billingService } from '@/services/billing.service';
-  import { useLocation } from 'svelte-routing';
-  import Tag from '@/ui/Tag/Tag.svelte';
 
   const location = useLocation();
 

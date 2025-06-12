@@ -1,9 +1,16 @@
 <script lang="ts">
-  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
-  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+  // Svelte
+  import { navigate, Route, Router, useLocation } from 'svelte-routing';
+
+  // Services
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
-  import { navigate, Route, Router, useLocation } from 'svelte-routing';
+
+  // App Components
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+
+  // Local Components
   import Overview from './Overview/Overview.svelte';
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
@@ -61,8 +68,8 @@
     pathname: string,
     dropdownOptions: DropdownOption[],
   ): PathMatcherResult => {
-    let currentId = null;
-    let selectOption = null;
+    let currentId: string | null = null;
+    let selectOption: Team | null = null;
 
     // Match any payment route pattern including addPaymentDetails
     const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);

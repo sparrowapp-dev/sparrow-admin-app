@@ -1,13 +1,20 @@
 <script>
+  // Svelte
   import { createEventDispatcher } from 'svelte';
-  import Table from '@/components/Table/Table.svelte';
-  import Modal from '@/components/Modal/Modal.svelte';
-  import DeleteCard from '@/components/DeleteCard/DeleteCard.svelte';
+
+  // UI Components
   import Button from '@/ui/Button/Button.svelte';
+
+  // App Components
+  import Modal from '@/components/Modal/Modal.svelte';
+  import Table from '@/components/Table/Table.svelte';
+  import DeleteCard from '@/components/DeleteCard/DeleteCard.svelte';
   import DeleteCardDropdown from '@/components/TableComponents/DeleteCardDropdown.svelte';
-  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
   import EditCardDropdown from '@/components/TableComponents/EditCardDropdown.svelte';
   import DefaultCard from '@/components/TableComponents/DefaultCard.svelte';
+
+  // Icons
+  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
 
   const dispatch = createEventDispatcher();
 
