@@ -1,7 +1,6 @@
 <script>
   import { createQuery } from '@/services/api.common';
-  import AddPaymentMethod from './PaymentModules/AddPaymentMethod.svelte';
-  import UpdateBillingDetails from './PaymentModules/UpdateBillingDetails.svelte';
+  import UnifiedPaymentMethodForm from './PaymentModules/UnifiedPaymentMethodForm.svelte';
   import PaymentMethodsList from './PaymentModules/PaymentMethodsList.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
@@ -10,6 +9,7 @@
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { billingService } from '@/services/billing.service';
   import { useLocation } from 'svelte-routing';
+  import Tag from '@/ui/Tag/Tag.svelte';
 
   const location = useLocation();
 
@@ -36,9 +36,9 @@
   let selectedCardIndex = 0;
 
   // Modal state
-  let showAddCardModal = false;
-  let showBillingAddressModal = false;
+  let showPaymentFormModal = false;
   let selectedPaymentMethodId = null;
+  let isSelectedPaymentMethodDefault = false;
 
   // Use createQuery to fetch customer ID
   const {
@@ -59,20 +59,23 @@
     customerId = $customerData?.data?.customerId || null;
   }
 
-  function openAddCardModal() {
-    showAddCardModal = true;
-    showBillingAddressModal = false;
-  }
-
-  function openBillingAddressModal(paymentMethodId = 'new') {
+  function openPaymentFormModal(paymentMethodId = null) {
     selectedPaymentMethodId = paymentMethodId;
-    showBillingAddressModal = true;
-    showAddCardModal = false;
+
+    // Set the isDefault flag if editing an existing payment method
+    if (paymentMethodId) {
+      const selectedMethod = paymentMethods.find((pm) => pm.id === paymentMethodId);
+      isSelectedPaymentMethodDefault = selectedMethod?.isDefault || false;
+    } else {
+      isSelectedPaymentMethodDefault = false;
+    }
+
+    showPaymentFormModal = true;
   }
 
-  function closeModals() {
-    showAddCardModal = false;
-    showBillingAddressModal = false;
+  function closeModal() {
+    showPaymentFormModal = false;
+    selectedPaymentMethodId = null;
   }
 
   // Handle card selection from table
@@ -124,8 +127,8 @@
   $: hasSelectedPaymentMethodBillingDetails =
     !!selectedPaymentMethod?.billing_details?.address?.line1;
 
-  // When a payment method is added successfully
-  function handlePaymentMethodAdded(event) {
+  // When a payment method is added or updated
+  function handlePaymentMethodUpdated(event) {
     // Get the customer ID from the event if it's a new customer
     if (event.detail && event.detail.customerId) {
       customerId = event.detail.customerId;
@@ -133,14 +136,13 @@
       refetchCustomer();
     }
 
-    closeModals();
-    refetchPaymentMethods();
-  }
-
-  // When billing details are updated successfully
-  function handleBillingDetailsUpdated() {
-    closeModals();
-    refetchPaymentMethods();
+    // Ensure we always refetch payment methods to show up-to-date data
+    // Use a small timeout to ensure the server has time to process any changes
+    // especially for default payment method updates
+    setTimeout(() => {
+      refetchPaymentMethods();
+      closeModal();
+    }, 500);
   }
 
   // Handle when all payment methods are deleted
@@ -212,14 +214,23 @@
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- Payment Method Section -->
         <div class="payment-method bg-surface-600 rounded-md p-6">
-          <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 mb-4 text-neutral-50">
-            Payment Method
-          </h2>
+          <div class="mb-4 flex items-center gap-2">
+            <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
+            {#if selectedPaymentMethod?.isDefault}
+              <Tag
+                text="Default Card"
+                bgColor="bg-green-900"
+                textColor="text-green-300"
+                borderColor="border-green-700"
+                size="xs"
+              />
+            {/if}
+          </div>
 
           {#if !hasPaymentMethod}
             <div
               class="bg-surface-400 hover:bg-surface-500 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8"
-              on:click={openAddCardModal}
+              on:click={() => openPaymentFormModal()}
             >
               <PlusIconV2 />
               <span class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400"
@@ -246,123 +257,17 @@
                         .exp_month}/{selectedPaymentMethod.card.exp_year}
                     </div>
                     <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                      {selectedPaymentMethod.billing_details.address.line1},
+                      {selectedPaymentMethod.billing_details.address.city}, {selectedPaymentMethod
+                        .billing_details.address.state}, {selectedPaymentMethod.billing_details
+                        .address.country}
+                    </div>
+                    <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
                       {selectedPaymentMethod.billing_details?.name}
                     </div>
                   </div>
                 </div>
               {/if}
-            </div>
-          {/if}
-        </div>
-
-        <!-- Billing Address Section -->
-        <div class="bg-surface-600 flex flex-col justify-between rounded-md p-6">
-          <div class="flex items-start justify-between">
-            <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 mb-4 text-neutral-50">
-              Billing Address
-            </h2>
-            {#if hasSelectedPaymentMethodBillingDetails}
-              <button
-                class="cursor-pointer"
-                on:click={() => openBillingAddressModal(selectedPaymentMethod.id)}
-              >
-                <EditIcon />
-              </button>
-            {/if}
-          </div>
-
-          {#if !hasSelectedPaymentMethodBillingDetails}
-            <div>
-              <p class="text-fs-ds-14 font-inter font-fw-ds-400 mb-4 text-neutral-400">
-                No billing address added yet for this payment method. Please add a billing address
-                to complete your payment information.
-              </p>
-            </div>
-            <div>
-              <Button
-                on:click={() =>
-                  selectedPaymentMethod && openBillingAddressModal(selectedPaymentMethod.id)}
-                variant="filled-primary"
-                size="medium"
-                disabled={!selectedPaymentMethod}
-              >
-                Add Billing Address</Button
-              >
-            </div>
-
-            {#if !selectedPaymentMethod}
-              <p class="mt-2 text-xs text-gray-400">
-                You need to add payment method first, before entering billing details.
-              </p>
-            {/if}
-          {:else if selectedPaymentMethod?.billing_details?.address}
-            <!-- Display selected billing address -->
-            <div class="address-info space-y-2">
-              <div class="flex space-x-2">
-                <div class="text-fs-ds-14 font-fw-ds-400 font-inter w-32 text-neutral-200">
-                  Name:
-                </div>
-                <div class=" text-fs-ds-14 font-fw-ds-400 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.name || 'N/A'}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  Billing Email:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.email || 'N/A'}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  Street Address:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.address.line1 || 'N/A'}
-                  {#if selectedPaymentMethod.billing_details.address.line2}
-                    , {selectedPaymentMethod.billing_details.address.line2}
-                  {/if}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  City:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.address.city || 'N/A'}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  State:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.address.state || 'N/A'}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  ZIP:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.address.postal_code || 'N/A'}
-                </div>
-              </div>
-
-              <div class="flex space-x-2">
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter w-32 text-neutral-200">
-                  Country:
-                </div>
-                <div class="font-fw-ds-400 text-fs-ds-14 font-inter text-neutral-200">
-                  {selectedPaymentMethod.billing_details.address.country || 'N/A'}
-                </div>
-              </div>
             </div>
           {/if}
         </div>
@@ -373,32 +278,26 @@
         <div class="mt-6">
           <PaymentMethodsList
             {paymentMethods}
-            on:addCard={openAddCardModal}
+            on:addCard={() => openPaymentFormModal()}
             on:cardSelected={handleCardSelected}
             on:requestRefresh={handleAllCardsDeleted}
+            on:editBilling={(e) => openPaymentFormModal(e.detail.paymentMethodId)}
           />
         </div>
       {/if}
     {/if}
 
-    <!-- Modals -->
-    {#if showAddCardModal}
-      <Modal on:close={closeModals}>
-        <AddPaymentMethod
+    <!-- Unified Payment Form Modal -->
+    {#if showPaymentFormModal}
+      <Modal on:close={closeModal}>
+        <UnifiedPaymentMethodForm
           {customerId}
           {hubId}
-          on:close={closeModals}
-          on:paymentMethodAdded={handlePaymentMethodAdded}
-        />
-      </Modal>
-    {/if}
-
-    {#if showBillingAddressModal}
-      <Modal on:close={closeModals}>
-        <UpdateBillingDetails
           paymentMethodId={selectedPaymentMethodId}
-          on:close={closeModals}
-          on:billingDetailsUpdated={handleBillingDetailsUpdated}
+          isDefault={isSelectedPaymentMethodDefault}
+          on:close={closeModal}
+          on:paymentMethodAdded={handlePaymentMethodUpdated}
+          on:billingDetailsUpdated={handlePaymentMethodUpdated}
         />
       </Modal>
     {/if}

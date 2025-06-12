@@ -6,7 +6,6 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import ChangePlansModal from '@/components/ChangePlansModal/ChangePlansModal.svelte';
   import PaymentMethodSelection from '@/components/PaymentMethodSelection/PaymentMethodSelection.svelte';
-  import AddPaymentMethod from '@/pages/Payment/PaymentInformation/PaymentModules/AddPaymentMethod.svelte';
   import { useLocation } from 'svelte-routing';
   import { createQuery } from '@/services/api.common';
   import { billingService } from '@/services/billing.service';
@@ -167,7 +166,6 @@
   // UI state
   let showChangePlanModal = false;
   let showPaymentMethodModal = false;
-  let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
   let showSubscriptionFailedModal = false;
   let isLoadingSubscription = false;
@@ -211,6 +209,7 @@
   $: {
     if (hubId) {
       refetchCustomer();
+      refetchHub();
     }
   }
 
@@ -366,19 +365,6 @@
     navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
   }
 
-  // Handle payment method added
-  function handlePaymentMethodAdded(event) {
-    // Get the customer ID from the event if it's a new customer
-    if (event.detail && event.detail.customerId) {
-      customerId = event.detail.customerId;
-      // After setting a new customer ID, we should refetch it to ensure it's saved
-      refetchCustomer();
-    }
-
-    showAddCardModal = false;
-    showPaymentMethodModal = true;
-  }
-
   // Handle contact sales
   function handleContactSales() {
     showChangePlanModal = false;
@@ -414,7 +400,6 @@
   function closeModals() {
     showChangePlanModal = false;
     showPaymentMethodModal = false;
-    showAddCardModal = false;
     showSubscriptionConfirmModal = false;
     showSubscriptionFailedModal = false;
     isProcessingPayment = false;
@@ -648,18 +633,6 @@
         on:close={closeModals}
         on:paymentMethodSelected={handlePaymentMethodSelected}
         on:addNewCard={handleAddNewCard}
-      />
-    </Modal>
-  {/if}
-
-  <!-- Add Payment Method Modal -->
-  {#if showAddCardModal}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <AddPaymentMethod
-        {customerId}
-        {hubId}
-        on:close={closeModals}
-        on:paymentMethodAdded={handlePaymentMethodAdded}
       />
     </Modal>
   {/if}
