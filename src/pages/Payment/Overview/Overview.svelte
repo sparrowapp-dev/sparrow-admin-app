@@ -11,7 +11,7 @@
   import { createQuery } from '@/services/api.common';
   import { billingService } from '@/services/billing.service';
   import { navigate } from 'svelte-routing';
-  import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
+  import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
   import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
   import { notification } from '@/components/Toast';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
@@ -97,6 +97,7 @@
       console.log('Payment success:', data);
       const { team } = data;
       isProcessingPayment = false;
+      showSubscriptionConfirmModal = true;
 
       // Update selectedPlanDetails with team data
       selectedPlanDetails = {
@@ -106,7 +107,6 @@
         hubName: team?.name || hubName,
       };
 
-      showSubscriptionConfirmModal = true;
       refetchSubscription();
     });
 
@@ -114,7 +114,16 @@
       console.log('Payment failed:', data);
       const { team } = data;
       isProcessingPayment = false;
+      showSubscriptionFailedModal = true;
       notification.error('Payment failed. Please try again or contact support.');
+
+      // Update selectedPlanDetails with team data
+      selectedPlanDetails = {
+        ...selectedPlanDetails,
+        fromPlan: team?.plan?.name || currentPlan,
+        toPlan: team?.plan?.name || selectedPlanDetails.plan,
+        hubName: team?.name || hubName,
+      };
       refetchSubscription();
       refetchHub();
     });
@@ -160,6 +169,7 @@
   let showPaymentMethodModal = false;
   let showAddCardModal = false;
   let showSubscriptionConfirmModal = false;
+  let showSubscriptionFailedModal = false;
   let isLoadingSubscription = false;
   let isProcessingPayment = false;
 
@@ -406,6 +416,7 @@
     showPaymentMethodModal = false;
     showAddCardModal = false;
     showSubscriptionConfirmModal = false;
+    showSubscriptionFailedModal = false;
     isProcessingPayment = false;
   }
 </script>
@@ -660,12 +671,29 @@
     </Modal>
   {/if}
 
+  <!-- Subscription Failed Modal -->
+  {#if showSubscriptionFailedModal}
+    <Modal width="max-w-xl" on:close={closeModals}>
+      <PlanUpdateFailed
+        {hubName}
+        {currentPlan}
+        {nextBillingDate}
+        fromPlan={selectedPlanDetails.fromPlan}
+        toPlan={selectedPlanDetails.toPlan}
+        on:close={closeModals}
+        on:fixPayment={() => {
+          window.open(invoiceUrl, '_blank');
+        }}
+      />
+    </Modal>
+  {/if}
+
   <!-- Subscription Confirmation Modal -->
   {#if showSubscriptionConfirmModal}
     <Modal width="max-w-xl" on:close={closeModals}>
       <PlanUpdateSuccess
         hubName={selectedPlanDetails.hubName}
-        currentPlan={selectedPlanDetails.toPlan}
+        {currentPlan}
         {nextBillingDate}
         fromPlan={selectedPlanDetails.fromPlan}
         toPlan={selectedPlanDetails.toPlan}
