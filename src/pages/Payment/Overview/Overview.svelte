@@ -20,24 +20,7 @@
   import Tag from '@/ui/Tag/Tag.svelte';
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import Alert from '@/components/Alert/Alert.svelte';
-
-  const planColors = {
-    Community: {
-      bg: 'bg-neutral-700',
-      text: 'text-neutral-300',
-      border: 'border-neutral-500',
-    },
-    Standard: {
-      bg: 'bg-purple-900',
-      text: 'text-purple-200',
-      border: 'border-purple-700',
-    },
-    Professional: {
-      bg: 'bg-cyan-900',
-      text: 'text-cyan-300',
-      border: 'border-cyan-700',
-    },
-  };
+  import { getDynamicCssClasses } from '@/utils/planTagStyles';
 
   const location = useLocation();
 
@@ -133,6 +116,7 @@
       isProcessingPayment = false;
       notification.error('Payment failed. Please try again or contact support.');
       refetchSubscription();
+      refetchHub();
     });
 
     // Subscription events
@@ -140,6 +124,7 @@
       console.log('Subscription updated:', data);
       const { team } = data;
       refetchSubscription();
+      refetchHub();
     });
 
     socket.on('subscription_created', (data) => {
@@ -147,6 +132,7 @@
       const { team } = data;
 
       refetchSubscription();
+      refetchHub(); // Added refetchHub here
     });
 
     socket.on('subscription_canceled', (data) => {
@@ -154,6 +140,7 @@
       const { team } = data;
 
       refetchSubscription();
+      refetchHub();
     });
   }
 
@@ -452,7 +439,7 @@
       >
     </div>
   </div>
-  {#if planStatus !== 'active'}
+  {#if planStatus === 'payment_failed'}
     <div class="mt-2 mb-8">
       <Alert
         title="Payment Issue Detected"
@@ -469,7 +456,7 @@
   <!-- 2x2 Grid Layout -->
   <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
     <!-- Current Plan Card -->
-    <div class="bg-surface-600 rounded-lg p-6">
+    <div class="bg-surface-600 flex flex-col justify-between rounded-lg p-6">
       <div class="flex flex-col gap-1">
         <div class="flex items-start justify-between">
           <div class="flex flex-col gap-1">
@@ -482,9 +469,9 @@
 
               <Tag
                 text={currentPlan}
-                bgColor={planColors[currentPlan]?.bg}
-                textColor={planColors[currentPlan]?.text}
-                borderColor={planColors[currentPlan]?.border}
+                bgColor={getDynamicCssClasses(currentPlan)?.bgColor}
+                textColor={getDynamicCssClasses(currentPlan)?.textColor}
+                borderColor={getDynamicCssClasses(currentPlan)?.borderColor}
                 size="xs"
               />
             </div>
