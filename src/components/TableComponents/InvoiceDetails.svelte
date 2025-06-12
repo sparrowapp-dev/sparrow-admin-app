@@ -2,6 +2,7 @@
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import Table from '../Table/Table.svelte';
   import Button from '@/ui/Button/Button.svelte';
+  import InvoiceStatus from './InvoiceStatus.svelte';
 
   export let onClose: () => void;
 
@@ -9,7 +10,10 @@
 
   $: invoiceDetailsRows = [
     { field: 'Invoice Number', value: invoice?.invoiceNumber || '-' },
-    { field: 'Invoiced To', value: invoice?.invoicedTo || '-' },
+    {
+      field: 'Invoiced To',
+      value: invoice?.invoicedTo ? invoice.invoicedTo.match(/\(([^)]+)\)/)?.[1] || '-' : '-',
+    },
     {
       field: 'Due Date',
       value: invoice?.dueDate
@@ -25,12 +29,8 @@
     { field: 'Total Users', value: invoice?.totalUsers || '-' },
     {
       field: 'Status',
-      value:
-        invoice?.status === 'success'
-          ? '<span class="text-green-500">🟢 Success</span>'
-          : invoice?.status
-            ? `<span class="capitalize">${invoice.status}</span>`
-            : '-',
+      value: invoice?.status || '-', // Pass status value for rendering with component
+      isStatus: true, // Custom flag to identify status row
     },
     {
       field: 'Payment Method',
@@ -46,7 +46,20 @@
 
   const invoiceDetailsColumns = [
     { accessorKey: 'field', header: 'Field', enableSorting: false },
-    { accessorKey: 'value', header: 'Value', enableSorting: false },
+    {
+      accessorKey: 'value',
+      header: 'Value',
+      enableSorting: false,
+      cell: ({ row }) => {
+        if (row.original.field === 'Status') {
+          return {
+            Component: InvoiceStatus,
+            props: { status: row.original.value },
+          };
+        }
+        return row.original.value;
+      },
+    },
   ];
 
   function handleDownloadInvoice() {
@@ -58,7 +71,7 @@
 
 <div class="bg-surface-600 rounded-lg p-6">
   <div class="flex items-start justify-between">
-    <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter  text-neutral-50">New Hub</h2>
+    <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">New Hub</h2>
     <button type="button" class="cursor-pointer" on:click={onClose}> <CloseIcon /> </button>
   </div>
 
