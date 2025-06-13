@@ -11,11 +11,11 @@
   }>();
 
   // Props
-  export let hubName: string = 'Techdome Hub';
-  export let currentPlan: string = 'Standard';
-  export let nextBillingDate: string = 'July 2, 2025';
-  export let fromPlan: string = 'Standard';
-  export let toPlan: string = 'Professional';
+  export let hubName: string = '';
+  export let currentPlan: string = '';
+  export let nextBillingDate: string = '';
+  export let fromPlan: string = '';
+  export let toPlan: string = '';
 
   function handleClose() {
     dispatch('close');
@@ -24,6 +24,14 @@
   function handleGoToDashboard() {
     navigate('/hubs');
   }
+
+  $: formattedBillingDate = nextBillingDate
+    ? new Date(nextBillingDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '';
 </script>
 
 <div class="bg-surface-600 max-w-xl rounded-lg p-7 text-white">
@@ -56,7 +64,7 @@
     </div>
     <div class="col-span-2">
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Next billing date</p>
-      <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{nextBillingDate}</p>
+      <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{formattedBillingDate}</p>
     </div>
   </div>
 

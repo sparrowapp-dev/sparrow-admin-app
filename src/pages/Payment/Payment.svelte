@@ -15,6 +15,8 @@
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
   import PaymentDetails from './PaymentInformation/PaymentDetails/PaymentDetails.svelte';
+  import PaymentMethodSelectionPage from './PaymentInformation/PaymentMethodSelectionPage.svelte';
+  import ChangePlanPage from './PaymentInformation/ChangePlanPage.svelte';
 
   interface Team {
     teamId: string;
@@ -71,14 +73,15 @@
     let currentId: string | null = null;
     let selectOption: Team | null = null;
 
-    // Match any payment route pattern including addPaymentDetails
+    // Match any payment route pattern including addPaymentDetails and paymentMethod
     const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);
 
     if (paymentRouteMatch) {
       const [, section, subsection, teamId] = paymentRouteMatch;
 
-      // Handle nested routes like addPaymentDetails
-      const actualTeamId = subsection === 'addPaymentDetails' ? teamId : subsection;
+      // Handle nested routes like addPaymentDetails or selectPaymentMethod
+      const isNestedRoute = ['addPaymentDetails', 'selectPaymentMethod'].includes(subsection);
+      const actualTeamId = isNestedRoute ? teamId : subsection;
 
       if (actualTeamId) {
         const foundTeam = dropdownOptions.find((option) => option.value.teamId === actualTeamId);
@@ -89,7 +92,7 @@
       }
       // Handle root sections
       else if (
-        ['billingOverview', 'billingInformation', 'billingInvoices', 'addPaymentDetails'].includes(
+        ['billingOverview', 'billingInformation', 'billingInvoices', 'addPaymentDetails', 'selectPaymentMethod'].includes(
           section,
         )
       ) {
@@ -131,6 +134,8 @@
       <Route path="billingOverview/:id" component={Overview} />
       <Route path="billingInformation/:id" component={PaymentInformation} />
       <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
+      <Route path="billingInformation/selectPaymentMethod/:id" component={PaymentMethodSelectionPage} />
+      <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
       <Route path="billingInvoices/:id" component={PaymentInvoices} />
     </Router>
   </div>

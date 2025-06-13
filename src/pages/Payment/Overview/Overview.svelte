@@ -12,9 +12,9 @@
   import { hubsService } from '@/services/hubs.service';
 
   // Utils
-  import { processSubscriptionData, capitalizeFirstLetter } from '@/utils/pricing';
+  import { processSubscriptionData } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
-  import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
+  import { initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
 
   // UI Components
@@ -22,12 +22,7 @@
   import Tag from '@/ui/Tag/Tag.svelte';
 
   // App Components
-  import Modal from '@/components/Modal/Modal.svelte';
   import Alert from '@/components/Alert/Alert.svelte';
-  import ChangePlansModal from '@/components/ChangePlansModal/ChangePlansModal.svelte';
-  import PaymentMethodSelection from '@/components/PaymentMethodSelection/PaymentMethodSelection.svelte';
-  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
-  import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
   import { notification } from '@/components/Toast';
 
   // Icons
@@ -115,9 +110,43 @@
     }
   }
 
+  // URL parameter handling for plan updates
+  let showProcessingFromURL = false;
+  let showFailedFromURL = false;
+  let fromPlan = '';
+  let toPlan = '';
+
+  $: {
+    if ($location?.search) {
+      const searchParams = new URLSearchParams($location.search);
+      showProcessingFromURL = searchParams.get('showProcessing') === 'true';
+      showFailedFromURL = searchParams.get('showFailed') === 'true';
+      fromPlan = searchParams.get('fromPlan') || currentPlan;
+      toPlan = searchParams.get('toPlan') || '';
+
+      // Set modal flags based on URL parameters
+      if (showProcessingFromURL) {
+        isProcessingPayment = true;
+      }
+
+      if (showFailedFromURL) {
+        showSubscriptionFailedModal = true;
+        selectedPlanDetails = {
+          ...selectedPlanDetails,
+          fromPlan,
+          toPlan,
+        };
+      }
+
+      // Clear the URL params after reading them
+      if (showProcessingFromURL || showFailedFromURL) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+  }
+
   // UI state
-  let showChangePlanModal = false;
-  let showPaymentMethodModal = false;
   let showSubscriptionConfirmModal = false;
   let showSubscriptionFailedModal = false;
   let isLoadingSubscription = false;
@@ -149,7 +178,6 @@
     billingCycle: '',
     priceId: '',
     price: '',
-    totalAmount: '',
   };
 
   // Fetch customer ID
@@ -225,113 +253,18 @@
 
   // Handle upgrade button click
   function handleUpgradeClick() {
-    showChangePlanModal = true;
-  }
-
-  // Handle plan selection from the modal
-  function handlePlanSelected(event) {
-    const { plan, billingCycle, price, priceId } = event.detail;
-
-    // Store selected plan details
-    selectedPlanDetails = {
-      plan: capitalizeFirstLetter(plan),
-      billingCycle,
-      priceId: priceId || '',
-      price,
-      totalAmount: price,
-    };
-
-    // Close the plan selection modal and show the payment method selection modal
-    showChangePlanModal = false;
-    showPaymentMethodModal = true;
-  }
-
-  // Handle payment method selection
-  async function handlePaymentMethodSelected(event) {
-    const { paymentMethodId, planName, priceId, billingCycle } = event.detail;
-
-    // Close the payment modal and show processing state
-    showPaymentMethodModal = false;
-    isProcessingPayment = true;
-
-    try {
-      // Prepare common metadata for both create and update operations
-      const metadata = {
-        hubId,
-        userCount: userCount.toString(),
-        planName,
-      };
-
-      let result;
-
-      // Determine if we need to create or update a subscription
-      if (subscriptionId) {
-        // Update existing subscription
-        result = await billingService.updateSubscription({
-          subscriptionId,
-          priceId,
-          paymentMethodId,
-          metadata,
-        });
-      } else if (customerId) {
-        // Create new subscription
-        result = await billingService.createSubscription({
-          customerId,
-          priceId,
-          paymentMethodId,
-          metadata,
-        });
-      } else {
-        throw new Error('No customer ID available to create subscription');
-      }
-
-      // Handle any required authentication (like 3D Secure)
-      if (result.requiresAction && result.clientSecret) {
-        await handleStripePaymentConfirmation(stripe, result.clientSecret);
-      }
-
-      // Set the subscription ID from the result if it's a new subscription
-      if (!subscriptionId && result.subscriptionId) {
-        subscriptionId = result.subscriptionId;
-      }
-
-      // Don't show confirmation modal here - wait for socket event
-      // Update will come through socket events
-    } catch (err) {
-      console.error('Error processing subscription:', err);
-      isProcessingPayment = false;
-      if (window.notification && notification.error) {
-        notification.error(`Subscription failed: ${err.message}`);
-      }
+    if (planStatus === 'payment_failed') {
+      notification.error('Please resolve the payment issue before changing your plan.');
+      return;
     }
-  }
+    // Navigate directly to the change plan page with subscription ID
+    const searchParams = new URLSearchParams({
+      currentPlan,
+      currentBillingCycle,
+      subscriptionId: subscriptionId || '',
+    });
 
-  // Handle add new card
-  function handleAddNewCard() {
-    showPaymentMethodModal = false;
-    navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
-  }
-
-  // Handle contact sales
-  function handleContactSales() {
-    showChangePlanModal = false;
-    // Implement contact sales logic
-    console.log('Contacting sales team for Enterprise plan');
-  }
-
-  // Handle view subscription
-  function handleViewSubscription() {
-    showSubscriptionConfirmModal = false;
-    navigate('/billing/billingInvoices/' + hubId);
-  }
-
-  // Close all modals
-  function closeModals() {
-    showChangePlanModal = false;
-    showPaymentMethodModal = false;
-    showSubscriptionConfirmModal = false;
-    showSubscriptionFailedModal = false;
-    isProcessingPayment = false;
+    navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
   }
 </script>
 
@@ -468,7 +401,9 @@
         </p>
       </div>
       <div class="border-t border-neutral-700 pt-4">
-        <Button variant="outline-primary" size="medium">Contact Sales</Button>
+        <a href="mailto:contactus@sparrowapp.dev">
+          <Button variant="outline-primary" size="medium">Contact Sales</Button>
+        </a>
       </div>
     </div>
 
@@ -530,78 +465,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Change Plan Modal -->
-  {#if showChangePlanModal}
-    <Modal width="max-w-4xl" on:close={closeModals}>
-      <ChangePlansModal
-        {hubId}
-        {hubName}
-        {currentPlan}
-        {currentBillingCycle}
-        {subscriptionId}
-        on:close={closeModals}
-        on:selectPlan={handlePlanSelected}
-        on:contactSales={handleContactSales}
-      />
-    </Modal>
-  {/if}
-
-  <!-- Payment Method Selection Modal -->
-  {#if showPaymentMethodModal}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <PaymentMethodSelection
-        {customerId}
-        planName={selectedPlanDetails.plan}
-        priceId={selectedPlanDetails.priceId}
-        billingCycle={selectedPlanDetails.billingCycle}
-        totalAmount={selectedPlanDetails.totalAmount}
-        {userCount}
-        {hubId}
-        {subscriptionId}
-        on:close={closeModals}
-        on:paymentMethodSelected={handlePaymentMethodSelected}
-        on:addNewCard={handleAddNewCard}
-      />
-    </Modal>
-  {/if}
-
-  <!-- Processing Payment Modal -->
-  {#if isProcessingPayment}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <PaymentProcessingModal on:close={closeModals} />
-    </Modal>
-  {/if}
-
-  <!-- Subscription Failed Modal -->
-  {#if showSubscriptionFailedModal}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <PlanUpdateFailed
-        {hubName}
-        {currentPlan}
-        {nextBillingDate}
-        fromPlan={selectedPlanDetails.fromPlan}
-        toPlan={selectedPlanDetails.toPlan}
-        on:close={closeModals}
-        on:fixPayment={() => {
-          window.open(invoiceUrl, '_blank');
-        }}
-      />
-    </Modal>
-  {/if}
-
-  <!-- Subscription Confirmation Modal -->
-  {#if showSubscriptionConfirmModal}
-    <Modal width="max-w-xl" on:close={closeModals}>
-      <PlanUpdateSuccess
-        hubName={selectedPlanDetails.hubName}
-        {currentPlan}
-        {nextBillingDate}
-        fromPlan={selectedPlanDetails.fromPlan}
-        toPlan={selectedPlanDetails.toPlan}
-        on:close={closeModals}
-        on:goToDashboard={handleViewSubscription}
-      />
-    </Modal>
-  {/if}
 </section>

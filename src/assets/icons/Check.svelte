@@ -1,6 +1,12 @@
-<svg width="13" height="9" viewBox="0 0 13 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+<script>
+  export let color = 'white';
+  export let width = '13';
+  export let height = '9';
+</script>
+
+<svg {width} {height} viewBox="0 0 13 9" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     d="M12.1236 0.656087C12.313 0.857041 12.3037 1.17348 12.1027 1.36288L4.17286 8.83678C3.93549 9.0605 3.56287 9.05361 3.33394 8.82126L0.653604 6.10093C0.459793 5.90422 0.462137 5.58765 0.65884 5.39384C0.855543 5.20003 1.17212 5.20237 1.36593 5.39908L3.77168 7.84073L11.4168 0.635166C11.6178 0.445766 11.9342 0.455133 12.1236 0.656087Z"
-    fill="white"
+    fill={color}
   />
 </svg>

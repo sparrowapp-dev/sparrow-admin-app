@@ -23,15 +23,22 @@
   function handleFixPayment() {
     dispatch('fixPayment');
   }
+
+  $: formattedBillingDate = nextBillingDate
+    ? new Date(nextBillingDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '';
 </script>
 
 <div class="bg-surface-600 max-w-xl rounded-lg p-7 text-white">
   <!-- Header with error -->
   <div class="mb-3 flex items-start justify-between">
     <div class="flex items-center gap-2">
-      
-        <CloseIconV2 />
-      
+      <CloseIconV2 />
+
       <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Plan Upgrade Failed</h2>
     </div>
 
@@ -57,10 +64,10 @@
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Current Plan</p>
       <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{currentPlan}</p>
     </div>
-    <div class="col-span-2">
+    <!-- <div class="col-span-2">
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Next billing date</p>
-      <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{nextBillingDate}</p>
-    </div>
+      <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{formattedBillingDate}</p>
+    </div> -->
   </div>
 
   <!-- Action button -->
