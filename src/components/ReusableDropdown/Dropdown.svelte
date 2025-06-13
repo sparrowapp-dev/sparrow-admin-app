@@ -89,7 +89,7 @@
         {label.label}
       </button>
     {:else}
-      <button class="">
+      <button class="" on:click|stopPropagation>
         <input
           bind:this={searchInput}
           type="text"
@@ -97,6 +97,8 @@
           placeholder="Search"
           bind:value={searchTerm}
           on:input={handleInput}
+          on:click|stopPropagation
+          on:keydown|stopPropagation
         />
       </button>
     {/if}

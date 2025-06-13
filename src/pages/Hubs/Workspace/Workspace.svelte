@@ -23,6 +23,7 @@
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
+  import { userService } from '@/services/users.service';
   const location = useLocation();
   let workspaceExhausted = false;
   // State management
@@ -146,6 +147,18 @@
     return hubsService.getHubWorkspaces(queryParams);
   });
 
+  //Function to fetch user Role in Hub
+  const {
+    data: userRole,
+    isFetching: roleRefetching,
+    refetch: roleRefetch,
+  } = createQuery(async () => {
+    const queryParams: any = {
+      hubId: params,
+    };
+    return userService.getUserRole(queryParams);
+  });
+
   $: workspaceExhausted =
     $workspacesData?.data?.hubs?.length === $hubData?.data?.plan?.limits?.workspacesPerHub?.value;
 
@@ -159,6 +172,7 @@
   // refetch data when params change
   $: if (params) {
     refetch();
+    roleRefetch();
     hubsDataRefetch();
   }
   $: users = $hubData?.data?.users;
@@ -223,7 +237,7 @@
     workspaces: $workspacesData?.data?.hubs || [],
     isNewHub: $workspacesData?.data?.isNewHub || false,
   };
-
+  $: userRoleData = $userRole?.data;
   $: breadcrumbItems = [
     { label: 'Hubs', path: '/hubs' },
     { label: data.teamName, path: `/hubs/workspace/${params}` },
@@ -282,6 +296,7 @@
           size="small"
           iconLeft={true}
           on:click={() => (showModal = true)}
+          disabled={userRoleData === 'member'}
         >
           <svelte:fragment slot="iconLeft">
             <PlusIcon />

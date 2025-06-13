@@ -20,6 +20,8 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import InviteCollaborators from '@/components/InviteCollaborators/InviteCollaborators.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import { createQuery } from '@/services/api.common';
+  import { userService } from '@/services/users.service';
 
   const location = useLocation();
 
@@ -58,6 +60,7 @@
       if (id) {
         params = id;
         fetchHubDetails(id);
+        roleRefetch();
       }
     });
   });
@@ -87,7 +90,18 @@
       console.error('Error fetching hub details:', error);
     }
   }
-
+  //Function to fetch user Role in Hub
+  const {
+    data: userRole,
+    isFetching: roleRefetching,
+    refetch: roleRefetch,
+  } = createQuery(async () => {
+    const queryParams: any = {
+      hubId: params,
+    };
+    return userService.getUserRole(queryParams);
+  });
+  $: isMember = $userRole?.data === 'member';
   // Validate hub name field
   function validateHubName(name: string): boolean {
     if (!name.trim()) {
@@ -219,6 +233,7 @@
           size="small"
           iconLeft={true}
           on:click={() => (showInviteModal = true)}
+          disabled={isMember}
         >
           <svelte:fragment slot="iconLeft">
             <ManageMembersIcon />
@@ -230,6 +245,7 @@
           size="small"
           iconLeft={true}
           on:click={() => (showModal = true)}
+          disabled={isMember}
         >
           <svelte:fragment slot="iconLeft">
             <PlusIcon />
@@ -238,10 +254,9 @@
         </Button>
       </div>
     </div>
-
-    <div class="mb-8 flex flex-col gap-2">
+    <div class="mb-8 flex flex-col gap-2 {isMember ? 'cursor-not-allowed' : ''}">
       <!-- Logo upload - using small variant -->
-      <div>
+      <div class={isMember ? 'pointer-events-none' : ''}>
         <FileUploadDragDrop
           label=""
           variant="small"
@@ -268,6 +283,7 @@
             errorMessage={errors.name}
             on:input={() => clearError('name')}
             on:blur={handleHubNameBlur}
+            disabled={isMember}
           />
         </div>
 
@@ -282,6 +298,7 @@
             charLimit={100}
             minHeight={132}
             on:blur={() => saveChanges('description', hubData.description)}
+            disabled={isMember}
           />
         </div>
       </div>
@@ -300,6 +317,7 @@
             bind:value={hubData.githubUrl}
             placeholder="Enter your GitHub profile URL"
             on:blur={() => saveChanges('githubUrl', hubData.githubUrl)}
+            disabled={isMember}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <GithubIcon />
@@ -316,6 +334,7 @@
             bind:value={hubData.linkedinUrl}
             placeholder="Enter your LinkedIn profile URL"
             on:blur={() => saveChanges('linkedinUrl', hubData.linkedinUrl)}
+            disabled={isMember}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <LinkedinIcon />
@@ -332,6 +351,7 @@
             bind:value={hubData.xUrl}
             placeholder="Enter your X profile URL"
             on:blur={() => saveChanges('xUrl', hubData.xUrl)}
+            disabled={isMember}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <XIcon />

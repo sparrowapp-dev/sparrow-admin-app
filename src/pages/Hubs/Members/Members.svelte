@@ -19,6 +19,7 @@
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import { userService } from '@/services/users.service';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -88,6 +89,7 @@
         props: {
           row: row,
           onClick: onClick,
+          UserRoleData: userRoleData,
         },
       }),
     },
@@ -176,6 +178,18 @@
     return hubsService.getHubMembers(queryParams);
   });
 
+  //Function to fetch user Role in Hub
+  const {
+    data: userRole,
+    isFetching: roleRefetching,
+    refetch: roleRefetch,
+  } = createQuery(async () => {
+    const queryParams: any = {
+      hubId: params,
+    };
+    return userService.getUserRole(queryParams);
+  });
+
   // Invites query
   const {
     data: invitesData,
@@ -198,8 +212,9 @@
   $: if (params) {
     refetchMembers();
     refetchInvites();
+    roleRefetch();
   }
-
+  $: userRoleData = $userRole?.data;
   // Switch tabs
   function setActiveTab(tab) {
     activeTab = tab;
@@ -277,6 +292,7 @@
         size="small"
         iconLeft={true}
         on:click={() => (showModal = true)}
+        disabled={userRoleData === 'member'}
       >
         <svelte:fragment slot="iconLeft">
           <ManageMembersIcon />
@@ -298,11 +314,14 @@
         <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{membersCount}</span>
       </button>
       <button
-        class="font-inter text-fs-ds-12 font-fw-ds-400 relative flex cursor-pointer items-center border-blue-400 px-2 py-2.5 {activeTab ===
+        class="font-inter {userRoleData === 'member'
+          ? 'cursor-not-allowed'
+          : 'cursor-pointer'} text-fs-ds-12 font-fw-ds-400 relative flex items-center border-blue-400 px-2 py-2.5 {activeTab ===
         'invites'
           ? 'border-b-2 text-neutral-50'
           : 'border-b-2 border-transparent text-neutral-100'}"
         on:click={() => setActiveTab('invites')}
+        disabled={userRoleData === 'member'}
       >
         Manage Invites
         <span class="bg-surface-300 ml-2 rounded-full px-2 py-0.5 text-xs">{invitesCount}</span>
