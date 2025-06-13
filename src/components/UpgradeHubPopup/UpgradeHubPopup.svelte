@@ -47,7 +47,7 @@
           <span>
             <h2 class="text-fs-ds-14 leading-lh-ds-143 font-fw-ds-300 font-inter text-neutral-400">
               Note: To unlock the Enterprise plan and access more features, please <a
-                href=""
+                href="mailto:contactus@sparrowapp.dev."
                 class="text-blue-400 underline">contact sales</a
               > for more information.
             </h2>

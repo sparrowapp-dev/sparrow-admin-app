@@ -21,7 +21,7 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-  import UpgradeHubPopup from '@/components/UpGradeHubPopup/UpgradeHubPopup.svelte';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
   const location = useLocation();
   let workspaceExhausted = false;
