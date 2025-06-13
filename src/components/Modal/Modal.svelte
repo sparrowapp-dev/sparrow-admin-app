@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { scale } from 'svelte/transition';
+  export let width = 'max-w-lg';
 
   const dispatch = createEventDispatcher();
   let modalRef;
@@ -18,11 +19,7 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-  <div
-    class="w-full max-w-lg"
-    bind:this={modalRef}
-    transition:scale={{ duration: 300 }}
-  >
+  <div class="w-full {width}" bind:this={modalRef} transition:scale={{ duration: 300 }}>
     <slot />
   </div>
 </div>

@@ -39,6 +39,7 @@ const config: Config = {
         'fs-ds-16': '1rem', // 16px
         'fs-ds-14': '0.875rem', // 14px
         'fs-ds-12': '0.75rem', // 12px
+        'fs-ds-10': '0.625rem', // 10px
       },
       // design system for colors
       colors: {
