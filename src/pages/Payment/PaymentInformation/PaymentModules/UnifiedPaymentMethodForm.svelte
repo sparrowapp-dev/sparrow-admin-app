@@ -466,318 +466,319 @@
     </div>
   {:else}
     <form on:submit|preventDefault={handleSubmit} class="pt-8 pb-5">
-      {#if !isEditMode}
-        <!-- Card Details Section (only shown in create mode) -->
-        <section class="mb-6 space-y-5">
-          <h3 class="text-fs-ds-16 font-fw-ds-400 text-neutral-50">Card Details</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Card Number -->
-            <div class="form-group">
-              <label
-                for="card-number-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                Card Number <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-number-element"
-                class="rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardNumberEmpty || !cardNumberComplete)) ||
-                cardNumberError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardNumberError || 'Please enter your card number'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- Expiration Date -->
-            <div class="form-group">
-              <label
-                for="card-expiry-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                Expiration Date <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-expiry-element"
-                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardExpiryEmpty || !cardExpiryComplete)) ||
-                cardExpiryError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardExpiryError || 'Please enter expiration date'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- CVC/Security Code -->
-            <div class="form-group">
-              <label
-                for="card-cvc-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                CVV/Security Code <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-cvc-element"
-                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardCvcEmpty || !cardCvcComplete)) ||
-                cardCvcError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardCvcError || 'Please enter CVV/security code'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- Cardholder Name -->
-            <div class="form-group">
-              <Input
-                label="Cardholder Name"
-                id="cardholder-name"
-                name="cardholderName"
-                bind:value={cardholderName}
-                required={true}
-                placeholder="Enter Cardholder Name"
-                disabled={isSaving}
-                hasError={formSubmitted && !cardholderName.trim()}
-                errorMessage={formSubmitted && !cardholderName.trim()
-                  ? 'Please enter cardholder name'
-                  : ''}
-              />
-            </div>
-          </div>
-        </section>
-      {/if}
-
-      {#if isEditMode && existingPaymentMethod}
-        <!-- Card Summary (read-only, only in edit mode) -->
-        <section class="mb-6">
-          <h3 class="text-fs-ds-16 font-fw-ds-400 mb-4 text-neutral-50">Card Details</h3>
-
-          <div class="flex flex-col gap-5">
-            <div class="grid grid-cols-2 gap-5">
+      <div class="max-h-[60vh] overflow-y-auto">
+        {#if !isEditMode}
+          <!-- Card Details Section (only shown in create mode) -->
+          <section class="mb-6 space-y-5">
+            <h3 class="text-fs-ds-16 font-fw-ds-400 text-neutral-50">Card Details</h3>
+            <div class="grid grid-cols-2 gap-4">
               <!-- Card Number -->
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Card Number <span class="text-red-400">*</span></label
+              <div class="form-group">
+                <label
+                  for="card-number-element"
+                  class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
                 >
-                <div class="flex items-center gap-2">
-                  <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500"
-                    >•••• •••• ••••</span
+                  Card Number <span class="text-red-400">*</span>
+                </label>
+                <div
+                  id="card-number-element"
+                  class="rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                    (cardNumberEmpty || !cardNumberComplete)) ||
+                  cardNumberError
+                    ? 'border-red-300'
+                    : 'border-transparent'}"
+                ></div>
+                {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
+                  <p class="text-fs-ds-12 mt-1 text-red-300">
+                    {cardNumberError || 'Please enter your card number'}
+                  </p>
+                {/if}
+              </div>
+
+              <!-- Expiration Date -->
+              <div class="form-group">
+                <label
+                  for="card-expiry-element"
+                  class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+                >
+                  Expiration Date <span class="text-red-400">*</span>
+                </label>
+                <div
+                  id="card-expiry-element"
+                  class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                    (cardExpiryEmpty || !cardExpiryComplete)) ||
+                  cardExpiryError
+                    ? 'border-red-300'
+                    : 'border-transparent'}"
+                ></div>
+                {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
+                  <p class="text-fs-ds-12 mt-1 text-red-300">
+                    {cardExpiryError || 'Please enter expiration date'}
+                  </p>
+                {/if}
+              </div>
+
+              <!-- CVC/Security Code -->
+              <div class="form-group">
+                <label
+                  for="card-cvc-element"
+                  class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+                >
+                  CVV/Security Code <span class="text-red-400">*</span>
+                </label>
+                <div
+                  id="card-cvc-element"
+                  class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                    (cardCvcEmpty || !cardCvcComplete)) ||
+                  cardCvcError
+                    ? 'border-red-300'
+                    : 'border-transparent'}"
+                ></div>
+                {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
+                  <p class="text-fs-ds-12 mt-1 text-red-300">
+                    {cardCvcError || 'Please enter CVV/security code'}
+                  </p>
+                {/if}
+              </div>
+
+              <!-- Cardholder Name -->
+              <div class="form-group">
+                <Input
+                  label="Cardholder Name"
+                  id="cardholder-name"
+                  name="cardholderName"
+                  bind:value={cardholderName}
+                  required={true}
+                  placeholder="Enter Cardholder Name"
+                  disabled={isSaving}
+                  hasError={formSubmitted && !cardholderName.trim()}
+                  errorMessage={formSubmitted && !cardholderName.trim()
+                    ? 'Please enter cardholder name'
+                    : ''}
+                />
+              </div>
+            </div>
+          </section>
+        {/if}
+
+        {#if isEditMode && existingPaymentMethod}
+          <!-- Card Summary (read-only, only in edit mode) -->
+          <section class="mb-6">
+            <h3 class="text-fs-ds-16 font-fw-ds-400 mb-4 text-neutral-50">Card Details</h3>
+
+            <div class="flex flex-col gap-5">
+              <div class="grid grid-cols-2 gap-5">
+                <!-- Card Number -->
+                <div class="flex flex-col">
+                  <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                    >Card Number <span class="text-red-400">*</span></label
                   >
-                  <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-500">
-                    {existingPaymentMethod?.card?.last4 || '****'}
+                  <div class="flex items-center gap-2">
+                    <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500"
+                      >•••• •••• ••••</span
+                    >
+                    <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-500">
+                      {existingPaymentMethod?.card?.last4 || '****'}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Expiration Date -->
+                <div class="flex flex-col">
+                  <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                    >Expiration Date <span class="text-red-400">*</span></label
+                  >
+                  <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                    {existingPaymentMethod?.card?.exp_month || 'MM'}/{existingPaymentMethod?.card
+                      ?.exp_year || 'YY'}
                   </span>
                 </div>
               </div>
 
-              <!-- Expiration Date -->
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Expiration Date <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
-                  {existingPaymentMethod?.card?.exp_month || 'MM'}/{existingPaymentMethod?.card
-                    ?.exp_year || 'YY'}
-                </span>
+              <div class="grid grid-cols-2 gap-5">
+                <!-- CVV -->
+                <div class="flex flex-col">
+                  <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                    >CVV <span class="text-red-400">*</span></label
+                  >
+                  <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
+                </div>
+
+                <!-- Cardholder Name -->
+                <div class="flex flex-col">
+                  <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                    >Cardholder Name <span class="text-red-400">*</span></label
+                  >
+                  <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                    {existingPaymentMethod?.billing_details?.name || ''}
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-5">
-              <!-- CVV -->
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >CVV <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
-              </div>
-
-              <!-- Cardholder Name -->
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Cardholder Name <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
-                  {existingPaymentMethod?.billing_details?.name || ''}
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-      {/if}
-      <!-- Separator between card and billing sections -->
-      <div class="my-6 border-t border-neutral-500"></div>
-      <!-- Billing Address Section - Always shown -->
-      <section class="space-y-5">
-        <h3 class="text-fs-ds-16 font-fw-ds-400 text-neutral-50">Billing Address Details</h3>
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Name -->
-          <div class="form-group">
-            <Input
-              label="Name"
-              id="billing-name"
-              name="billingName"
-              bind:value={billingName}
-              required={true}
-              placeholder="Enter Full Name"
-              disabled={isSaving}
-              hasError={formSubmitted && !billingName.trim()}
-              errorMessage={formSubmitted && !billingName.trim()
-                ? 'Please enter a valid name.'
-                : ''}
-            />
-          </div>
-
-          <!-- Email -->
-          <div class="form-group">
-            <Input
-              label="Billing Email"
-              id="billing-email"
-              name="billingEmail"
-              type="email"
-              bind:value={billingEmail}
-              required={true}
-              placeholder="Enter Billing Email"
-              disabled={isSaving}
-              hasError={formSubmitted && !billingEmail.trim()}
-              errorMessage={formSubmitted && !billingEmail.trim()
-                ? 'Please enter valid billing email.'
-                : ''}
-            />
-          </div>
-
-          <!-- Address Line 1 -->
-          <div class="form-group">
-            <Input
-              label="Address Line 1"
-              id="line1"
-              name="line1"
-              bind:value={line1}
-              required={true}
-              placeholder="Enter address line 1"
-              disabled={isSaving}
-              hasError={formSubmitted && !line1.trim()}
-              errorMessage={formSubmitted && !line1.trim() ? 'Please enter Address' : ''}
-            />
-          </div>
-
-          <!-- Address Line 2 -->
-          <div class="form-group">
-            <Input
-              label="Address Line 2"
-              id="line2"
-              name="line2"
-              bind:value={line2}
-              placeholder="Enter address line 2"
-              disabled={isSaving}
-            />
-          </div>
-
-          <!-- Country -->
-          <div class="form-group">
-            <label class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200">
-              Country <span class="text-red-400">*</span>
-            </label>
-            <div on:click|stopPropagation|preventDefault>
-              <SearchableDropdown
-                options={countryOptions}
-                bind:selected={country}
-                placeholder="Select Country"
-                searchPlaceholder="Search Country"
+          </section>
+        {/if}
+        <!-- Separator between card and billing sections -->
+        <div class="my-6 border-t border-neutral-500"></div>
+        <!-- Billing Address Section - Always shown -->
+        <section class="space-y-5">
+          <h3 class="text-fs-ds-16 font-fw-ds-400 text-neutral-50">Billing Address Details</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Name -->
+            <div class="form-group">
+              <Input
+                label="Name"
+                id="billing-name"
+                name="billingName"
+                bind:value={billingName}
+                required={true}
+                placeholder="Enter Full Name"
                 disabled={isSaving}
-                variant="primary"
-                width="w-full"
-                hasError={formSubmitted && !country}
-                maxHeight="150px"
+                hasError={formSubmitted && !billingName.trim()}
+                errorMessage={formSubmitted && !billingName.trim()
+                  ? 'Please enter a valid name.'
+                  : ''}
               />
             </div>
-            {#if formSubmitted && !country}
-              <p class="text-fs-ds-12 mt-1 text-red-300">Please select a country</p>
-            {/if}
+
+            <!-- Email -->
+            <div class="form-group">
+              <Input
+                label="Billing Email"
+                id="billing-email"
+                name="billingEmail"
+                type="email"
+                bind:value={billingEmail}
+                required={true}
+                placeholder="Enter Billing Email"
+                disabled={isSaving}
+                hasError={formSubmitted && !billingEmail.trim()}
+                errorMessage={formSubmitted && !billingEmail.trim()
+                  ? 'Please enter valid billing email.'
+                  : ''}
+              />
+            </div>
+
+            <!-- Address Line 1 -->
+            <div class="form-group">
+              <Input
+                label="Address Line 1"
+                id="line1"
+                name="line1"
+                bind:value={line1}
+                required={true}
+                placeholder="Enter address line 1"
+                disabled={isSaving}
+                hasError={formSubmitted && !line1.trim()}
+                errorMessage={formSubmitted && !line1.trim() ? 'Please enter Address' : ''}
+              />
+            </div>
+
+            <!-- Address Line 2 -->
+            <div class="form-group">
+              <Input
+                label="Address Line 2"
+                id="line2"
+                name="line2"
+                bind:value={line2}
+                placeholder="Enter address line 2"
+                disabled={isSaving}
+              />
+            </div>
+
+            <!-- Country -->
+            <div class="form-group">
+              <label class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200">
+                Country <span class="text-red-400">*</span>
+              </label>
+              <div on:click|stopPropagation|preventDefault>
+                <SearchableDropdown
+                  options={countryOptions}
+                  bind:selected={country}
+                  placeholder="Select Country"
+                  searchPlaceholder="Search Country"
+                  disabled={isSaving}
+                  variant="primary"
+                  width="w-full"
+                  hasError={formSubmitted && !country}
+                  maxHeight="150px"
+                />
+              </div>
+              {#if formSubmitted && !country}
+                <p class="text-fs-ds-12 mt-1 text-red-300">Please select a country</p>
+              {/if}
+            </div>
+
+            <!-- City -->
+            <div class="form-group">
+              <Input
+                label="City"
+                id="city"
+                name="city"
+                bind:value={city}
+                required={true}
+                placeholder="Enter city"
+                disabled={isSaving}
+                hasError={formSubmitted && !city.trim()}
+                errorMessage={formSubmitted && !city.trim() ? 'Please enter a valid city.' : ''}
+              />
+            </div>
+
+            <!-- State -->
+            <div class="form-group">
+              <Input
+                label="State"
+                id="state"
+                name="state"
+                bind:value={state}
+                required={true}
+                placeholder="Enter state"
+                disabled={isSaving}
+                hasError={formSubmitted && !state.trim()}
+                errorMessage={formSubmitted && !state.trim() ? 'Please enter a valid state.' : ''}
+              />
+            </div>
+
+            <!-- ZIP Code -->
+            <div class="form-group">
+              <Input
+                label="ZIP Code"
+                id="postalCode"
+                name="postalCode"
+                bind:value={postalCode}
+                required={true}
+                placeholder="Enter ZIP code"
+                disabled={isSaving}
+                hasError={formSubmitted && !postalCode.trim()}
+                errorMessage={formSubmitted && !postalCode.trim()
+                  ? 'Please enter a valid ZIP or postal code.'
+                  : ''}
+              />
+            </div>
           </div>
 
-          <!-- City -->
-          <div class="form-group">
-            <Input
-              label="City"
-              id="city"
-              name="city"
-              bind:value={city}
-              required={true}
-              placeholder="Enter city"
-              disabled={isSaving}
-              hasError={formSubmitted && !city.trim()}
-              errorMessage={formSubmitted && !city.trim() ? 'Please enter a valid city.' : ''}
-            />
-          </div>
-
-          <!-- State -->
-          <div class="form-group">
-            <Input
-              label="State"
-              id="state"
-              name="state"
-              bind:value={state}
-              required={true}
-              placeholder="Enter state"
-              disabled={isSaving}
-              hasError={formSubmitted && !state.trim()}
-              errorMessage={formSubmitted && !state.trim() ? 'Please enter a valid state.' : ''}
-            />
-          </div>
-
-          <!-- ZIP Code -->
-          <div class="form-group">
-            <Input
-              label="ZIP Code"
-              id="postalCode"
-              name="postalCode"
-              bind:value={postalCode}
-              required={true}
-              placeholder="Enter ZIP code"
-              disabled={isSaving}
-              hasError={formSubmitted && !postalCode.trim()}
-              errorMessage={formSubmitted && !postalCode.trim()
-                ? 'Please enter a valid ZIP or postal code.'
-                : ''}
-            />
-          </div>
-        </div>
-
-        <!-- Default payment method checkbox -->
-        <div
-          class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex items-center gap-1 text-neutral-50"
-        >
-          <span
-            class="cursor-pointer"
-            on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
+          <!-- Default payment method checkbox -->
+          <div
+            class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex items-center gap-1 text-neutral-50"
           >
-            {#if defaultPaymentMethod}
-              <CheckboxChecked />
-            {:else}
-              <CheckboxUnchecked />
-            {/if}
-          </span>
-          <span
-            on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
-            class="text-fs-ds-14 font-fw-ds-300 cursor-pointer text-neutral-100"
-          >
-            Set this card as default payment method
-          </span>
-        </div>
-      </section>
-
+            <span
+              class="cursor-pointer"
+              on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
+            >
+              {#if defaultPaymentMethod}
+                <CheckboxChecked />
+              {:else}
+                <CheckboxUnchecked />
+              {/if}
+            </span>
+            <span
+              on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
+              class="text-fs-ds-14 font-fw-ds-300 cursor-pointer text-neutral-100"
+            >
+              Set this card as default payment method
+            </span>
+          </div>
+        </section>
+      </div>
       <div class="form-actions mt-8 flex justify-end gap-3">
         <Button
           size="medium"

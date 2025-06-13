@@ -273,7 +273,14 @@
 
   // Back button handler
   function goBack() {
-    if (hubId) {
+    // Get the referrer URL from sessionStorage if available
+    const referrer = sessionStorage.getItem('paymentMethodPageUrl');
+
+    if (referrer && referrer.includes('selectPaymentMethod')) {
+      // If we came from the selectPaymentMethod page, go back there
+      navigate(referrer);
+    } else if (hubId) {
+      // Default fallback to the billing overview
       navigate(`/billing/billingOverview/${hubId}`);
     } else {
       navigate('/hubs');
@@ -281,9 +288,9 @@
   }
 
   $: breadcrumbItems = [
-    { label: 'Home', path: '/hubs' },
-    { label: `${$hubDetails?.data?.name || 'Hub'}`, path: `/hubs/workspace/${hubId}` },
-    { label: 'Upgrade Plan', path: `` },
+    { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
+    { label: 'Change Plan', path: `/billing/billingInformation/changePlan/${hubId}` },
+    { label: 'Payment Method', path: '' },
     { label: 'Add Card', path: `/billing/billingInformation/addPaymentDetails/${hubId}` },
   ];
 </script>

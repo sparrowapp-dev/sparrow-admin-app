@@ -12,7 +12,8 @@
     | 'filled-secondary'
     | 'filled-tertiary'
     | 'outline-secondary'
-    | 'outline-primary' = 'filled-primary';
+    | 'outline-primary'
+    | 'filled-primary-white' = 'filled-primary';
   export let size: 'small' | 'medium' | 'large' = 'medium';
   export let disabled: boolean = false;
   export let iconLeft: boolean = false;
@@ -29,6 +30,12 @@
     'filled-primary': `
         bg-blue-400 text-neutral-50 font-inter font-fw-ds-400
         hover:bg-blue-300 active:bg-blue-600
+        focus-visible:ring-2 focus-visible:ring-blue-200
+        disabled:bg-blue-700 disabled:text-neutral-400
+      `,
+    'filled-primary-white': `
+        bg-neutral-50 text-black font-inter font-fw-ds-400
+        hover:bg-blue-400 active:bg-blue-600 hover:text-neutral-50
         focus-visible:ring-2 focus-visible:ring-blue-200
         disabled:bg-blue-700 disabled:text-neutral-400
       `,

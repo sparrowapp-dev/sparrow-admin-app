@@ -11,6 +11,8 @@ interface StripeHandlers {
   onSubscriptionCanceled?: (data: any) => void;
 }
 
+let globalSocket: Socket | null = null;
+
 /**
  * Initialize a Socket.IO connection for Stripe events
  * @param apiBaseUrl Base API URL
@@ -18,6 +20,48 @@ interface StripeHandlers {
  * @returns Socket instance
  */
 export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandlers = {}): Socket {
+  // If socket already exists and is connected, clean up previous event listeners and reuse the connection
+  if (globalSocket && globalSocket.connected) {
+    // Remove any existing listeners to prevent duplicates
+    if (handlers.onPaymentSuccess) {
+      globalSocket.off('payment_success');
+      globalSocket.on('payment_success', handlers.onPaymentSuccess);
+    }
+
+    if (handlers.onPaymentFailed) {
+      globalSocket.off('payment_failed');
+      globalSocket.on('payment_failed', handlers.onPaymentFailed);
+    }
+
+    if (handlers.onSubscriptionUpdated) {
+      globalSocket.off('subscription_updated');
+      globalSocket.on('subscription_updated', handlers.onSubscriptionUpdated);
+    }
+
+    if (handlers.onSubscriptionCreated) {
+      globalSocket.off('subscription_created');
+      globalSocket.on('subscription_created', handlers.onSubscriptionCreated);
+    }
+
+    if (handlers.onSubscriptionCanceled) {
+      globalSocket.off('subscription_canceled');
+      globalSocket.on('subscription_canceled', handlers.onSubscriptionCanceled);
+    }
+
+    // Return the existing socket with updated handlers
+    console.log('Reusing existing socket connection:', globalSocket.id);
+    return globalSocket;
+  }
+
+  // Create a new socket if one doesn't exist or isn't connected
+  if (globalSocket && !globalSocket.connected) {
+    console.log('Previous socket exists but disconnected, creating new connection');
+    // Clean up the disconnected socket
+    globalSocket.disconnect();
+    globalSocket = null;
+  }
+
+  // Create a new socket only if one doesn't exist yet
   const socket = io(`${apiBaseUrl}`, {
     path: '/socket.io',
     transports: ['polling'],
@@ -25,6 +69,8 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
     reconnectionDelay: 1000,
     timeout: 20000,
   });
+
+  globalSocket = socket;
 
   // Connection events
   socket.on('connect', () => {
@@ -65,4 +111,16 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
   }
 
   return socket;
+}
+
+/**
+ * Disconnect the global Socket.IO connection
+ * Should be called when the app is shutting down or user logs out
+ */
+export function disconnectStripeSocket(): void {
+  if (globalSocket) {
+    console.log('Disconnecting global socket connection:', globalSocket.id);
+    globalSocket.disconnect();
+    globalSocket = null;
+  }
 }
