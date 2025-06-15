@@ -12,7 +12,7 @@
   import { hubsService } from '@/services/hubs.service';
 
   // Utils
-  import { processSubscriptionData } from '@/utils/pricing';
+  import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import { initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
@@ -158,6 +158,7 @@
   let subscriptionData = null;
   let currentHubData = null;
   let planStatus = '';
+  let subscriptionStatus = '';
   let invoiceUrl = '';
 
   // Subscription details
@@ -229,26 +230,62 @@
     hubName = currentHubData?.name || '';
     userCount = currentHubData?.users?.length || 1;
     planStatus = currentHubData?.billing?.status;
+    // Use plan name from the database
+    currentPlan = currentHubData?.plan?.name || 'Community';
     invoiceUrl = currentHubData?.billing?.failed_invoice_url || '';
   }
 
   // Process subscription data when it changes
   $: if ($subscriptionApiData !== undefined) {
     isLoadingSubscription = false;
+    // Get the most recent subscription (first in the array)
     subscriptionData = $subscriptionApiData?.subscriptions?.[0] || null;
+    
+    // Only use subscription data if it's in an active state
+    // Otherwise, use default values from the database
+    if (subscriptionData && subscriptionData.status === 'active') {
+      // Process subscription data using the utility function
+      const processedData = processSubscriptionData(subscriptionData, currentPlan);
 
-    // Process subscription data using the utility function
-    const processedData = processSubscriptionData(subscriptionData);
-
-    // Update all subscription-related variables
-    subscriptionId = processedData.subscriptionId;
-    currentPlan = processedData.currentPlan;
-    currentPrice = processedData.currentPrice;
-    currentBillingCycle = processedData.currentBillingCycle;
-    nextBillingDate = processedData.nextBillingDate;
-    lastInvoiceAmount = processedData.lastInvoiceAmount;
-    totalPaidAmount = processedData.totalPaidAmount;
-    userCount = processedData.userCount;
+      // Update all subscription-related variables
+      subscriptionId = processedData.subscriptionId;
+      // Don't override currentPlan from the database
+      // currentPlan = processedData.currentPlan;
+      currentPrice = processedData.currentPrice;
+      currentBillingCycle = processedData.currentBillingCycle;
+      nextBillingDate = processedData.nextBillingDate;
+      lastInvoiceAmount = processedData.lastInvoiceAmount;
+      totalPaidAmount = processedData.totalPaidAmount;
+      userCount = processedData.userCount;
+      subscriptionStatus = processedData.subscriptionStatus;
+    } else {
+      // If subscription is canceled or inactive, use default values
+      // Keep the plan name from the database, but reset other subscription details
+      subscriptionId = null;
+      
+      // For free Community plan
+      if (currentPlan === 'Community') {
+        currentPrice = '$0.00';
+        currentBillingCycle = 'monthly';
+        nextBillingDate = '';
+        lastInvoiceAmount = '$0.00';
+        totalPaidAmount = '$0.00';
+      } else {
+        // For paid plans that are canceled, show default pricing based on plan name
+        const planKey = currentPlan.toLowerCase();
+        if (DEFAULT_PLAN_DETAILS[planKey]) {
+          currentPrice = DEFAULT_PLAN_DETAILS[planKey].monthly.price;
+          currentBillingCycle = 'monthly';
+          // Clear dates and amounts since the subscription is inactive
+          nextBillingDate = '';
+          lastInvoiceAmount = '$0.00';
+          totalPaidAmount = '$0.00';
+        }
+      }
+      
+      // Set subscription status
+      subscriptionStatus = subscriptionData?.status || '';
+    }
   }
 
   // Handle upgrade button click
@@ -262,6 +299,7 @@
       currentPlan,
       currentBillingCycle,
       subscriptionId: subscriptionId || '',
+      status: subscriptionStatus,
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);

@@ -32,6 +32,7 @@
   let dropdownDirection = 'down';
   let searchTerm = '';
   let filteredOptions: DropdownOption[] = [];
+  let dropdownPosition = { left: 0, top: 0, bottom: 0, width: 0 };
 
   // Update filtered options when search term or options change
   $: {
@@ -58,7 +59,7 @@
           inputRef.focus();
           inputRef.select();
         }
-        determineDropdownDirection();
+        updateDropdownPosition();
       }, 0);
     }
   }
@@ -68,15 +69,22 @@
     searchTerm = '';
   }
 
-  function determineDropdownDirection() {
+  function updateDropdownPosition() {
     if (!dropdownRef) return;
 
+    const rect = dropdownRef.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    const triggerRect = dropdownRef.getBoundingClientRect();
     // Use maxHeight value to calculate if dropdown fits
     const dropdownHeight = parseInt(maxHeight.replace('px', '')) || 240;
 
-    dropdownDirection = viewportHeight - triggerRect.bottom >= dropdownHeight ? 'down' : 'up';
+    dropdownDirection = viewportHeight - rect.bottom >= dropdownHeight ? 'down' : 'up';
+
+    dropdownPosition = {
+      left: rect.left,
+      top: rect.bottom + 1,
+      bottom: viewportHeight - rect.top + 1,
+      width: dropdownRef.offsetWidth,
+    };
   }
 
   function selectOption(option: DropdownOption) {
@@ -126,18 +134,26 @@
     }
   }
 
+  function handleScroll() {
+    if (open) {
+      updateDropdownPosition();
+    }
+  }
+
   onMount(() => {
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleKeydown);
+    window.addEventListener('resize', updateDropdownPosition);
 
-    // Add window resize listener to recalculate dropdown direction
-    window.addEventListener('resize', determineDropdownDirection);
+    // Add scroll event listeners to window and all scrollable parents
+    window.addEventListener('scroll', handleScroll, true);
   });
 
   onDestroy(() => {
     document.removeEventListener('click', handleClickOutside);
     document.removeEventListener('keydown', handleKeydown);
-    window.removeEventListener('resize', determineDropdownDirection);
+    window.removeEventListener('resize', updateDropdownPosition);
+    window.removeEventListener('scroll', handleScroll, true);
   });
 
   // Input classes with error state handling
@@ -208,14 +224,11 @@
   {/if}
 
   {#if open}
-    <!-- Fix for dropdown being cut off: position fixed with calculated positioning -->
+    <!-- Position dropdown absolutely relative to the closest positioned ancestor -->
     <div
-      class="dropdown fixed z-50 w-full shadow-lg"
-      style="width: {dropdownRef?.offsetWidth}px; left: {dropdownRef?.getBoundingClientRect()
-        .left}px; 
-              {dropdownDirection === 'down'
-        ? `top: ${dropdownRef?.getBoundingClientRect().bottom + 1}px;`
-        : `bottom: ${window.innerHeight - dropdownRef?.getBoundingClientRect().top + 1}px;`}"
+      class="dropdown absolute z-50 w-full shadow-lg"
+      style="width: {dropdownPosition.width}px; left: 0; 
+              {dropdownDirection === 'down' ? `top: 100%;` : `bottom: 100%;`}"
     >
       <div
         class="overflow-hidden rounded-md {variant === 'primary' ? 'bg-surface-600' : 'bg-white'}"

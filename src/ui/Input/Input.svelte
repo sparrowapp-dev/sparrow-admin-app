@@ -12,6 +12,9 @@
   export let disabled: boolean = false;
   export let hasIcon: boolean = false;
   export let subtitle: string = '';
+  export let inputType: 'default' | 'name' | 'email' | 'postal' | 'number' = 'default';
+  export let emailErrorMessage: string = 'Please enter a valid email address';
+  let computedHasError: any;
 
   // Event dispatcher to forward events to parent
   const dispatch = createEventDispatcher();
@@ -40,6 +43,102 @@
     }
     dispatch('input', event);
   }
+
+  // For text inputs that should only allow letters and spaces (like names)
+  function handleNameInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Only allow letters, spaces, hyphens, and apostrophes for names
+    const nameValue = input.value.replace(/[^a-zA-Z\s\-']/g, '');
+    if (input.value !== nameValue) {
+      input.value = nameValue;
+      value = nameValue;
+    }
+    dispatch('input', event);
+  }
+
+  // For email inputs, validate basic email format without HTML validation
+  function handleEmailInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Allow letters, numbers, @, ., -, _ for email
+    const emailValue = input.value.replace(/[^a-zA-Z0-9@.\-_]/g, '');
+    if (input.value !== emailValue) {
+      input.value = emailValue;
+      value = emailValue;
+    }
+    dispatch('input', event);
+  }
+
+  // For postal/zip code inputs
+  function handlePostalInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    // Only allow alphanumeric characters for postal codes (supports both US ZIP and international postal codes)
+    const postalValue = input.value.replace(/[^a-zA-Z0-9\s\-]/g, '');
+    if (input.value !== postalValue) {
+      input.value = postalValue;
+      value = postalValue;
+    }
+    dispatch('input', event);
+  }
+
+  // Email validation function
+  function isValidEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  }
+
+  // Check if current value is valid based on inputType
+  function isValueValid(): boolean {
+    if (inputType === 'email' && value.trim()) {
+      return isValidEmail(value);
+    }
+    return true; // For other input types, assume valid for now
+  }
+
+  // Reactive validation state
+  $: isEmailInvalid = inputType === 'email' && value.trim() && !isValidEmail(value);
+
+  // Combined error state - show error if hasError prop is true OR if email is invalid
+  $: computedHasError = hasError === true || isEmailInvalid;
+
+  // Determine which input handler to use based on explicit inputType prop
+  function getInputHandler() {
+    switch (inputType) {
+      case 'name':
+        return handleNameInput;
+      case 'email':
+        return handleEmailInput;
+      case 'postal':
+        return handlePostalInput;
+      case 'number':
+        return handleNumberInput;
+      default:
+        // Fallback to string matching for backward compatibility
+        if (name?.toLowerCase().includes('name') || id?.toLowerCase().includes('name')) {
+          return handleNameInput;
+        }
+        if (
+          type === 'email' ||
+          name?.toLowerCase().includes('email') ||
+          id?.toLowerCase().includes('email')
+        ) {
+          return handleEmailInput;
+        }
+        if (
+          name?.toLowerCase().includes('postal') ||
+          name?.toLowerCase().includes('zip') ||
+          id?.toLowerCase().includes('postal') ||
+          id?.toLowerCase().includes('zip')
+        ) {
+          return handlePostalInput;
+        }
+        if (type === 'number') {
+          return handleNumberInput;
+        }
+        return handleInput;
+    }
+  }
+
+  $: inputHandler = getInputHandler();
 
   // Common class styles for all input types
   $: inputClasses = `
@@ -97,25 +196,23 @@
         type="text"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
-        on:input={handleInput}
+        on:input={inputHandler}
         on:blur={handleBlur}
       />
     {:else if type === 'email'}
       <input
         {id}
         {name}
-        type="email"
+        type="text"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
-        on:input={handleInput}
+        on:input={inputHandler}
         on:blur={handleBlur}
       />
     {:else if type === 'password'}
@@ -125,7 +222,6 @@
         type="password"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
@@ -142,11 +238,10 @@
         inputmode="numeric"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
-        on:input={handleNumberInput}
+        on:input={inputHandler}
         on:blur={handleBlur}
       />
     {:else if type === 'tel'}
@@ -156,7 +251,6 @@
         type="tel"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
@@ -170,7 +264,6 @@
         type="text"
         {placeholder}
         {disabled}
-        aria-required={required}
         aria-invalid={computedHasError}
         class={inputClasses}
         bind:value
@@ -182,6 +275,8 @@
 
   {#if computedHasError && errorMessage}
     <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{errorMessage}</p>
+  {:else if isEmailInvalid}
+    <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{emailErrorMessage}</p>
   {/if}
 </div>
 

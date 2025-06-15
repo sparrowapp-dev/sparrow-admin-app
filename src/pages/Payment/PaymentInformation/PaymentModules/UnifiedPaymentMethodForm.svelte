@@ -55,7 +55,6 @@
   let cardNumber: StripeElement;
   let cardExpiry: StripeElement;
   let cardCvc: StripeElement;
-  let cardholderName = '';
 
   // Field validation states for card elements
   let cardNumberEmpty = true;
@@ -68,7 +67,7 @@
   let cardExpiryError: string | null = null;
   let cardCvcError: string | null = null;
 
-  // Billing address fields
+  // Billing address fields (billingName serves as both cardholder name and billing name)
   let billingName = '';
   let billingEmail = '';
   let line1 = '';
@@ -133,7 +132,7 @@
 
       // Pre-fill card details (read-only in edit mode)
       if (existingPaymentMethod.card) {
-        cardholderName = existingPaymentMethod.billing_details?.name || '';
+        billingName = existingPaymentMethod.billing_details?.name || '';
       }
 
       // Pre-fill billing details
@@ -227,6 +226,12 @@
     }
   }
 
+  // Email validation function
+  function isValidEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  }
+
   // Form submission handler
   async function handleSubmit() {
     if (isSaving) return;
@@ -251,7 +256,7 @@
       !cardExpiryComplete ||
       cardCvcEmpty ||
       !cardCvcComplete ||
-      !cardholderName.trim()
+      !billingName.trim()
     ) {
       error = 'Please fill in all card information correctly';
       return;
@@ -277,16 +282,22 @@
       return;
     }
 
+    // Validate email format
+    if (!isValidEmail(billingEmail)) {
+      error = 'Please enter a valid email address';
+      return;
+    }
+
     try {
       isSaving = true;
       error = null;
 
       // Step 1: Create a customer if we don't have one
       if (!customerId) {
-        // Use billing service to create customer
+        // Use billing service to create customer - use billingName for customer
         const customerData = {
-          name: cardholderName,
-          email: $userEmail,
+          name: billingName,
+          email: billingEmail,
           metadata: {
             source: 'sparrow-admin-app',
             name: $userName,
@@ -547,12 +558,13 @@
                   label="Cardholder Name"
                   id="cardholder-name"
                   name="cardholderName"
-                  bind:value={cardholderName}
+                  inputType="name"
+                  bind:value={billingName}
                   required={true}
                   placeholder="Enter Cardholder Name"
                   disabled={isSaving}
-                  hasError={formSubmitted && !cardholderName.trim()}
-                  errorMessage={formSubmitted && !cardholderName.trim()
+                  hasError={formSubmitted && !billingName.trim()}
+                  errorMessage={formSubmitted && !billingName.trim()
                     ? 'Please enter cardholder name'
                     : ''}
                 />
@@ -629,6 +641,7 @@
                 label="Name"
                 id="billing-name"
                 name="billingName"
+                inputType="name"
                 bind:value={billingName}
                 required={true}
                 placeholder="Enter Full Name"
@@ -646,7 +659,7 @@
                 label="Billing Email"
                 id="billing-email"
                 name="billingEmail"
-                type="email"
+                inputType="email"
                 bind:value={billingEmail}
                 required={true}
                 placeholder="Enter Billing Email"
@@ -655,6 +668,7 @@
                 errorMessage={formSubmitted && !billingEmail.trim()
                   ? 'Please enter valid billing email.'
                   : ''}
+                emailErrorMessage="Please enter valid billing email."
               />
             </div>
 
@@ -744,6 +758,7 @@
                 label="ZIP Code"
                 id="postalCode"
                 name="postalCode"
+                inputType="postal"
                 bind:value={postalCode}
                 required={true}
                 placeholder="Enter ZIP code"

@@ -265,14 +265,22 @@
                         .exp_month}/{selectedPaymentMethod.card.exp_year}
                     </div>
                     <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
-                      {selectedPaymentMethod.billing_details.address.line1},
-                      {selectedPaymentMethod.billing_details.address.city}, {selectedPaymentMethod
-                        .billing_details.address.state}, {selectedPaymentMethod.billing_details
-                        .address.country}
+                      {[
+                        selectedPaymentMethod.billing_details.address.line1,
+                        selectedPaymentMethod.billing_details.address.city,
+                        selectedPaymentMethod.billing_details.address.state,
+                        selectedPaymentMethod.billing_details.address.country,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
                     </div>
-                    <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
-                      {selectedPaymentMethod.billing_details?.name}
-                    </div>
+                    {#if selectedPaymentMethod.billing_details?.name}
+                      <div
+                        class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase"
+                      >
+                        {selectedPaymentMethod.billing_details.name}
+                      </div>
+                    {/if}
                   </div>
                 </div>
               {/if}

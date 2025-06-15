@@ -54,7 +54,6 @@
   let cardNumber: StripeElement;
   let cardExpiry: StripeElement;
   let cardCvc: StripeElement;
-  let cardholderName = '';
   let cardNumberEmpty = true;
   let cardExpiryEmpty = true;
   let cardCvcEmpty = true;
@@ -65,7 +64,7 @@
   let cardExpiryError: string | null = null;
   let cardCvcError: string | null = null;
 
-  // Billing Details
+  // Billing Details (billingName serves as both cardholder name and billing name)
   let billingName = '';
   let billingEmail = '';
   let line1 = '';
@@ -183,7 +182,7 @@
 
       if (!customerId) {
         const customerData = {
-          name: cardholderName,
+          name: billingName,
           email: $userEmail,
           metadata: {
             source: 'sparrow-admin-app',
@@ -236,10 +235,15 @@
     }
   }
 
+  // Email validation function
+  function isValidEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  }
+
   // Form validation
   function validateForm(): boolean {
     const requiredFields = [
-      cardholderName.trim(),
       billingName.trim(),
       billingEmail.trim(),
       line1.trim(),
@@ -265,6 +269,12 @@
 
     if (cardNumberError || cardExpiryError || cardCvcError) {
       error = 'Please correct the card information errors';
+      return false;
+    }
+
+    // Validate email format
+    if (!isValidEmail(billingEmail)) {
+      error = 'Please enter valid billing email.';
       return false;
     }
 
@@ -381,11 +391,12 @@
           <Input
             label="Cardholder Name"
             id="cardholder-name"
-            bind:value={cardholderName}
+            inputType="name"
+            bind:value={billingName}
             required={true}
             placeholder="Enter Cardholder Name"
-            hasError={formSubmitted && !cardholderName.trim()}
-            errorMessage={formSubmitted && !cardholderName.trim()
+            hasError={formSubmitted && !billingName.trim()}
+            errorMessage={formSubmitted && !billingName.trim()
               ? 'Please enter cardholder name'
               : ''}
           />
@@ -405,6 +416,7 @@
             placeholder="Enter Name"
             hasError={formSubmitted && !billingName}
             errorMessage="Please enter billing name"
+            inputType="name"
           />
         </div>
         <div class="form-group">
@@ -413,9 +425,10 @@
             type="email"
             bind:value={billingEmail}
             required={true}
+            inputType="email"
             placeholder="Enter Billing Address"
-            hasError={formSubmitted && !billingEmail}
             errorMessage="Please enter valid billing email."
+            emailErrorMessage="Please enter valid billing email."
           />
         </div>
         <div class="form-group">
@@ -477,10 +490,12 @@
         </div>
         <div class="form-group">
           <Input
+            type="text"
             label="ZIP Code"
             bind:value={postalCode}
             required={true}
             placeholder="Enter ZIP code"
+            inputType="postal"
             hasError={formSubmitted && !postalCode}
             errorMessage="Please enter a valid ZIP or postal code."
           />
