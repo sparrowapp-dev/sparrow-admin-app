@@ -22,6 +22,8 @@
     isPlanSelectable as checkPlanSelectable,
     capitalizeFirstLetter,
     getPlanId,
+    type BillingCycleType,
+    type PlanType,
   } from '@/utils/pricing';
 
   const location = useLocation();
@@ -29,8 +31,9 @@
   // Extract URL parameters
   let hubId: string = '';
   let currentPlan: string = 'Community';
-  let currentBillingCycle: string = 'monthly';
+  let currentBillingCycle: BillingCycleType = 'monthly';
   let subscriptionId: string = '';
+  let subscriptionStatus: string = '';
   let userCount: number = 1;
 
   // URL parsing
@@ -45,8 +48,12 @@
     // Extract query parameters from URL search params
     const searchParams = new URLSearchParams($location?.search || '');
     currentPlan = searchParams.get('currentPlan') || 'Community';
-    currentBillingCycle = searchParams.get('currentBillingCycle') || 'monthly';
+    const billingCycleParam = searchParams.get('currentBillingCycle') || 'monthly';
+    currentBillingCycle = (
+      billingCycleParam === 'annual' ? 'annual' : 'monthly'
+    ) as BillingCycleType;
     subscriptionId = searchParams.get('subscriptionId') || '';
+    subscriptionStatus = searchParams.get('status') || '';
   }
 
   // Fetch hub details
@@ -60,7 +67,7 @@
   let planDetails = DEFAULT_PLAN_DETAILS;
 
   // State
-  let billingCycle = currentBillingCycle || 'monthly';
+  let billingCycle: BillingCycleType = currentBillingCycle || 'monthly';
 
   // Computed properties
   $: plans = AVAILABLE_PLANS;
@@ -77,17 +84,21 @@
 
       // Don't allow selecting the current plan
       if (targetPlanId !== currentPlanId) {
+        // Get the price ID based on billing cycle
+        const priceId =
+          billingCycle === 'monthly'
+            ? planDetails[plan].monthly.priceId
+            : planDetails[plan].annual.priceId;
+
         // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
-          billingCycle,
-          priceId:
-            billingCycle === 'monthly'
-              ? planDetails[plan].monthly.priceId
-              : planDetails[plan].annual.priceId,
+          billingCycle: billingCycle,
+          priceId: priceId || '',
           userCount: userCount.toString(),
           subscriptionId: subscriptionId || '',
           currentPlan: currentPlan,
+          status: subscriptionStatus || '',
         });
 
         navigate(

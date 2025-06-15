@@ -10,11 +10,11 @@
   }>();
 
   // Props
-  export let hubName: string;
-  export let currentPlan: string;
-  export let nextBillingDate: string;
-  export let fromPlan: string;
-  export let toPlan: string;
+  export let hubName: string = '';
+  export let currentPlan: string = '';
+  export let nextBillingDate: string = '';
+  export let fromPlan: string = '';
+  export let toPlan: string = '';
 
   function handleClose() {
     dispatch('close');

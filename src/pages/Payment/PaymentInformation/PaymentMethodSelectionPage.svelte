@@ -35,6 +35,7 @@
   let billingCycle: string = 'monthly';
   let userCount: number = 1;
   let subscriptionId: string = '';
+  let subscriptionStatus: string = '';
   let customerId: string = '';
   let currentPlan: string = 'Community';
 
@@ -55,6 +56,7 @@
     userCount = parseInt(searchParams.get('userCount') || '1', 10);
     subscriptionId = searchParams.get('subscriptionId') || '';
     currentPlan = searchParams.get('currentPlan') || 'Community';
+    subscriptionStatus = searchParams.get('status') || '';
   }
 
   // Initialize Stripe
@@ -74,8 +76,6 @@
   let showProcessingModal = false;
   let showSubscriptionConfirmModal = false;
   let showSubscriptionFailedModal = false;
-  let fromPlan = '';
-  let toPlan = '';
   let invoiceUrl = '';
   let selectedPlanDetails = {
     fromPlan: currentPlan,
@@ -253,6 +253,7 @@
       currentPlan,
       currentBillingCycle: billingCycle,
       subscriptionId: subscriptionId || '',
+      status: subscriptionStatus,
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -287,7 +288,7 @@
       let result;
 
       // Determine if we need to create or update a subscription
-      if (subscriptionId) {
+      if (subscriptionId && subscriptionStatus !== 'canceled') {
         console.log('Updating existing subscription:', subscriptionId);
         // Update existing subscription
         result = await billingService.updateSubscription({
@@ -320,7 +321,6 @@
       console.error('Error processing subscription:', err);
       isProcessing = false;
       showProcessingModal = false;
-      notification.error(`Payment failed: ${error}`);
 
       // Show the failed modal with the error
       selectedPlanDetails = {
@@ -502,10 +502,10 @@
     >
       <PlanUpdateSuccess
         hubName={selectedPlanDetails.hubName}
-        {currentPlan}
+        currentPlan={selectedPlanDetails?.toPlan}
         nextBillingDate={selectedPlanDetails.nextBilling}
         fromPlan={selectedPlanDetails.fromPlan}
-        toPlan={selectedPlanDetails.toPlan}
+        toPlan={selectedPlanDetails?.toPlan}
         on:close={() => {
           showSubscriptionConfirmModal = false;
           navigate(`/billing/billingOverview/${hubId}`);

@@ -60,7 +60,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RWA2cFLRwufXqZC8xD8DFFd',
+      priceId: 'price_1RZaD7FLRwufXqZCEtDiMO02',
     },
     annual: {
       price: '$99',
@@ -71,7 +71,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17.4%',
-      priceId: 'price_1RWA3dFLRwufXqZCZtH5Cag1',
+      priceId: 'price_1RZaFiFLRwufXqZCNc7JterI',
     },
   },
   professional: {
@@ -83,7 +83,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RWA36FLRwufXqZCI3ZHq47j',
+      priceId: 'price_1RZaELFLRwufXqZCRDIWybT1',
     },
     annual: {
       price: '$199',
@@ -94,7 +94,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17%',
-      priceId: 'price_1RWA4LFLRwufXqZCpE56Ovl5',
+      priceId: 'price_1RZaGtFLRwufXqZCVUrpvs74',
     },
   },
   enterprise: {
@@ -238,28 +238,31 @@ export function isPlanSelectable(
 /**
  * Process subscription data to extract plan details
  * @param subscriptionData Raw subscription data from API
+ * @param databasePlanName Plan name from the database (overrides Stripe plan name)
  * @returns Processed subscription information
  */
-export function processSubscriptionData(subscriptionData: any) {
+export function processSubscriptionData(subscriptionData: any, databasePlanName?: string) {
   if (!subscriptionData) {
     return {
       subscriptionId: null,
-      currentPlan: 'Community',
+      currentPlan: databasePlanName || 'Community',
       currentPrice: '$0.00',
       currentBillingCycle: 'monthly',
       nextBillingDate: '',
       lastInvoiceAmount: '$0.00',
       totalPaidAmount: '$0.00',
       userCount: 1,
+      subscriptionStatus: '',
     };
   }
 
   // Extract subscription details
   const subscriptionId = subscriptionData.id;
   const metadata = subscriptionData.metadata || {};
+  const subscriptionStatus = subscriptionData.status || '';
 
-  // Get plan name and user count from metadata
-  let currentPlan = metadata.planName || 'Community';
+  // Get plan name and user count from metadata or use database plan name
+  let currentPlan = databasePlanName || metadata.planName || 'Community';
   const userCount = parseInt(metadata.userCount || '1', 10);
 
   // Default price values
@@ -306,14 +309,14 @@ export function processSubscriptionData(subscriptionData: any) {
 
   // Check subscription status
   const isActive = subscriptionData.status === 'active';
-  if (!isActive) {
-    // If subscription is not active, add status indicator to currentPlan
+  if (!isActive && !databasePlanName) {
+    // Only add status indicator if not using database plan name
     currentPlan = `${currentPlan} (${capitalizeFirstLetter(subscriptionData.status)})`;
   }
 
   // Check if subscription is scheduled to be canceled
-  if (subscriptionData.cancel_at_period_end) {
-    // Add indication that the subscription will be canceled
+  if (subscriptionData.cancel_at_period_end && !databasePlanName) {
+    // Add indication that the subscription will be canceled, only if not using database plan name
     const cancelDate = formatDate(subscriptionData.current_period_end);
     // Update UI to show cancellation status
     currentPlan = `${currentPlan} (Cancels on ${cancelDate})`;
@@ -328,5 +331,6 @@ export function processSubscriptionData(subscriptionData: any) {
     lastInvoiceAmount,
     totalPaidAmount,
     userCount,
+    subscriptionStatus,
   };
 }

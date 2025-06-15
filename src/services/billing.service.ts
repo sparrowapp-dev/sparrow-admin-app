@@ -255,7 +255,8 @@ export class BillingService {
 
   public async setUpDefaultPaymentMethod(customerId, paymentMethodId) {
     const url = `/api/payment-methods/default`;
-    const res = makeRequest('POST', url, { customerId, paymentMethodId });
+    const res = await makeRequest('POST', url, { customerId, paymentMethodId });
+    return res?.data;
   }
 }
 
