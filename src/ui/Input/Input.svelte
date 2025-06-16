@@ -112,28 +112,6 @@
       case 'number':
         return handleNumberInput;
       default:
-        // Fallback to string matching for backward compatibility
-        if (name?.toLowerCase().includes('name') || id?.toLowerCase().includes('name')) {
-          return handleNameInput;
-        }
-        if (
-          type === 'email' ||
-          name?.toLowerCase().includes('email') ||
-          id?.toLowerCase().includes('email')
-        ) {
-          return handleEmailInput;
-        }
-        if (
-          name?.toLowerCase().includes('postal') ||
-          name?.toLowerCase().includes('zip') ||
-          id?.toLowerCase().includes('postal') ||
-          id?.toLowerCase().includes('zip')
-        ) {
-          return handlePostalInput;
-        }
-        if (type === 'number') {
-          return handleNumberInput;
-        }
         return handleInput;
     }
   }
