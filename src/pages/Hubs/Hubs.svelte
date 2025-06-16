@@ -47,6 +47,30 @@
       dropdownOptions = [];
     }
   }
+  $: hubId = (() => {
+    const path = $location.pathname;
+    if (path.startsWith('/hubs/workspace/')) return path.split('/')[3];
+    if (path.startsWith('/hubs/settings/')) return path.split('/')[3];
+    if (path.startsWith('/hubs/members/')) return path.split('/')[3];
+    return null;
+  })();
+
+  const {
+    data: hubData,
+    refetch: hubsDataRefetch,
+    isFetching: HubsDataFetching,
+  } = createQuery(async () => {
+    return hubsService.getHubDetails(hubId);
+  });
+
+  $: if (hubId) {
+    hubsDataRefetch();
+  }
+  $: topBannerShow =
+    ($location.pathname.startsWith('/hubs/workspace') ||
+      $location.pathname.startsWith('/hubs/settings') ||
+      $location.pathname.startsWith('/hubs/members')) &&
+    $hubData?.data?.plan?.name === 'Community';
 
   const hubsPathMatcher = (pathname: string, dropdownOptions: any[]) => {
     let currentId;
@@ -73,7 +97,10 @@
 
 <div>
   {#if $location.pathname.startsWith('/hubs/workspace') || $location.pathname.startsWith('/hubs/settings') || $location.pathname.startsWith('/hubs/members')}
-    <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
+    <div
+      class="bg-surface-900 flex"
+      style={topBannerShow ? 'height: calc(100vh - 68px);' : 'height: calc(100vh - 48px);'}
+    >
       <!-- Sidebar - no longer passing data prop -->
       <div class="max-w-[266px] min-w-[266px]">
         <ReusableSideNav
