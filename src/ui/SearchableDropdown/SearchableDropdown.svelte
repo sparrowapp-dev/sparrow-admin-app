@@ -33,6 +33,7 @@
   let searchTerm = '';
   let filteredOptions: DropdownOption[] = [];
   let dropdownPosition = { left: 0, top: 0, bottom: 0, width: 0 };
+  let portalTarget: HTMLElement;
 
   // Update filtered options when search term or options change
   $: {
@@ -51,13 +52,12 @@
   function openDropdown() {
     if (!disabled && !open) {
       open = true;
-      searchTerm = selected ? selected.label : '';
+      searchTerm = ''; // Clear search term to show all options
 
-      // Focus and select all text in input when opened
+      // Focus input when opened
       setTimeout(() => {
         if (inputRef) {
           inputRef.focus();
-          inputRef.select();
         }
         updateDropdownPosition();
       }, 0);
@@ -141,6 +141,15 @@
   }
 
   onMount(() => {
+    // Create portal target for dropdown
+    portalTarget = document.createElement('div');
+    portalTarget.style.position = 'absolute';
+    portalTarget.style.top = '0';
+    portalTarget.style.left = '0';
+    portalTarget.style.zIndex = '9999';
+    portalTarget.style.pointerEvents = 'none';
+    document.body.appendChild(portalTarget);
+
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleKeydown);
     window.addEventListener('resize', updateDropdownPosition);
@@ -150,6 +159,11 @@
   });
 
   onDestroy(() => {
+    // Clean up portal target
+    if (portalTarget && portalTarget.parentNode) {
+      portalTarget.parentNode.removeChild(portalTarget);
+    }
+
     document.removeEventListener('click', handleClickOutside);
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', updateDropdownPosition);
@@ -190,7 +204,7 @@
 
 <div class="text-fs-ds-12 leading-lh-ds-150 relative" bind:this={dropdownRef}>
   {#if open}
-    <div class="relative flex items-center">
+    <div class="relative ml-1 flex items-center">
       <input
         bind:this={inputRef}
         bind:value={searchTerm}
@@ -223,51 +237,62 @@
     </button>
   {/if}
 
-  {#if open}
-    <!-- Position dropdown absolutely relative to the closest positioned ancestor -->
-    <div
-      class="dropdown absolute z-50 w-full shadow-lg"
-      style="width: {dropdownPosition.width}px; left: 0; 
-              {dropdownDirection === 'down' ? `top: 100%;` : `bottom: 100%;`}"
-    >
+  {#if open && portalTarget}
+    <!-- Render dropdown in portal to escape parent container clipping -->
+    {#await import('svelte')}
+      <!-- Loading -->
+    {:then}
       <div
-        class="overflow-hidden rounded-md {variant === 'primary' ? 'bg-surface-600' : 'bg-white'}"
+        style="position: fixed; 
+               left: {dropdownPosition.left}px; 
+               {dropdownDirection === 'down'
+          ? `top: ${dropdownPosition.top}px;`
+          : `bottom: ${dropdownPosition.bottom}px;`}
+               width: {dropdownPosition.width}px;
+               z-index: 9999;
+               pointer-events: auto;"
       >
-        <ul
-          class="px-1 py-1 {needsScroll ? 'dropdown-scroll overflow-y-auto' : ''} {variant ===
-          'primary'
-            ? 'dark'
-            : ''}"
-          style="max-height: {maxHeight};"
+        <div
+          class="overflow-hidden rounded-md shadow-lg {variant === 'primary'
+            ? 'bg-surface-600'
+            : 'bg-white'}"
         >
-          {#if filteredOptions.length === 0}
-            <li class="px-2 py-2 text-neutral-400">No results found</li>
-          {:else}
-            {#each filteredOptions as option}
-              <li class="flex items-center justify-between">
-                <button
-                  class="font-fw-ds-300 flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
-                          {variant === 'primary'
-                    ? `hover:bg-surface-400 ${selected?.value === option.value ? 'text-blue-300' : 'text-neutral-50'}`
-                    : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
-                  on:click={() => selectOption(option)}
-                >
-                  {#if option.leftIcon}
-                    <svelte:component this={option.leftIcon} />
-                  {/if}
-                  {option.label}
-                  {#if selected?.value === option.value}
-                    <div class="ml-auto">
-                      <BlueCheckIcon />
-                    </div>
-                  {/if}
-                </button>
-              </li>
-            {/each}
-          {/if}
-        </ul>
+          <ul
+            class="px-1 py-1 {needsScroll ? 'dropdown-scroll overflow-y-auto' : ''} {variant ===
+            'primary'
+              ? 'dark'
+              : ''}"
+            style="max-height: {maxHeight};"
+          >
+            {#if filteredOptions.length === 0}
+              <li class="px-2 py-2 text-neutral-400">No results found</li>
+            {:else}
+              {#each filteredOptions as option}
+                <li class="flex items-center justify-between">
+                  <button
+                    class="font-fw-ds-300 flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
+                            {variant === 'primary'
+                      ? `hover:bg-surface-400 ${selected?.value === option.value ? 'text-blue-300' : 'text-neutral-50'}`
+                      : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
+                    on:click={() => selectOption(option)}
+                  >
+                    {#if option.leftIcon}
+                      <svelte:component this={option.leftIcon} />
+                    {/if}
+                    {option.label}
+                    {#if selected?.value === option.value}
+                      <div class="ml-auto">
+                        <BlueCheckIcon />
+                      </div>
+                    {/if}
+                  </button>
+                </li>
+              {/each}
+            {/if}
+          </ul>
+        </div>
       </div>
-    </div>
+    {/await}
   {/if}
 </div>
 

@@ -77,7 +77,7 @@
   const columns = [
     {
       accessorKey: 'card.brand',
-      header: 'Payment Method',
+      header: 'Card details',
       cell: ({ row }) => ({
         Component: DefaultCard,
         props: {

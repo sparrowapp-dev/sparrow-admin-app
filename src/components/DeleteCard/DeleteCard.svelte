@@ -96,7 +96,7 @@
         required={true}
         hasError={formSubmitted && hasError}
         type="number"
-        errorMessage={formSubmitted && hasError ? `incorrect last 4 digits of card` : ''}
+        errorMessage={formSubmitted && hasError ? `Incorrect last 4 digits of card` : ''}
         disabled={isLoading}
         subtitle="This step confirms that you're authorized to remove this card."
       />

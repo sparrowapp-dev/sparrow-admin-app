@@ -416,12 +416,7 @@
         await billingService.setUpDefaultPaymentMethod(customerId, paymentMethodId);
       }
 
-      // Show appropriate success message
-      if (defaultStatusChanged && defaultPaymentMethod) {
-        notification.success('Billing address updated and set as default payment method.');
-      } else {
-        notification.success('Billing address updated successfully.');
-      }
+      notification.success('Card details updated successfully.');
 
       // Dispatch event to notify parent component with updated information
       dispatch('billingDetailsUpdated', {
@@ -430,14 +425,12 @@
         isNowDefault: defaultPaymentMethod,
       });
 
-      // Close modal after short delay
-      setTimeout(() => {
-        dispatch('close');
-      }, 1000);
+      // Close modal
+      dispatch('close');
     } catch (err: any) {
       error = err.message;
       console.error('Error updating billing details:', err);
-      notification.error('Failed to update billing address. Please try again.');
+      notification.error('Failed to update card details. Please try again.');
     } finally {
       isSaving = false;
     }
@@ -644,11 +637,11 @@
                 inputType="name"
                 bind:value={billingName}
                 required={true}
-                placeholder="Enter Full Name"
+                placeholder="Enter name"
                 disabled={isSaving}
                 hasError={formSubmitted && !billingName.trim()}
                 errorMessage={formSubmitted && !billingName.trim()
-                  ? 'Please enter a valid name.'
+                  ? 'Please enter a valid name'
                   : ''}
               />
             </div>
@@ -668,7 +661,7 @@
                 errorMessage={formSubmitted && !billingEmail.trim()
                   ? 'Please enter valid billing email.'
                   : ''}
-                emailErrorMessage="Please enter valid billing email."
+                emailErrorMessage="Please enter valid billing email"
               />
             </div>
 
@@ -683,7 +676,7 @@
                 placeholder="Enter address line 1"
                 disabled={isSaving}
                 hasError={formSubmitted && !line1.trim()}
-                errorMessage={formSubmitted && !line1.trim() ? 'Please enter Address' : ''}
+                errorMessage={formSubmitted && !line1.trim() ? 'Please enter your address' : ''}
               />
             </div>
 
@@ -718,7 +711,7 @@
                 />
               </div>
               {#if formSubmitted && !country}
-                <p class="text-fs-ds-12 mt-1 text-red-300">Please select a country</p>
+                <p class="text-fs-ds-12 mt-1 text-red-300">Please select your country</p>
               {/if}
             </div>
 
@@ -730,10 +723,10 @@
                 name="city"
                 bind:value={city}
                 required={true}
-                placeholder="Enter city"
+                placeholder="Enter City"
                 disabled={isSaving}
                 hasError={formSubmitted && !city.trim()}
-                errorMessage={formSubmitted && !city.trim() ? 'Please enter a valid city.' : ''}
+                errorMessage={formSubmitted && !city.trim() ? 'Please enter a valid city' : ''}
               />
             </div>
 
@@ -745,10 +738,10 @@
                 name="state"
                 bind:value={state}
                 required={true}
-                placeholder="Enter state"
+                placeholder="Enter State"
                 disabled={isSaving}
                 hasError={formSubmitted && !state.trim()}
-                errorMessage={formSubmitted && !state.trim() ? 'Please enter a valid state.' : ''}
+                errorMessage={formSubmitted && !state.trim() ? 'Please enter a valid state' : ''}
               />
             </div>
 
@@ -765,7 +758,7 @@
                 disabled={isSaving}
                 hasError={formSubmitted && !postalCode.trim()}
                 errorMessage={formSubmitted && !postalCode.trim()
-                  ? 'Please enter a valid ZIP or postal code.'
+                  ? 'Please enter a valid ZIP or postal code'
                   : ''}
               />
             </div>

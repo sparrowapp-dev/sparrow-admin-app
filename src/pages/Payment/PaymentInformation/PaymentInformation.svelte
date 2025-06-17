@@ -18,6 +18,7 @@
 
   // Icons
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
+  import Alert from '@/components/Alert/Alert.svelte';
 
   const location = useLocation();
 
@@ -167,7 +168,7 @@
   }
 </script>
 
-{#if !$customerData?.httpStatusCode}
+{#if !$customerData?.httpStatusCode || $isLoadingPaymentMethods || $isLoadingCustomer}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
@@ -202,6 +203,18 @@
         >
       </div>
     </div>
+
+    {#if customerId && paymentMethods.length === 0}
+      <div class="mt-2 mb-8">
+        <Alert
+          title="No Payment Method Found"
+          subtitle="You don’t have a saved payment method. Please add a card to continue with any purchases or upgrades."
+          showButton={true}
+          buttonText="Add Card"
+          on:buttonClick={() => openPaymentFormModal()}
+        />
+      </div>
+    {/if}
 
     {#if error}
       <div class="bg-opacity-20 mb-6 rounded-lg bg-red-900 p-4 text-red-400">

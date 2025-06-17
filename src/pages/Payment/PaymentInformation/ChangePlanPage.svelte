@@ -78,7 +78,7 @@
   function selectPlan(plan) {
     if (plan === 'enterprise') {
       // Open contact form in a new tab
-      window.open('https://sparrowapp.dev/contact', '_blank');
+      window.open('mailto:contactus@sparrowapp.dev', '_blank');
     } else {
       const targetPlanId = getPlanId(plan, billingCycle);
 

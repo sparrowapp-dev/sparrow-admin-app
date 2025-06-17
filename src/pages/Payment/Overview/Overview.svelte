@@ -432,7 +432,7 @@
           changes, we're here for you. Our support team can assist with everything from invoice
           clarifications to upgrading your subscription.
         </p>
-        <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+        <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200 pb-4">
           Need a personalized recommendation, have a billing concern, or want to explore other
           plans? Just reach out, we'll walk you through it. We're here to make sure you get the most
           value from your subscription. Don't hesitate to contact us.
