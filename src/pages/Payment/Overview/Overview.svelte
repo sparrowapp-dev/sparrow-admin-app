@@ -65,17 +65,8 @@
   let subscriptionStatus = '';
   let invoiceUrl = '';
 
-  // URL parameter handling
-  let showProcessingFromURL = false;
-  let showFailedFromURL = false;
-  let fromPlan = '';
-  let toPlan = '';
-
   // UI state
-  let showSubscriptionConfirmModal = false;
-  let showSubscriptionFailedModal = false;
   let isLoadingSubscription = false;
-  let isProcessingPayment = false;
 
   // Cancel subscription state
   let showCancelConfirmModal = false;
@@ -85,14 +76,6 @@
   // Resubscribe state
   let showResubscribeModal = false;
   let resubscribeInProgress = false;
-
-  // Selected plan details for payment
-  let selectedPlanDetails = {
-    plan: '',
-    billingCycle: '',
-    priceId: '',
-    price: '',
-  };
 
   // ===== API QUERIES =====
   // Fetch customer ID
@@ -126,37 +109,6 @@
     const matches = url.match(/\/([a-f0-9]{24})(?:\/|$)/i); // Match MongoDB ObjectId format
     if (matches && matches[1]) {
       hubId = matches[1];
-    }
-  }
-
-  // URL parameter handling for plan updates
-  $: {
-    if ($location?.search) {
-      const searchParams = new URLSearchParams($location.search);
-      showProcessingFromURL = searchParams.get('showProcessing') === 'true';
-      showFailedFromURL = searchParams.get('showFailed') === 'true';
-      fromPlan = searchParams.get('fromPlan') || currentPlan;
-      toPlan = searchParams.get('toPlan') || '';
-
-      // Set modal flags based on URL parameters
-      if (showProcessingFromURL) {
-        isProcessingPayment = true;
-      }
-
-      if (showFailedFromURL) {
-        showSubscriptionFailedModal = true;
-        selectedPlanDetails = {
-          ...selectedPlanDetails,
-          fromPlan,
-          toPlan,
-        };
-      }
-
-      // Clear the URL params after reading them
-      if (showProcessingFromURL || showFailedFromURL) {
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-      }
     }
   }
 
@@ -349,34 +301,11 @@
     socket = initializeStripeSocket(API_BASE_URL, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
-        const { team } = data;
-        isProcessingPayment = false;
-        showSubscriptionConfirmModal = true;
-
-        // Update selectedPlanDetails with team data
-        selectedPlanDetails = {
-          ...selectedPlanDetails,
-          fromPlan: team?.plan?.name || currentPlan,
-          toPlan: team?.plan?.name || selectedPlanDetails.plan,
-          hubName: team?.name || hubName,
-        };
-
         refetchSubscription();
+        refetchHub();
       },
       onPaymentFailed: (data) => {
         console.log('Payment failed:', data);
-        const { team } = data;
-        isProcessingPayment = false;
-        showSubscriptionFailedModal = true;
-        notification.error('Payment failed. Please try again or contact support.');
-
-        // Update selectedPlanDetails with team data
-        selectedPlanDetails = {
-          ...selectedPlanDetails,
-          fromPlan: team?.plan?.name || currentPlan,
-          toPlan: team?.plan?.name || selectedPlanDetails.plan,
-          hubName: team?.name || hubName,
-        };
         refetchSubscription();
         refetchHub();
       },
@@ -427,7 +356,7 @@
           target="_blank"
           rel="noopener noreferrer"
           class="text-fs-ds-12 font-fw-ds-400 font-inter text-neutral-200 underline"
-          >Terms of Services</a
+          >Terms of Service</a
         >
         <a
           href="https://sparrowapp.dev/privacy-policy/"

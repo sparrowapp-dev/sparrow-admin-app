@@ -28,7 +28,6 @@
   let hasBillingAddress = false;
   let paymentMethods = [];
   let billingAddress = null;
-  let error = null;
 
   // Extract hubId from URL
   let hubId = null;
@@ -192,7 +191,7 @@
           target="_blank"
           rel="noopener noreferrer"
           class="text-fs-ds-12 font-fw-ds-400 font-inter text-neutral-200 underline"
-          >Terms of Services</a
+          >Terms of Service</a
         >
         <a
           href="https://sparrowapp.dev/privacy-policy/"
@@ -216,104 +215,85 @@
       </div>
     {/if}
 
-    {#if error}
-      <div class="bg-opacity-20 mb-6 rounded-lg bg-red-900 p-4 text-red-400">
-        <p>Error loading payment information: {error}</p>
-        <Button
-          variant="text-danger"
-          size="small"
-          class="mt-2"
-          on:click={() => {
-            refetchCustomer();
-            refetchPaymentMethods();
-          }}
-        >
-          Retry
-        </Button>
-      </div>
-    {:else}
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Payment Method Section -->
-        <div class="payment-method bg-surface-600 rounded-md p-6">
-          <div class="mb-4 flex items-center gap-2">
-            <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
-            {#if selectedPaymentMethod?.isDefault}
-              <Tag
-                text="Default Card"
-                bgColor="bg-green-900"
-                textColor="text-green-300"
-                borderColor="border-green-700"
-                size="xs"
-              />
-            {/if}
-          </div>
-
-          {#if !hasPaymentMethod}
-            <div
-              class="bg-surface-400 hover:bg-surface-500 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8"
-              on:click={() => openPaymentFormModal()}
-            >
-              <PlusIconV2 />
-              <span class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400"
-                >Add a new card</span
-              >
-            </div>
-          {:else if selectedPaymentMethod}
-            <!-- Display selected payment method -->
-            <div class="card-info">
-              {#if selectedPaymentMethod.card}
-                <div class="flex flex-col gap-3">
-                  <div class="text-fs-ds-28 font-fw-ds-600 uppercase">
-                    {selectedPaymentMethod.card.brand}
-                  </div>
-                  <div class="flex flex-col gap-4">
-                    <div class="text-fs-ds-28 font-inter font-fw-ds-500 text-neutral-100">
-                      •••• •••• ••••
-                      <span class="text-fs-ds-28 font-inter font-fw-ds-500 text-neutral-50">
-                        {selectedPaymentMethod.card.last4}
-                      </span>
-                    </div>
-                    <div class="text-fs-ds-14 font-inter font-fw-ds-400 text-neutral-200">
-                      Expiry Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{selectedPaymentMethod.card
-                        .exp_month}/{selectedPaymentMethod.card.exp_year}
-                    </div>
-                    <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
-                      {[
-                        selectedPaymentMethod.billing_details.address.line1,
-                        selectedPaymentMethod.billing_details.address.city,
-                        selectedPaymentMethod.billing_details.address.state,
-                        selectedPaymentMethod.billing_details.address.country,
-                      ]
-                        .filter(Boolean)
-                        .join(', ')}
-                    </div>
-                    {#if selectedPaymentMethod.billing_details?.name}
-                      <div
-                        class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase"
-                      >
-                        {selectedPaymentMethod.billing_details.name}
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-              {/if}
-            </div>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <!-- Payment Method Section -->
+      <div class="payment-method bg-surface-600 rounded-md p-6">
+        <div class="mb-4 flex items-center gap-2">
+          <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
+          {#if selectedPaymentMethod?.isDefault}
+            <Tag
+              text="Default Card"
+              bgColor="bg-green-900"
+              textColor="text-green-300"
+              borderColor="border-green-700"
+              size="xs"
+            />
           {/if}
         </div>
-      </div>
 
-      <!-- Payment Methods List Table -->
-      {#if hasPaymentMethod && paymentMethods.length > 0}
-        <div class="mt-6">
-          <PaymentMethodsList
-            {paymentMethods}
-            on:addCard={() => openPaymentFormModal()}
-            on:cardSelected={handleCardSelected}
-            on:requestRefresh={handleAllCardsDeleted}
-            on:editBilling={(e) => openPaymentFormModal(e.detail.paymentMethodId)}
-          />
-        </div>
-      {/if}
+        {#if !hasPaymentMethod}
+          <div
+            class="bg-surface-400 hover:bg-surface-500 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8"
+            on:click={() => openPaymentFormModal()}
+          >
+            <PlusIconV2 />
+            <span class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400"
+              >Add a new card</span
+            >
+          </div>
+        {:else if selectedPaymentMethod}
+          <!-- Display selected payment method -->
+          <div class="card-info">
+            {#if selectedPaymentMethod.card}
+              <div class="flex flex-col gap-3">
+                <div class="text-fs-ds-28 font-fw-ds-600 uppercase">
+                  {selectedPaymentMethod.card.brand}
+                </div>
+                <div class="flex flex-col gap-4">
+                  <div class="text-fs-ds-28 font-inter font-fw-ds-500 text-neutral-100">
+                    •••• •••• ••••
+                    <span class="text-fs-ds-28 font-inter font-fw-ds-500 text-neutral-50">
+                      {selectedPaymentMethod.card.last4}
+                    </span>
+                  </div>
+                  <div class="text-fs-ds-14 font-inter font-fw-ds-400 text-neutral-200">
+                    Expiry Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{selectedPaymentMethod.card
+                      .exp_month}/{selectedPaymentMethod.card.exp_year}
+                  </div>
+                  <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                    {[
+                      selectedPaymentMethod.billing_details.address.line1,
+                      selectedPaymentMethod.billing_details.address.city,
+                      selectedPaymentMethod.billing_details.address.state,
+                      selectedPaymentMethod.billing_details.address.country,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </div>
+                  {#if selectedPaymentMethod.billing_details?.name}
+                    <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                      {selectedPaymentMethod.billing_details.name}
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Payment Methods List Table -->
+    {#if hasPaymentMethod && paymentMethods.length > 0}
+      <div class="mt-6">
+        <PaymentMethodsList
+          {paymentMethods}
+          on:addCard={() => openPaymentFormModal()}
+          on:cardSelected={handleCardSelected}
+          on:requestRefresh={handleAllCardsDeleted}
+          on:editBilling={(e) => openPaymentFormModal(e.detail.paymentMethodId)}
+        />
+      </div>
     {/if}
 
     <!-- Unified Payment Form Modal -->

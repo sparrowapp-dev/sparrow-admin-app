@@ -305,7 +305,7 @@
                 window.open(url, '_blank');
               }}
             >
-              Terms of services
+              Terms of service
             </button>
             and
             <button

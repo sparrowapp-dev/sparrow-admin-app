@@ -359,13 +359,18 @@
       });
 
       // Close modal after short delay
-      setTimeout(() => {
-        dispatch('close');
-      }, 1000);
+
+      dispatch('close');
     } catch (err: any) {
       error = err.message;
       console.error('Error adding payment method:', err);
-      notification.error('Failed to add a new card. Please try again.');
+      if (typeof err === 'string') {
+        notification.error(err);
+      } else if (err?.message && typeof err.message === 'string') {
+        notification.error(err.message);
+      } else {
+        notification.error('Failed to add a new card. Please try again.');
+      }
     } finally {
       isSaving = false;
     }
@@ -766,12 +771,9 @@
 
           <!-- Default payment method checkbox -->
           <div
-            class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex items-center gap-1 text-neutral-50"
+            class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex cursor-pointer items-center gap-1 text-neutral-50"
           >
-            <span
-              class="cursor-pointer"
-              on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
-            >
+            <span on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}>
               {#if defaultPaymentMethod}
                 <CheckboxChecked />
               {:else}

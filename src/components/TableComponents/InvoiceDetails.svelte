@@ -71,7 +71,7 @@
 
 <div class="bg-surface-600 rounded-lg p-6">
   <div class="flex items-start justify-between">
-    <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">New Hub</h2>
+    <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Invoice Details</h2>
     <button type="button" class="cursor-pointer" on:click={onClose}> <CloseIcon /> </button>
   </div>
 
