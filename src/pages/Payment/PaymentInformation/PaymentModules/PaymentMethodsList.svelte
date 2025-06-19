@@ -77,6 +77,7 @@
   const columns = [
     {
       accessorKey: 'card.brand',
+      id: 'card_brand',
       header: 'Card details',
       cell: ({ row }) => ({
         Component: DefaultCard,
@@ -97,8 +98,9 @@
     },
     {
       accessorKey: 'card.exp_month',
+      id: 'card_exp_month',
       header: 'Expiration Date',
-      enableSorting: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const card = row.original.card;
         return `<span class="text-neutral-50 font-fs-ds-12">${card.exp_month}/${card.exp_year}</span>`;
@@ -139,6 +141,38 @@
     },
   ];
 
+  function handleSortingChange(event) {
+    sorting = event.detail;
+  }
+
+  function sortData(data, sorting) {
+    if (!sorting.length) return data;
+
+    return [...data].sort((a, b) => {
+      const sort = sorting[0];
+
+      if (sort.id === 'card_brand') {
+        const aValue = a.card?.last4;
+        const bValue = b.card?.last4;
+
+        if (!aValue) return 1;
+        if (!bValue) return -1;
+
+        return sort.desc
+          ? parseInt(bValue) - parseInt(aValue)
+          : parseInt(aValue) - parseInt(bValue);
+      }
+
+      const aValue = a[sort.id];
+      const bValue = b[sort.id];
+
+      if (!aValue) return 1;
+      if (!bValue) return -1;
+
+      return sort.desc ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+    });
+  }
+
   // Filtered data based on search
   $: filteredData = paymentMethods.filter((item) => {
     const searchTerm = filters.searchTerm.toLowerCase().trim();
@@ -159,15 +193,14 @@
     );
   });
 
-  // Paginated data
-  $: paginatedData = filteredData.slice(
+  // Sort the filtered data
+  $: sortedData = sortData(filteredData, sorting);
+
+  // Paginated data (now using sortedData)
+  $: paginatedData = sortedData.slice(
     pagination.pageIndex * pagination.pageSize,
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
-
-  function handleSortingChange(event) {
-    sorting = event.detail;
-  }
 
   function addNewCard() {
     dispatch('addCard');
