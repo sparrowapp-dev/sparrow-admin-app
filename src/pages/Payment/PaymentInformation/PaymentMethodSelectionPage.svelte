@@ -38,6 +38,7 @@
   let subscriptionStatus: string = '';
   let customerId: string = '';
   let currentPlan: string = 'Community';
+  let isDowngrade: boolean = false;
 
   // URL parsing
   $: {
@@ -57,6 +58,7 @@
     subscriptionId = searchParams.get('subscriptionId') || '';
     currentPlan = searchParams.get('currentPlan') || 'Community';
     subscriptionStatus = searchParams.get('status') || '';
+    isDowngrade = searchParams.get('isDowngrade') === 'true';
   }
 
   // Initialize Stripe
@@ -248,15 +250,8 @@
   }
 
   function goBack() {
-    // Navigate back to the ChangePlan page with all the necessary parameters
-    const searchParams = new URLSearchParams({
-      currentPlan,
-      currentBillingCycle: billingCycle,
-      subscriptionId: subscriptionId || '',
-      status: subscriptionStatus,
-    });
-
-    navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
+    // Use browser's native history to go back to preserve exact previous state
+    window.history.back();
   }
 
   function goToAddCard() {
@@ -276,7 +271,7 @@
     try {
       isProcessing = true;
       error = null;
-      showProcessingModal = true; // Show processing modal immediately
+      showProcessingModal = true;
 
       // Prepare common metadata
       const metadata = {
@@ -296,6 +291,7 @@
           priceId,
           paymentMethodId: selectedPaymentMethodId,
           metadata,
+          isDowngrade,
         });
       } else if (customerId) {
         console.log('Creating new subscription for customer:', customerId);
@@ -333,11 +329,21 @@
     }
   }
 
-  // Prepare breadcrumb navigation
+  // Prepare breadcrumb navigation with function-based navigation
   $: breadcrumbItems = [
-    { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
-    { label: 'Change Plan', path: `/billing/billingInformation/changePlan/${hubId}` },
-    { label: 'Payment Method', path: '' },
+    {
+      label: 'Billing',
+      path: `/billing/billingOverview/${hubId}`,
+    },
+    {
+      label: 'Change Plan',
+      path: '',
+      action: () => window.history.back(),
+    },
+    {
+      label: 'Payment Method',
+      path: '',
+    },
   ];
 </script>
 
@@ -347,8 +353,21 @@
     <div>
       <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h1>
       <p class="text-fs-ds-14 font-fw-ds-300 font-inter mb-3 text-neutral-100">
-        Choose a saved card or add a new one to continue with your upgrade.
+        Choose a saved card or add a new one to continue with your {isDowngrade
+          ? 'downgrade'
+          : 'upgrade'}.
       </p>
+
+      <!-- Downgrade Notice -->
+      {#if isDowngrade}
+        <div class="mb-4 rounded-lg border border-blue-700 bg-blue-900/20 p-3">
+          <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-blue-300">
+            <strong>Downgrade Scheduled:</strong> Your plan will be downgraded at the end of the current
+            billing cycle. You’ll retain full access to your current features until then. Once downgraded,
+            further plan changes and cancellation will be disabled until the next cycle.
+          </p>
+        </div>
+      {/if}
     </div>
 
     <!-- Summary -->

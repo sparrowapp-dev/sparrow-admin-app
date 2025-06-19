@@ -26,6 +26,7 @@ interface UpdateSubscriptionParams {
   priceId: string;
   paymentMethodId: string;
   metadata?: Record<string, string>;
+  isDowngrade?: boolean;
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -38,7 +39,6 @@ interface SubscriptionResponse {
 
 interface CancelSubscriptionParams {
   subscriptionId: string;
-  cancelImmediately?: boolean;
 }
 
 interface ReactivateSubscriptionParams {
@@ -200,11 +200,19 @@ export class BillingService {
    */
   public async updateSubscription(params: UpdateSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
-    const res = await makeRequest('PUT', url, {
+    const requestBody: any = {
       priceId: params.priceId,
       paymentMethodId: params.paymentMethodId,
       metadata: params.metadata,
-    });
+    };
+
+    // If this is a downgrade, set it to happen at the end of the billing cycle
+    if (params.isDowngrade) {
+      requestBody.prorationBehavior = 'none';
+      requestBody.atPeriodEnd = true;
+    }
+
+    const res = await makeRequest('PUT', url, requestBody);
     return res?.data;
   }
 
@@ -214,9 +222,7 @@ export class BillingService {
    */
   public async cancelSubscription(params: CancelSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
-    const res = await makeRequest('DELETE', url, {
-      cancelImmediately: params.cancelImmediately || false,
-    });
+    const res = await makeRequest('DELETE', url);
     return res?.data;
   }
 
@@ -255,7 +261,7 @@ export class BillingService {
 
   public async setUpDefaultPaymentMethod(customerId, paymentMethodId) {
     const url = `/api/payment-methods/default`;
-    const res = makeRequest('POST', url, { customerId, paymentMethodId });
+    await makeRequest('POST', url, { customerId, paymentMethodId });
   }
 }
 
