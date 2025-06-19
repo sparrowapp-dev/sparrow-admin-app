@@ -147,6 +147,7 @@
     return hubsService.getHubWorkspaces(queryParams);
   });
 
+  $: workspaceCount = $workspacesData?.data?.hubs?.length;
   //Function to fetch user Role in Hub
   const {
     data: userRole,
@@ -160,7 +161,8 @@
   });
 
   $: workspaceExhausted =
-    $workspacesData?.data?.hubs?.length === $hubData?.data?.plan?.limits?.workspacesPerHub?.value;
+    ($workspacesData?.data?.hubs?.length || 0) >=
+    ($hubData?.data?.plan?.limits?.workspacesPerHub?.value || 0);
 
   const {
     data: hubData,
@@ -355,10 +357,12 @@
         {:else}
           <UpgradeHubPopup
             onClose={() => (showModal = false)}
-            workspaceLimit={$hubData?.data?.plan?.limits?.workspacesPerHub?.value}
+            limit={$hubData?.data?.plan?.limits?.workspacesPerHub?.value}
             userRole={user?.role}
             {isOwner}
             reDirect={handleRedirect}
+            limitText="Workspaces"
+            currentCount={workspaceCount}
           />
         {/if}
       </Modal>

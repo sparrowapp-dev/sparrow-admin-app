@@ -3,11 +3,13 @@
   import { userEmail, userName } from '@/store/auth';
   import Button from '@/ui/Button/Button.svelte';
 
-  export let workspaceLimit = 3;
+  export let limit = 3;
   export let userRole = 'owner';
   export let isOwner = false;
   export let onClose;
   export let reDirect;
+  export let limitText;
+  export let currentCount;
 </script>
 
 <section
@@ -17,7 +19,7 @@
     <div class="flex flex-col gap-6">
       <div class="flex justify-between">
         <h2 class="font-fw-ds-500 font-inter leading-lh-ds-120 text-fs-ds-20 text-neutral-50">
-          It’s time to Upgrade Plan
+          {#if isOwner}It’s time to Upgrade Plan{:else}Upgrade Needed – Contact Owner to Upgrade{/if}
         </h2>
         <span on:click={onClose} class="cursor-pointer"><CloseIcon /></span>
       </div>
@@ -34,12 +36,12 @@
         </h2>
         <h2 class="flex items-center gap-3">
           <h3 class="text-fw-ds-300 text-fs-ds-14 leading-lh-ds-143 text-neutral-100">
-            Workspaces:
+            {limitText}:
           </h3>
           <h3 class="font-inter text-fw-ds-400 text-fs-ds-14 leading-lh-ds-143 text-neutral-400">
             <span class="font-fw-ds-500 text-fs-ds-24 leading-lh-ds-120 text-red-500"
-              >{workspaceLimit}</span
-            >/{workspaceLimit}
+              >{#if currentCount}{currentCount}{:else}{limit}{/if}</span
+            >/{limit}
           </h3>
         </h2>
 
@@ -80,7 +82,7 @@
     </div>
     <div class="flex justify-end gap-3">
       <Button variant="filled-secondary" on:click={onClose}>Cancel</Button>
-      <Button on:click={reDirect}>{isOwner ? 'Go to Admin Panel' : 'Contact Owner'}</Button>
+      <Button on:click={reDirect}>{isOwner ? 'Upgrade Plan' : 'Contact Owner'}</Button>
     </div>
   </div>
 </section>

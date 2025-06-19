@@ -101,7 +101,7 @@
     };
     return userService.getUserRole(queryParams);
   });
-  $: isMember = $userRole?.data === 'member';
+  $: isMember = $userRole?.data === 'member' || $userRole?.data === 'admin';
   // Validate hub name field
   function validateHubName(name: string): boolean {
     if (!name.trim()) {

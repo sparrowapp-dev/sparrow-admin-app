@@ -76,6 +76,7 @@
 
   function handleUpgrade(event, hub) {
     event.stopPropagation();
+    navigate(`/billing/billingOverview/${hub?._id}`);
     // Your upgrade logic here
     // closeDropdown();
   }
@@ -152,11 +153,11 @@
       </button>
 
       <button
-        class="hover:bg-surface-300 flex w-full cursor-not-allowed items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
+        class="hover:bg-surface-300 flex w-full items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
         on:click={(e) => handleUpgrade(e, row.original)}
-        ><span class="opacity-50"> <UpgradeStandardIcon /></span>
+        ><span> <UpgradeStandardIcon /></span>
 
-        <h2 class="text-fs-ds-12 font-regular opacity-50">Upgrade to Standard</h2>
+        <h2 class="text-fs-ds-12 font-regular">Upgrade to Standard</h2>
       </button>
     </div>
   </div>
