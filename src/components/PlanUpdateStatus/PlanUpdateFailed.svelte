@@ -23,14 +23,6 @@
   function handleFixPayment() {
     dispatch('fixPayment');
   }
-
-  $: formattedBillingDate = nextBillingDate
-    ? new Date(nextBillingDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '';
 </script>
 
 <div class="bg-surface-600 max-w-xl rounded-lg p-7 text-white">
@@ -49,7 +41,7 @@
   <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-2 mb-3 text-neutral-400">
     We couldn’t switch your plan from {fromPlan} to {toPlan} due to a payment issue. Please check your
     payment method and try again. If the problem continues, contact
-    <a href="https://sparrowapp.canny.io/feedback" class="text-blue-400 hover:underline"
+    <a href="mailto:contactus@sparrowapp.dev" class="text-blue-400 hover:underline"
       >Sparrow Support</a
     >.
   </p>
@@ -64,10 +56,6 @@
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Current Plan</p>
       <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{currentPlan}</p>
     </div>
-    <!-- <div class="col-span-2">
-      <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Next billing date</p>
-      <p class="text-fs-ds-16 font-inter font-fw-ds-500 text-neutral-50">{formattedBillingDate}</p>
-    </div> -->
   </div>
 
   <!-- Action button -->

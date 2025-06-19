@@ -25,7 +25,9 @@
     <div class="flex justify-between">
       <!-- Payment Issue Icon -->
       <div class="flex items-start gap-4">
-        <AlertIcon />
+        <div class="h-10 w-10">
+          <AlertIcon />
+        </div>
 
         <div>
           {#if title}

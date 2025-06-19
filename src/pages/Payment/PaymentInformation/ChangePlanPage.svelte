@@ -1,7 +1,6 @@
 <script lang="ts">
   // Svelte
   import { navigate, useLocation } from 'svelte-routing';
-  import { createEventDispatcher } from 'svelte';
 
   // Components
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
@@ -22,8 +21,8 @@
     isPlanSelectable as checkPlanSelectable,
     capitalizeFirstLetter,
     getPlanId,
+    isDowngrade,
     type BillingCycleType,
-    type PlanType,
   } from '@/utils/pricing';
 
   const location = useLocation();
@@ -67,12 +66,31 @@
   let planDetails = DEFAULT_PLAN_DETAILS;
 
   // State
-  let billingCycle: BillingCycleType = currentBillingCycle || 'monthly';
+  let billingCycle: BillingCycleType = currentBillingCycle;
 
   // Computed properties
   $: plans = AVAILABLE_PLANS;
   $: currentPlanLower = currentPlan.toLowerCase();
   $: currentPlanId = getPlanId(currentPlanLower, currentBillingCycle);
+
+  // Debug reactive statement to track plan values
+  $: {
+    for (const plan of plans) {
+      const planValue = getPlanValue(plan, billingCycle);
+      console.log(`Plan Value for ${plan}-${billingCycle}:`, planValue);
+    }
+  }
+
+  // Helper function to get plan value
+  function getPlanValue(planName: string, cycle: string): number {
+    if (planName === 'community') return 0;
+    if (planName === 'standard' && cycle === 'monthly') return 1;
+    if (planName === 'professional' && cycle === 'monthly') return 2;
+    if (planName === 'standard' && cycle === 'annual') return 3;
+    if (planName === 'professional' && cycle === 'annual') return 4;
+    if (planName === 'enterprise') return 5;
+    return 0;
+  }
 
   // Handle plan selection
   function selectPlan(plan) {
@@ -90,6 +108,14 @@
             ? planDetails[plan].monthly.priceId
             : planDetails[plan].annual.priceId;
 
+        // Determine if this is a downgrade
+        const isDowngradeChange = isDowngrade(
+          currentPlanLower,
+          plan,
+          currentBillingCycle,
+          billingCycle,
+        );
+
         // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
@@ -99,6 +125,7 @@
           subscriptionId: subscriptionId || '',
           currentPlan: currentPlan,
           status: subscriptionStatus || '',
+          isDowngrade: isDowngradeChange.toString(),
         });
 
         navigate(
@@ -125,24 +152,18 @@
       return 'Contact Sales';
     }
 
-    // Special case for monthly -> annual upgrade of same plan
-    if (
-      plan === currentPlanLower &&
-      billingCycle === 'annual' &&
-      currentBillingCycle === 'monthly'
-    ) {
+    const currentPlanValue = getPlanValue(currentPlanLower, currentBillingCycle);
+    const targetPlanValue = getPlanValue(plan, billingCycle);
+
+    // Log the comparison details
+    if (targetPlanValue > currentPlanValue) {
+      console.log('Returning: Upgrade');
       return 'Upgrade';
-    }
-
-    // For downgrades
-    if (
-      (currentPlanLower === 'professional' && plan === 'standard' && billingCycle === 'annual') ||
-      (currentPlanLower === 'standard' && plan === 'community')
-    ) {
+    } else if (targetPlanValue < currentPlanValue) {
       return 'Downgrade';
+    } else {
+      return 'Your plan';
     }
-
-    return 'Upgrade';
   }
 
   // Prepare breadcrumb navigation
@@ -150,6 +171,18 @@
     { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
     { label: 'Change Plan', path: '' },
   ];
+
+  // Make plan values reactive
+  $: planValues = plans.map((plan) => ({
+    plan,
+    planName: capitalizeFirstLetter(plan),
+    isCurrentPlan: plan === currentPlanLower && billingCycle === currentBillingCycle,
+    planPrice: planDetails[plan][billingCycle].price,
+    planUnit: planDetails[plan][billingCycle].unit,
+    buttonText: getButtonText(plan),
+    hasDiscount: planDetails[plan][billingCycle].discount,
+    discount: planDetails[plan][billingCycle].discount,
+  }));
 </script>
 
 <div class="max-w-[1200px]">
@@ -183,12 +216,7 @@
 
       <!-- Plan Cards Grid -->
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {#each plans as plan}
-          {@const planName = capitalizeFirstLetter(plan)}
-          {@const isCurrentPlan = plan === currentPlanLower && billingCycle === currentBillingCycle}
-          {@const planPrice = planDetails[plan][billingCycle].price}
-          {@const planUnit = planDetails[plan][billingCycle].unit}
-
+        {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }}
           <div
             class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] hover:border-1 ${isCurrentPlan ? 'border-1 border-neutral-50' : 'border-surface-500 border-2'}`}
           >
@@ -206,9 +234,9 @@
                       size="xs"
                     />
                   {/if}
-                  {#if planDetails[plan][billingCycle].discount && !isCurrentPlan}
+                  {#if hasDiscount && !isCurrentPlan}
                     <Tag
-                      text={planDetails[plan][billingCycle].discount}
+                      text={discount}
                       bgColor="bg-cyan-900"
                       textColor="text-cyan-300"
                       borderColor="border-cyan-700"
@@ -227,7 +255,6 @@
                 </div>
 
                 <!-- Action Button -->
-
                 <div>
                   {#if isCurrentPlan}
                     <Button variant="filled-primary-white">Your Plan</Button>
@@ -243,9 +270,9 @@
                     <Button
                       variant="filled-primary"
                       on:click={() => selectPlan(plan)}
-                      disabled={!isPlanSelectable(plan)}
+                      disabled={plan === 'community' || buttonText === 'Downgrade'}
                     >
-                      {getButtonText(plan)}
+                      {buttonText}
                     </Button>
                   {/if}
                 </div>
@@ -318,7 +345,7 @@
       </div>
 
       <!-- User count notice -->
-      <div class="mt-8 text-center">
+      <div class="mt-8">
         <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
           Note: With {userCount} users in your hub, your final cost will be calculated based on the selected
           plan. A full breakdown will be shown at checkout. Please

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import Tooltip from '@/components/Tooltip/Tooltip.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -19,6 +20,10 @@
   export let iconLeft: boolean = false;
   export let iconRight: boolean = false;
   export let type: 'button' | 'submit' | 'reset' = 'button';
+  // Tooltip props
+  export let tooltipText: string = '';
+  export let tooltipPosition: 'top' | 'right' | 'bottom' | 'left' = 'top';
+  export let tooltipDelay: number = 0;
 
   const sizeClasses = {
     small: 'text-fs-ds-12 rounded-[4px] px-2 py-1.5 h-[28px]',
@@ -74,27 +79,61 @@
     `;
 </script>
 
-<button
-  class={baseClasses}
-  {type}
-  {disabled}
-  on:click={forwardEvent}
-  on:focus={forwardEvent}
-  on:blur={forwardEvent}
-  on:keydown={forwardEvent}
-  on:keyup={forwardEvent}
-  on:mouseenter={forwardEvent}
-  on:mouseleave={forwardEvent}
->
-  {#if iconLeft}
-    <div class="{disabled ? 'cursor-not-allowed opacity-50' : ''} flex items-center">
-      <slot name="iconLeft" />
-    </div>
-  {/if}
+{#if tooltipText}
+  <Tooltip 
+    text={tooltipText} 
+    position={tooltipPosition} 
+    showDelay={tooltipDelay}
+    size='xs'
+  >
+    <button
+      class={baseClasses}
+      {type}
+      {disabled}
+      on:click={forwardEvent}
+      on:focus={forwardEvent}
+      on:blur={forwardEvent}
+      on:keydown={forwardEvent}
+      on:keyup={forwardEvent}
+      on:mouseenter={forwardEvent}
+      on:mouseleave={forwardEvent}
+    >
+      {#if iconLeft}
+        <div class="{disabled ? 'cursor-not-allowed opacity-50' : ''} flex items-center">
+          <slot name="iconLeft" />
+        </div>
+      {/if}
 
-  <slot />
+      <slot />
 
-  {#if iconRight}
-    <slot name="iconRight" />
-  {/if}
-</button>
+      {#if iconRight}
+        <slot name="iconRight" />
+      {/if}
+    </button>
+  </Tooltip>
+{:else}
+  <button
+    class={baseClasses}
+    {type}
+    {disabled}
+    on:click={forwardEvent}
+    on:focus={forwardEvent}
+    on:blur={forwardEvent}
+    on:keydown={forwardEvent}
+    on:keyup={forwardEvent}
+    on:mouseenter={forwardEvent}
+    on:mouseleave={forwardEvent}
+  >
+    {#if iconLeft}
+      <div class="{disabled ? 'cursor-not-allowed opacity-50' : ''} flex items-center">
+        <slot name="iconLeft" />
+      </div>
+    {/if}
+
+    <slot />
+
+    {#if iconRight}
+      <slot name="iconRight" />
+    {/if}
+  </button>
+{/if}

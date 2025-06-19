@@ -191,6 +191,9 @@ export function isPlanSelectable(
   targetBillingCycle: BillingCycleType = 'monthly',
   currentBillingCycle: BillingCycleType = 'monthly',
 ): boolean {
+  // Community plan is always disabled (not selectable)
+  if (targetPlan === 'community') return false;
+
   // Enterprise plan is always available for contact
   if (targetPlan === 'enterprise') return true;
 
@@ -202,37 +205,65 @@ export function isPlanSelectable(
   if (currentPlanId === targetPlanId) return false;
 
   // Special case rules based on current plan
+  // Hierarchy: standard monthly (1) > professional monthly (2) > standard annually (3) > professional annually (4)
   switch (currentPlanId) {
+    case 'community-monthly':
+    case 'community-annual':
+      // Community users can upgrade to any paid plan (except community which is already blocked above)
+      return true;
+
     case 'standard-monthly':
-      // Standard monthly can upgrade to: standard-annual, professional-monthly, professional-annual
-      return ['standard-annual', 'professional-monthly', 'professional-annual'].includes(
+      // Standard monthly can upgrade to: professional monthly, standard annual, professional annual
+      return ['professional-monthly', 'standard-annual', 'professional-annual'].includes(
         targetPlanId,
       );
 
     case 'professional-monthly':
-      // Professional monthly can upgrade to: professional-annual, standard-annual
-      return ['professional-annual', 'standard-annual'].includes(targetPlanId);
+      // Professional monthly can upgrade to: standard annual, professional annual
+      return ['standard-annual', 'professional-annual'].includes(targetPlanId);
 
     case 'standard-annual':
-      // Standard annual can only upgrade to professional-annual
-      return targetPlanId === 'professional-annual';
+      // Standard annual can only upgrade to professional annual or downgrade to lower tiers
+      return ['professional-annual'].includes(targetPlanId);
 
     case 'professional-annual':
-      // Professional annual cannot upgrade to anything
-      return false;
-
-    case 'community-monthly':
-      // Community monthly can upgrade to anything except community-annual (which doesn't exist as a paid plan)
-      return targetPlanId !== 'community-annual' && targetPlanId !== 'community-monthly';
-
-    case 'community-annual':
-      // Community annual can upgrade to anything except community-monthly
-      return targetPlanId !== 'community-monthly' && targetPlanId !== 'community-annual';
+      // Professional annual can only downgrade
+      return ['standard-annual', 'professional-monthly', 'standard-monthly'].includes(targetPlanId);
 
     default:
       // Default fallback for any unhandled cases
       return true;
   }
+}
+
+/**
+ * Check if a plan change is a downgrade
+ * @param currentPlan Current plan name (lowercase)
+ * @param targetPlan Target plan name (lowercase)
+ * @returns Boolean indicating if this is a downgrade
+ */
+export function isDowngrade(
+  currentPlan: string,
+  targetPlan: string,
+  currentBillingCycle: BillingCycleType = 'monthly',
+  targetBillingCycle: BillingCycleType = 'monthly',
+): boolean {
+  // Define plan values using our hierarchy
+  // Standard Monthly (1) < Professional Monthly (2) < Standard Annual (3) < Professional Annual (4)
+  function getPlanValue(planName: string, cycle: string): number {
+    if (planName === 'community') return 0;
+    if (planName === 'standard' && cycle === 'monthly') return 1;
+    if (planName === 'professional' && cycle === 'monthly') return 2;
+    if (planName === 'standard' && cycle === 'annual') return 3;
+    if (planName === 'professional' && cycle === 'annual') return 4;
+    if (planName === 'enterprise') return 5;
+    return 0;
+  }
+
+  const currentValue = getPlanValue(currentPlan, currentBillingCycle);
+  const targetValue = getPlanValue(targetPlan, targetBillingCycle);
+
+  return targetValue < currentValue;
 }
 
 /**
@@ -253,6 +284,8 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
       totalPaidAmount: '$0.00',
       userCount: 1,
       subscriptionStatus: '',
+      scheduledDowngrade: { hasScheduledDowngrade: false },
+      currentPriceId: '',
     };
   }
 
@@ -268,6 +301,7 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
   // Default price values
   let currentPrice = '$0.00';
   let currentBillingCycle = 'monthly';
+  let currentPriceId = '';
   let nextBillingDate = '';
   let lastInvoiceAmount = '$0.00';
   let totalPaidAmount = '$0.00';
@@ -276,6 +310,8 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
   if (subscriptionData.items?.data?.length > 0) {
     const priceDetails = subscriptionData.items.data[0].price;
     if (priceDetails) {
+      // Store the current price ID
+      currentPriceId = priceDetails.id;
       // Format price amount (comes in cents)
       currentPrice = formatPriceFromCents(priceDetails.unit_amount);
       // Determine billing cycle
@@ -283,6 +319,7 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
     }
   } else if (subscriptionData.plan) {
     // Fallback to plan object if items are not available
+    currentPriceId = subscriptionData.plan.id;
     currentPrice = formatPriceFromCents(subscriptionData.plan.amount);
     // Get billing cycle from plan
     currentBillingCycle = normalizeBillingCycle(subscriptionData.plan.interval || 'month');
@@ -307,6 +344,9 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
     totalPaidAmount = currentPrice;
   }
 
+  // Check for scheduled downgrade
+  const scheduledDowngrade = getScheduledDowngrade(subscriptionData);
+
   // Check subscription status
   const isActive = subscriptionData.status === 'active';
   if (!isActive && !databasePlanName) {
@@ -322,6 +362,11 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
     currentPlan = `${currentPlan} (Cancels on ${cancelDate})`;
   }
 
+  // Add scheduled downgrade info to plan name if exists
+  if (scheduledDowngrade.hasScheduledDowngrade && !databasePlanName) {
+    currentPlan = `${currentPlan} (Downgrades to ${capitalizeFirstLetter(scheduledDowngrade.downgradePlan || '')} on ${scheduledDowngrade.downgradeDate})`;
+  }
+
   return {
     subscriptionId,
     currentPlan,
@@ -332,5 +377,41 @@ export function processSubscriptionData(subscriptionData: any, databasePlanName?
     totalPaidAmount,
     userCount,
     subscriptionStatus,
+    scheduledDowngrade,
+    currentPriceId,
   };
+}
+
+/**
+ * Check if subscription has a scheduled downgrade
+ * @param subscriptionData Raw subscription data from API
+ * @returns Object with downgrade info if scheduled downgrade exists
+ */
+export function getScheduledDowngrade(subscriptionData: any): {
+  hasScheduledDowngrade: boolean;
+  downgradePlan?: string;
+  downgradeDate?: string;
+  newPriceId?: string;
+} {
+  if (!subscriptionData?.metadata) {
+    return { hasScheduledDowngrade: false };
+  }
+
+  const metadata = subscriptionData.metadata;
+
+  // Check for scheduled downgrade metadata from backend
+  if (metadata.scheduled_downgrade === 'true' && metadata.downgrade_at_period_end === 'true') {
+    const downgradeDate = subscriptionData.current_period_end
+      ? formatDate(subscriptionData.current_period_end)
+      : '';
+
+    return {
+      hasScheduledDowngrade: true,
+      downgradePlan: metadata.new_plan_name || 'Unknown',
+      downgradeDate,
+      newPriceId: metadata.new_price_id,
+    };
+  }
+
+  return { hasScheduledDowngrade: false };
 }

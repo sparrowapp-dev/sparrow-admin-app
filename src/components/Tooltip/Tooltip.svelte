@@ -310,7 +310,7 @@
     role="tooltip"
     aria-hidden={!showTooltip}
   >
-    <div class="relative {paddingClasses}">
+    <div class="relative font-fw-ds-300 {paddingClasses}">
       {text}
       <!-- Arrow - positioned relative to tooltip container, not content -->
       <div class="{arrowClasses} text-surface-100"></div>
