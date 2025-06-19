@@ -73,14 +73,6 @@
   $: currentPlanLower = currentPlan.toLowerCase();
   $: currentPlanId = getPlanId(currentPlanLower, currentBillingCycle);
 
-  // Debug reactive statement to track plan values
-  $: {
-    for (const plan of plans) {
-      const planValue = getPlanValue(plan, billingCycle);
-      console.log(`Plan Value for ${plan}-${billingCycle}:`, planValue);
-    }
-  }
-
   // Helper function to get plan value
   function getPlanValue(planName: string, cycle: string): number {
     if (planName === 'community') return 0;
@@ -157,7 +149,6 @@
 
     // Log the comparison details
     if (targetPlanValue > currentPlanValue) {
-      console.log('Returning: Upgrade');
       return 'Upgrade';
     } else if (targetPlanValue < currentPlanValue) {
       return 'Downgrade';

@@ -95,45 +95,50 @@
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
         const { team } = data;
-        isProcessing = false;
-        showProcessingModal = false;
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
 
-        // Set data for success modal
-        selectedPlanDetails = {
-          fromPlan: currentPlan,
-          toPlan: planName,
-          hubName: team?.name || '',
-          nextBilling: team?.billing?.current_period_end,
-        };
+          // Set data for success modal
+          selectedPlanDetails = {
+            fromPlan: currentPlan,
+            toPlan: planName,
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+        }, 5000);
 
         // Show success modal
-        showSubscriptionConfirmModal = true;
+        setTimeout(() => {
+          showSubscriptionConfirmModal = true;
+        }, 5000);
       },
       onPaymentFailed: (data) => {
         console.log('Payment failed:', data);
         const { team } = data;
-        isProcessing = false;
-        showProcessingModal = false;
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
 
-        // Set data for failure modal
-        selectedPlanDetails = {
-          fromPlan: currentPlan,
-          toPlan: planName,
-          hubName: team?.name || '',
-          nextBilling: team?.billing?.current_period_end,
-        };
+          // Set data for failure modal
+          selectedPlanDetails = {
+            fromPlan: currentPlan,
+            toPlan: planName,
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
 
-        invoiceUrl = team?.billing?.failed_invoice_url || '';
+          invoiceUrl = team?.billing?.failed_invoice_url || '';
+        }, 5000);
 
         // Show failed modal
-        showSubscriptionFailedModal = true;
+
+        setTimeout(() => {
+          showSubscriptionFailedModal = true;
+        }, 5000);
       },
-      onSubscriptionUpdated: () => {
-        refetchSubscription();
-      },
-      onSubscriptionCreated: () => {
-        refetchSubscription();
-      },
+      onSubscriptionUpdated: () => {},
+      onSubscriptionCreated: () => {},
     });
   });
 
@@ -152,18 +157,11 @@
     refetchCustomer();
   }
 
-  // Fetch subscription data
-  const { data: subscriptionData, refetch: refetchSubscription } = createQuery(async () => {
-    if (!customerId) return { subscription: null };
-    return billingService.getCustomerSubscriptions(customerId);
-  });
-
   // Fetch hub details for breadcrumbs
   const { data: hubDetails } = createQuery(() => hubsService.getHubDetails(hubId));
 
   // Re-fetch when customerId changes
   $: if (customerId) {
-    refetchSubscription();
     refetchPaymentMethods();
   }
 
