@@ -223,7 +223,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-fs-ds-12 font-fw-ds-400 font-inter text-neutral-200 underline"
-            >Terms of Services</a
+            >Terms of Service</a
           >
           <a
             href="https://sparrowapp.dev/privacy-policy/"

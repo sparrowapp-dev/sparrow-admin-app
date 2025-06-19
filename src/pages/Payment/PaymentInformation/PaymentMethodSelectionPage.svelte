@@ -16,7 +16,6 @@
   import { createQuery } from '@/services/api.common';
 
   // Utils & Helpers
-  import { notification } from '@/components/Toast';
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
   import { API_BASE_URL } from '@/constants/environment';
@@ -25,6 +24,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
+  import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
 
   const location = useLocation();
 
@@ -397,10 +397,19 @@
           <CircularLoader />
         </div>
       {:else if paymentMethods.length === 0}
-        <div class=" text-center">
-          <p class="text-fs-ds-14 font-inter font-fw-ds-400 mb-4 text-neutral-200">
-            You don't have any saved payment methods.
-          </p>
+        <div
+          class="bg-surface-400 hover:bg-surface-500 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8 mr-24"
+          on:click={goToAddCard}
+        >
+          <PlusIconV2 />
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400"
+              >No payment methods added yet.
+            </span>
+            <span class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
+              Add a card to continue.
+            </span>
+          </div>
         </div>
       {:else}
         <div class="mb-6 flex flex-col">
@@ -446,33 +455,35 @@
       {/if}
     </div>
 
-    <div class="mt-6 flex items-center justify-between px-4">
-      <button
-        class="text-fs-ds-14 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
-        on:click={goToAddCard}
-      >
-        Add Card
-      </button>
-      <!-- Action buttons -->
-      <div class=" flex justify-end gap-3">
-        <Button variant="filled-secondary" on:click={goBack}>Cancel</Button>
-        <Button
-          variant="filled-primary"
-          disabled={!selectedPaymentMethodId ||
-            paymentMethods.length === 0 ||
-            $isLoadingPaymentMethods ||
-            $isLoadingProration ||
-            isProcessing}
-          on:click={handlePaymentConfirm}
+    {#if paymentMethods.length !== 0}
+      <div class="mt-6 flex items-center justify-between px-4">
+        <button
+          class="text-fs-ds-14 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
+          on:click={goToAddCard}
         >
-          {#if isProcessing}
-            Processing...
-          {:else}
-            Confirm & Pay
-          {/if}
-        </Button>
+          Add Card
+        </button>
+        <!-- Action buttons -->
+        <div class=" flex justify-end gap-3">
+          <Button variant="filled-secondary" on:click={goBack}>Cancel</Button>
+          <Button
+            variant="filled-primary"
+            disabled={!selectedPaymentMethodId ||
+              paymentMethods.length === 0 ||
+              $isLoadingPaymentMethods ||
+              $isLoadingProration ||
+              isProcessing}
+            on:click={handlePaymentConfirm}
+          >
+            {#if isProcessing}
+              Processing...
+            {:else}
+              Confirm & Pay
+            {/if}
+          </Button>
+        </div>
       </div>
-    </div>
+    {/if}
   </div>
 
   <!-- Processing Payment Modal -->

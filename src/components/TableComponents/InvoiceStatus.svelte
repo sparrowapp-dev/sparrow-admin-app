@@ -1,5 +1,6 @@
 <script lang="ts">
   import Clock from '@/assets/icons/Clock.svelte';
+  import CloseIconV3 from '@/assets/icons/CloseIconV3.svelte';
   import Success from '@/assets/icons/Success.svelte';
 
   export let status: string;
@@ -9,6 +10,7 @@
 
 <span class="flex items-center gap-1">
   {#if status === 'payment_failed'}
+    <CloseIconV3 />
     <span class="text-fs-ds-12 text-red-500">Failed</span>
   {:else if status === 'active' || status === 'paid'}
     <Success />
@@ -17,6 +19,7 @@
     <Clock />
     <span class="text-fs-ds-12 text-neutral-100">{capitalizedStatus}</span>
   {:else}
+    <Clock />
     <span class="text-fs-ds-12 text-neutral-100">{capitalizedStatus}</span>
   {/if}
 </span>

@@ -217,19 +217,28 @@
           },
         },
       });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
       if (result?.setupIntent.payment_method && defaultPaymentMethod) {
         billingService.setUpDefaultPaymentMethod(customerId, result?.setupIntent?.payment_method);
       }
 
-      if (result.error) throw new Error(result.error.message);
+      notification.success('New card added successfully.');
 
-      notification.success('Payment method added successfully');
-
-      setTimeout(() => goBack(), 1000);
+      goBack();
     } catch (err: any) {
-      error = err.message;
+      error = err?.message;
       console.error('Error adding payment method:', err);
-      notification.error('Failed to add payment method');
+
+      if (typeof err === 'string') {
+        notification.error(err);
+      } else if (err?.message && typeof err.message === 'string') {
+        notification.error(err.message);
+      } else {
+        notification.error('Failed to add new card. Please try again.');
+      }
     } finally {
       isLoading = false;
     }
@@ -501,14 +510,23 @@
           />
         </div>
       </div>
-      <div class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 flex gap-1 text-neutral-50">
+
+      <div
+        class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex cursor-pointer items-center gap-1 text-neutral-50"
+      >
         <span on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}>
           {#if defaultPaymentMethod}
             <CheckboxChecked />
           {:else}
             <CheckboxUnchecked />
-          {/if}</span
-        >Set this card as default payment method
+          {/if}
+        </span>
+        <span
+          on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
+          class="text-fs-ds-14 font-fw-ds-300 cursor-pointer text-neutral-100"
+        >
+          Set this card as default payment method
+        </span>
       </div>
     </section>
 
