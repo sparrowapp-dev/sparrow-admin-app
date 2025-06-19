@@ -107,7 +107,16 @@
 
 <!-- Dropdown trigger -->
 <div class="relative flex items-center justify-end">
-  <Tooltip text={'Show Actions'} position={'top'} mode="hover" size="xs">
+  <Tooltip
+    text={'Show Actions'}
+    position={'top'}
+    mode={row.original.role === 'Owner' ||
+    UserRoleData === 'member' ||
+    $userId.toString() === row.original.id.toString()
+      ? 'controlled'
+      : 'hover'}
+    size="xs"
+  >
     <button
       bind:this={triggerEl}
       class="hover:bg-surface-300 cursor-pointer {row.original.role === 'Owner' ||

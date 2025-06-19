@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
@@ -8,7 +8,7 @@
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
-
+  const dispatch = createEventDispatcher();
   export let onClose: () => void;
   export let hubId: any;
   export let hubName: string;
@@ -131,6 +131,8 @@
         notification.error('An invite has already been sent to this email.');
       } else if (error.message === 'Hub Member already Exist.') {
         notification.error('User already in hub.');
+      } else if (error?.message === 'Plan limit reached') {
+        dispatch('openUpgradePlan');
       } else {
         notification.error('Failed to send invite. Please try again.');
       }

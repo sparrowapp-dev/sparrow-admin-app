@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { useLocation } from 'svelte-routing';
+  import { navigate, useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import Table from '@/components/Table/Table.svelte';
@@ -20,6 +20,8 @@
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { userService } from '@/services/users.service';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
+  import { userId } from '@/store/auth';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -30,7 +32,12 @@
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
-  let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
+  let modalVariants = {
+    changeRole: false,
+    removeUser: false,
+    changingRole: false,
+    upGradePlan: false,
+  };
   let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
@@ -38,6 +45,7 @@
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
     modalVariants.changingRole = false;
+    modalVariants.upGradePlan = false;
     showModal = false;
     modalData.data = null;
   }
@@ -208,14 +216,29 @@
     return hubsService.getHubInvites(queryParams);
   });
 
+  const {
+    data: hubData,
+    refetch: hubsDataRefetch,
+    isFetching: HubsDataFetching,
+  } = createQuery(async () => {
+    return hubsService.getHubDetails(params);
+  });
+  $: totalUserCount =
+    ($membersData?.data?.members?.length || 0) + ($invitesData?.data?.invites?.length || 0);
+
   // refetch data when params change
   $: if (params) {
     refetchMembers();
     refetchInvites();
     roleRefetch();
+    hubsDataRefetch();
   }
   $: userRoleData = $userRole?.data;
   // Switch tabs
+  $: users = $hubData?.data?.users;
+  $: user = users?.find((u) => u.id.toString() === $userId?.toString());
+  $: isOwner = user?.role === 'owner';
+
   function setActiveTab(tab) {
     activeTab = tab;
   }
@@ -274,6 +297,14 @@
     { label: hubName, path: `/hubs/workspace/${params}` },
     { label: 'Members', path: `/hubs/members/${params}` },
   ];
+  $: owner = users?.find((u) => u.role === 'owner');
+  const handleRedirect = () => {
+    if (isOwner) {
+      navigate(`/billing/billingOverview/${params}`);
+    } else {
+      window.open(`mailto:${owner?.email}`);
+    }
+  };
 </script>
 
 <section class="w-full">
@@ -447,6 +478,15 @@
             {hubName}
             data={modalData.data}
             hubId={params}
+          />{:else if modalVariants?.upGradePlan}
+          <UpgradeHubPopup
+            onClose={closePopups}
+            limit={$hubData?.data?.plan?.limits?.usersPerHub?.value}
+            userRole={user?.role}
+            {isOwner}
+            reDirect={handleRedirect}
+            limitText="Collaborators"
+            currentCount={totalUserCount}
           />
         {:else}
           <InviteCollaborators
@@ -454,6 +494,9 @@
             hubId={params}
             {hubName}
             onSuccess={handleInviteComplete}
+            on:openUpgradePlan={() => {
+              modalVariants.upGradePlan = true;
+            }}
           />{/if}
       </Modal>
     {/if}
