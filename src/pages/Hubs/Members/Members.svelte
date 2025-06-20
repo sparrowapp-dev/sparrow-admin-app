@@ -225,7 +225,6 @@
   });
   $: totalUserCount =
     ($membersData?.data?.members?.length || 0) + ($invitesData?.data?.invites?.length || 0);
-
   // refetch data when params change
   $: if (params) {
     refetchMembers();
