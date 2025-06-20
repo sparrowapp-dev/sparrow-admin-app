@@ -29,6 +29,7 @@
   let pagination = { pageIndex: 0, pageSize: 10 };
   let showModal = false;
   let selectedInvoice: any = null;
+  let sorting = [];
 
   const location = useLocation();
   const extractedParam = derived(location, ($location) => {
@@ -115,6 +116,27 @@
     return () => document.removeEventListener('copyUrl', copyHandler as EventListener);
   });
 
+  // Handle sorting changes
+  function handleSortingChange(event) {
+    sorting = event.detail;
+  }
+
+  // Sort function for invoices
+  function sortData(data, sorting) {
+    if (!sorting.length) return data;
+
+    return [...data].sort((a, b) => {
+      const sort = sorting[0];
+
+      if (sort.id === 'dueDate') {
+        const aValue = a.dueDate || 0;
+        const bValue = b.dueDate || 0;
+        return sort.desc ? bValue - aValue : aValue - bValue;
+      }
+      return 0;
+    });
+  }
+
   // Table Columns
   const columns = [
     {
@@ -192,12 +214,16 @@
       }),
     },
   ];
-
   // Reactive Statements
   $: invoices = $invoiceData?.invoices || [];
   $: customerData = $invoiceData?.customerData || null;
   $: totalItems = invoices.length;
-  $: paginatedInvoices = invoices.slice(
+
+  // Sort all data first
+  $: sortedInvoices = sortData(invoices, sorting);
+
+  // Then apply pagination to sorted data
+  $: paginatedInvoices = sortedInvoices.slice(
     pagination.pageIndex * pagination.pageSize,
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
@@ -271,6 +297,7 @@
             pageIndex={pagination.pageIndex}
             pageSize={pagination.pageSize}
             {totalItems}
+            on:sortingChange={handleSortingChange}
           />
 
           <TablePagination
