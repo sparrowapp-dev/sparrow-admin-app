@@ -129,7 +129,6 @@
 
   <!-- Nested Route Content -->
   <div class="w-[100%] overflow-auto p-4">
-    <Breadcrumbs />
     <Router>
       <Route path="billingOverview/:id" component={Overview} />
       <Route path="billingInformation/:id" component={PaymentInformation} />

@@ -22,6 +22,8 @@
 
   // Utilities
   import { notification } from '@/components/Toast';
+  import { hubsService } from '@/services/hubs.service';
+  import Alert from '@/components/Alert/Alert.svelte';
 
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
@@ -33,6 +35,17 @@
     const match = $location.pathname.match(/\/billing\/billingInvoices\/([^\/]+)/);
     return match?.[1];
   });
+
+  const {
+    data: hubData,
+    refetch: hubsDataRefetch,
+    isFetching: HubsDataFetching,
+  } = createQuery(async () => {
+    const hubId = get(extractedParam) || '';
+    return hubsService.getHubDetails(hubId);
+  });
+
+  $: console.log($hubData);
 
   // Combined query for customer data and invoices
   const {
@@ -46,13 +59,11 @@
     try {
       // First fetch customer data
       const customerRes = await billingService.fetchCustomerId(hubId);
-      console.log('Fetched customer data:', customerRes);
 
       // If we have customerId, fetch invoices
       if (customerRes?.data?.customerId) {
         try {
           const invoicesRes = await billingService.getCustomerInvoices(customerRes.data.customerId);
-          console.log('Fetched invoices:', invoicesRes);
           return {
             customerData: customerRes,
             invoices: invoicesRes?.data?.invoices || [],
@@ -191,18 +202,30 @@
     (pagination.pageIndex + 1) * pagination.pageSize,
   );
   $: isLoading = $isInvoicesLoading;
-
-  $: console.log('customerData:', customerData);
-  $: console.log('invoices:', invoices);
+  $: planStatus = $hubData?.data?.billing?.status || '';
+  $: invoiceUrl = $hubData?.data?.billing?.failed_invoice_url || '';
 </script>
 
-<section class="bg-surface-900 flex w-full flex-col gap-4 pt-4">
+<section class="bg-surface-900 flex w-full flex-col gap-4">
   <!-- Overview Cards Section -->
   {#if isLoading}
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
   {:else}
+    {#if planStatus === 'payment_failed'}
+      <div class="">
+        <Alert
+          title="Payment Issue Detected"
+          subtitle="Your last payment failed, and your plan is at risk of being paused. Please update your payment information to ensure uninterrupted access."
+          showButton={true}
+          buttonText="Fix Payment Issue"
+          on:buttonClick={() => {
+            window.open(invoiceUrl, '_blank');
+          }}
+        />
+      </div>
+    {/if}
     <!-- Invoices Table Section -->
     <div class="flex flex-col gap-4">
       <div class="mb-6 flex items-end justify-between">
