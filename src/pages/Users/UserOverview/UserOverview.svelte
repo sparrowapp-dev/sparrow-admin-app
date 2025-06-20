@@ -11,6 +11,7 @@
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import { ModalData } from '@/interface/Users';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
 
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
@@ -30,6 +31,7 @@
   let filters = { searchTerm: '' };
   let pagination = { pageIndex: 0, pageSize: 10 };
   let sorting: SortingState = [];
+  let liveEmailsCount = 0;
 
   const { data, isFetching, refetch } = createQuery(async () => userService.getUsers());
 
@@ -79,6 +81,52 @@
     });
   });
 
+  // Get hub details
+  const { data: hubDetailsData, refetch: hubDetailsRefetch } = createQuery(async () => {
+    if (!hubId) return null;
+    return hubsService.getHubDetails(hubId);
+  });
+
+  // Get hub statistics using the new API
+  const { data: hubStats, refetch: hubStatsRefetch } = createQuery(async () => {
+    if (!hubId) return null;
+    return hubsService.getHubStatics(hubId);
+  });
+
+  // Reactive variables for collaborator count and limits
+  $: hubUsers = $hubDetailsData?.data?.users || [];
+  $: user = hubUsers?.find((u) => u.id.toString() === $userId?.toString());
+  $: owner = hubUsers?.find((u) => u.role === 'owner');
+  $: isOwner = user?.role === 'owner';
+  $: collaboratorLimit = $hubDetailsData?.data?.plan?.limits?.usersPerHub?.value || 0;
+  $: collaboratorCount = $hubStats?.data?.collaboratorCount || 0;
+  $: pendingInvites = $hubStats?.data?.pendingInvites || 0;
+  $: totalCollaborators = collaboratorCount + pendingInvites;
+
+  let showUpgradePopup = false;
+
+  // Function to handle invite collaborators button click - properly connected to the button
+  function handleInviteButtonClick() {
+    if (totalCollaborators + liveEmailsCount >= collaboratorLimit) {
+      showUpgradePopup = true;
+    } else {
+      showModal = true;
+    }
+  }
+
+  // Redirect handler for upgrade popup
+  function handleRedirect() {
+    if (isOwner) {
+      navigate(`/billing/billingOverview/${hubId}`);
+    } else {
+      window.open(`mailto:${owner?.email}`);
+    }
+  }
+
+  function handleLiveEmailsCount(event) {
+    liveEmailsCount = event.detail;
+  }
+
   function handleSearchChange(event: CustomEvent<string>) {
     filters.searchTerm = event.detail;
     pagination.pageIndex = 0;
@@ -96,7 +144,11 @@
     selected = event.detail;
     pagination.pageIndex = 0;
     hubId = selected?.value !== 'all' ? selected.value : null;
-    if (hubId) refetchMembers();
+    if (hubId) {
+      refetchMembers();
+      hubDetailsRefetch();
+      hubStatsRefetch();
+    }
   }
 
   let showModal = false;
@@ -128,7 +180,11 @@
   function handleModalSuccess() {
     closePopups();
     refetch();
-    if (hubId) refetchMembers();
+    if (hubId) {
+      refetchMembers();
+      hubDetailsRefetch();
+      hubStatsRefetch();
+    }
   }
 
   $: columns =
@@ -328,6 +384,8 @@
           onSuccess={() => {
             refetch();
             refetchMembers();
+            hubDetailsRefetch();
+            hubStatsRefetch();
           }}
         />
       {:else if modalVariants.removeUser}
@@ -335,6 +393,8 @@
           onSuccess={() => {
             refetchMembers();
             handleModalSuccess();
+            hubDetailsRefetch();
+            hubStatsRefetch();
           }}
           onClose={closePopups}
           hubName={currentHubName}
@@ -348,6 +408,8 @@
           onSuccess={() => {
             refetch();
             refetchMembers();
+            hubDetailsRefetch();
+            hubStatsRefetch();
           }}
           onClose={closePopups}
           hubName={currentHubName}
@@ -361,9 +423,25 @@
           onClose={() => (showModal = false)}
           {hubId}
           hubName={currentHubName}
+          on:emailsChange={handleLiveEmailsCount}
           onSuccess={() => {}}
+          on:openUpgradePlan={handleInviteButtonClick}
         />
       {/if}
+    </Modal>
+  {/if}
+
+  {#if showUpgradePopup}
+    <Modal on:close={() => (showUpgradePopup = false)}>
+      <UpgradeHubPopup
+        onClose={() => (showUpgradePopup = false)}
+        limit={collaboratorLimit}
+        userRole={user?.role}
+        {isOwner}
+        reDirect={handleRedirect}
+        limitText="Collaborators"
+        currentCount={totalCollaborators + liveEmailsCount}
+      />
     </Modal>
   {/if}
 </section>

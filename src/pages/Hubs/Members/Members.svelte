@@ -150,6 +150,8 @@
           row: row,
           hubId: params,
           refetchInvites,
+          hubsDataRefetch,
+          hubStatsRefetch,
         },
       }),
     },
@@ -296,6 +298,8 @@
   function handleInviteComplete() {
     showModal = false;
     refetchInvites();
+    hubsDataRefetch();
+    hubStatsRefetch();
   }
 
   // Reactive data processing
@@ -476,11 +480,19 @@
               modalVariants.changingRole = true;
             }}
             hubId={params}
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
           />
         {:else if modalVariants.removeUser}
           <RemoveuserPopup
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
             onClose={closePopups}
             {hubName}
             data={modalData.data}
@@ -488,7 +500,11 @@
           />
         {:else if modalVariants.changingRole}
           <ChangingRolesPopup
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
             onClose={closePopups}
             {hubName}
             data={modalData.data}
