@@ -105,6 +105,18 @@
     window.removeEventListener('close-all-dropdowns', closeDropdown);
     window.removeEventListener('scroll', closeDropdown, true);
   });
+
+  function getNextTier(currentPlan) {
+    const planHierarchy = {
+      Community: 'Standard',
+      Standard: 'Professional',
+      Professional: 'Enterprise',
+      Enterprise: null,
+    };
+    return planHierarchy[currentPlan] || 'Standard';
+  }
+
+  $: nextTier = getNextTier(row.original.plan?.name || 'Community');
 </script>
 
 <div class="relative flex items-center justify-end gap-4">
@@ -157,7 +169,11 @@
         on:click={(e) => handleUpgrade(e, row.original)}
         ><span> <UpgradeStandardIcon /></span>
 
-        <h2 class="text-fs-ds-12 font-regular">Upgrade to Standard</h2>
+        <h2 class="text-fs-ds-12 font-regular cursor-pointer">
+          {#if nextTier}
+            Upgrade to {nextTier}
+          {/if}
+        </h2>
       </button>
     </div>
   </div>

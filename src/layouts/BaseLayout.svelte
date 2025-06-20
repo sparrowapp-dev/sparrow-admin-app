@@ -46,7 +46,7 @@
     <TopNav />
   </div>
   {#if topBannerShow}
-    <div class="absolute z-10 flex w-full pt-[48px]">
+    <div class="absolute z-1 flex w-full top-[48px]">
       <TopUpgradeBanner reDirect={handleRedirect} />
     </div>
   {/if}
