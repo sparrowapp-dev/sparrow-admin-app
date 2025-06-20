@@ -11,6 +11,10 @@
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
   import { onMount } from 'svelte';
   import { SPARROW_DOCS_URL, SPARROW_LAUNCH_URL } from '@/constants/environment';
+  import Modal from '@/components/Modal/Modal.svelte';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
+  import { userId } from '@/store/auth';
+  import { navigate } from 'svelte-routing';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -88,6 +92,39 @@
   };
   let errors: FormErrors = {};
   let chipInputComponent;
+  let showUpgradeModal = false;
+  let collaboratorLimit = 0;
+  let currentCollaboratorCount = 0;
+  let isOwner = false;
+  let user = null;
+  let owner = null;
+
+  // Get hub details to check collaborator limits
+  onMount(async () => {
+    if (modalVariants.isInviteModal) {
+      try {
+        // Use the new getHubStatics API to get collaborator count
+        const hubStats = await hubsService.getHubStatics(hubId);
+        const hubDetails = await hubsService.getHubDetails(hubId);
+
+        if (hubStats?.data) {
+          // Get user role information
+          const users = hubDetails.data.users || [];
+          user = users.find((u) => u.id.toString() === $userId?.toString());
+          owner = users.find((u) => u.role === 'owner');
+          isOwner = user?.role === 'owner';
+
+          // Set limits from API data
+          collaboratorLimit = hubDetails.data.plan?.limits?.usersPerHub?.value || 3;
+          currentCollaboratorCount =
+            hubStats?.data?.collaboratorCount + hubStats?.data?.pendingInvites;
+        }
+      } catch (error) {
+        console.error('Failed to fetch hub details:', error);
+      }
+    }
+  });
+
   // ─── VALIDATION ───────────────────────────────────────
   function validateForm(): boolean {
     const newErrors: FormErrors = {};
@@ -140,6 +177,16 @@
   // ─── SUBMIT HANDLER ───────────────────────────────────
   async function handleSubmit() {
     if (!validateForm()) return;
+
+    // Check if collaborator limit would be exceeded for invites
+    if (modalVariants.isInviteModal) {
+      const totalInvites = formData.emails.length;
+      if (currentCollaboratorCount + totalInvites > collaboratorLimit) {
+        showUpgradeModal = true;
+        return;
+      }
+    }
+
     isLoading = true;
 
     try {
@@ -418,8 +465,8 @@
 
     <!-- Default Modal (Invite Members) -->
   {:else}
-    <div class="flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter mb-6 text-neutral-50">
+    <div class="mb-6 flex items-center justify-between">
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">
         Add People to Workspace
       </h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
@@ -490,3 +537,26 @@
     </form>
   {/if}
 </div>
+
+{#if showUpgradeModal}
+  <Modal on:close={() => (showUpgradeModal = false)}>
+    <UpgradeHubPopup
+      onClose={() => {
+        showUpgradeModal = false;
+        onClose();
+      }}
+      limit={collaboratorLimit}
+      userRole={user?.role}
+      {isOwner}
+      reDirect={() => {
+        if (isOwner) {
+          navigate(`/billing/billingOverview/${hubId}`);
+        } else {
+          window.open(`mailto:${owner?.email}`);
+        }
+      }}
+      limitText="Collaborators"
+      currentCount={currentCollaboratorCount + formData?.emails?.length}
+    />
+  </Modal>
+{/if}

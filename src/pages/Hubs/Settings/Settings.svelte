@@ -228,7 +228,7 @@
       >
         {hubData.name}
       </h1>
-      <div class="flex items-center gap-3">
+      <!-- <div class="flex items-center gap-3">
         <Button
           variant="filled-secondary"
           size="small"
@@ -253,7 +253,7 @@
           </svelte:fragment>
           New Workspace
         </Button>
-      </div>
+      </div> -->
     </div>
     <div class="mb-8 flex flex-col gap-2 {restrictAccess ? 'cursor-not-allowed' : ''}">
       <!-- Logo upload - using small variant -->

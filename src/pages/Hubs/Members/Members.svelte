@@ -26,7 +26,7 @@
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
   let showModal = false;
-  let params: string | undefined;
+  let params: string | '';
   let unsubscribe;
   let breadcrumbItems;
   // Pagination and filtering
@@ -41,6 +41,12 @@
   let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
+  let liveEmailsCount = 0;
+
+  function handleLiveEmailsCount(event) {
+    liveEmailsCount = event.detail;
+  }
+
   function closePopups() {
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
@@ -223,15 +229,25 @@
   } = createQuery(async () => {
     return hubsService.getHubDetails(params);
   });
+
+  // Get hub statistics using the new API
+  const { data: hubStats, refetch: hubStatsRefetch } = createQuery(async () => {
+    if (!params) return null;
+    return hubsService.getHubStatics(params);
+  });
+
   $: totalUserCount =
-    ($membersData?.data?.members?.length || 0) + ($invitesData?.data?.invites?.length || 0);
+    $hubStats?.data?.collaboratorCount + $hubStats?.data?.pendingInvites + liveEmailsCount;
+
   // refetch data when params change
   $: if (params) {
     refetchMembers();
     refetchInvites();
     roleRefetch();
     hubsDataRefetch();
+    hubStatsRefetch();
   }
+
   $: userRoleData = $userRole?.data;
   // Switch tabs
   $: users = $hubData?.data?.users;
@@ -448,7 +464,7 @@
           <ChangeUserRole
             onClose={closePopups}
             data={$membersData.data?.members?.find(
-              (data) => data.id.toString() === modalData?.data?.id.toString(),
+              (data) => data.id.toString() === modalData?.data?.id?.toString(),
             )}
             removeUserPopupOpen={() => {
               modalVariants.changeRole = false;
@@ -477,7 +493,8 @@
             {hubName}
             data={modalData.data}
             hubId={params}
-          />{:else if modalVariants?.upGradePlan}
+          />
+        {:else if modalVariants?.upGradePlan}
           <UpgradeHubPopup
             onClose={closePopups}
             limit={$hubData?.data?.plan?.limits?.usersPerHub?.value}
@@ -493,6 +510,7 @@
             hubId={params}
             {hubName}
             onSuccess={handleInviteComplete}
+            on:emailsChange={handleLiveEmailsCount}
             on:openUpgradePlan={() => {
               modalVariants.upGradePlan = true;
             }}

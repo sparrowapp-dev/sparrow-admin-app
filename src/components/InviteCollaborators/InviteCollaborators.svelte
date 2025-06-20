@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import ChipInput from '@/ui/ChipInput/ChipInput.svelte';
@@ -50,6 +50,7 @@
   function handleEmailsChange(event) {
     emails = event.detail;
     emailError = '';
+    dispatch('emailsChange', emails?.length);
   }
 
   function handleEmailsValidity(event) {
