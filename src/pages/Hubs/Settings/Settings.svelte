@@ -101,7 +101,8 @@
     };
     return userService.getUserRole(queryParams);
   });
-  $: isMember = $userRole?.data === 'member' || $userRole?.data === 'admin';
+  $: restrictAccess = $userRole?.data === 'member' || $userRole?.data === 'admin';
+  $: isMember = $userRole?.data === 'member';
   // Validate hub name field
   function validateHubName(name: string): boolean {
     if (!name.trim()) {
@@ -254,9 +255,9 @@
         </Button>
       </div>
     </div>
-    <div class="mb-8 flex flex-col gap-2 {isMember ? 'cursor-not-allowed' : ''}">
+    <div class="mb-8 flex flex-col gap-2 {restrictAccess ? 'cursor-not-allowed' : ''}">
       <!-- Logo upload - using small variant -->
-      <div class={isMember ? 'pointer-events-none' : ''}>
+      <div class={restrictAccess ? 'pointer-events-none' : ''}>
         <FileUploadDragDrop
           label=""
           variant="small"
@@ -283,7 +284,7 @@
             errorMessage={errors.name}
             on:input={() => clearError('name')}
             on:blur={handleHubNameBlur}
-            disabled={isMember}
+            disabled={restrictAccess}
           />
         </div>
 
@@ -298,7 +299,7 @@
             charLimit={100}
             minHeight={132}
             on:blur={() => saveChanges('description', hubData.description)}
-            disabled={isMember}
+            disabled={restrictAccess}
           />
         </div>
       </div>
@@ -317,7 +318,7 @@
             bind:value={hubData.githubUrl}
             placeholder="Enter your GitHub profile URL"
             on:blur={() => saveChanges('githubUrl', hubData.githubUrl)}
-            disabled={isMember}
+            disabled={restrictAccess}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <GithubIcon />
@@ -334,7 +335,7 @@
             bind:value={hubData.linkedinUrl}
             placeholder="Enter your LinkedIn profile URL"
             on:blur={() => saveChanges('linkedinUrl', hubData.linkedinUrl)}
-            disabled={isMember}
+            disabled={restrictAccess}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <LinkedinIcon />
@@ -351,7 +352,7 @@
             bind:value={hubData.xUrl}
             placeholder="Enter your X profile URL"
             on:blur={() => saveChanges('xUrl', hubData.xUrl)}
-            disabled={isMember}
+            disabled={restrictAccess}
           >
             <div slot="icon" class="absolute top-1/2 left-2 -translate-y-1/2">
               <XIcon />
