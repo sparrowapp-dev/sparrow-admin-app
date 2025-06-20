@@ -39,7 +39,7 @@
             {limitText}:
           </h3>
           <h3 class="font-inter text-fw-ds-400 text-fs-ds-14 leading-lh-ds-143 text-neutral-400">
-            <span class="font-fw-ds-500 text-fs-ds-24 leading-lh-ds-120 text-red-500"
+            <span class="font-fw-ds-500 text-fs-ds-24 leading-lh-ds-120 text-red-400"
               >{#if currentCount}{currentCount}{:else}{limit}{/if}</span
             >/{limit}
           </h3>
