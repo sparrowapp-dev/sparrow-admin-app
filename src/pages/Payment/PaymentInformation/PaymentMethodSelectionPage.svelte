@@ -91,7 +91,7 @@
     stripe = await initializeStripe();
 
     // Set up socket connection for payment events
-    socket = initializeStripeSocket(API_BASE_URL, {
+    socket = initializeStripeSocket(API_BASE_URL, hubId, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
         const { team } = data;
@@ -398,7 +398,7 @@
         </div>
       {:else if paymentMethods.length === 0}
         <div
-          class="bg-surface-400 hover:bg-surface-500 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8 mr-24"
+          class="bg-surface-400 hover:bg-surface-500 mr-24 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-md border border-dashed border-neutral-300 p-8"
           on:click={goToAddCard}
         >
           <PlusIconV2 />
