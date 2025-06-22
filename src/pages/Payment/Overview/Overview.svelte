@@ -14,8 +14,6 @@
   // Utils
   import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
-  import { initializeStripe } from '@/utils/stripeUtils';
-  import { initializeStripeSocket } from '@/utils/socket.io.utils';
 
   // UI Components
   import Button from '@/ui/Button/Button.svelte';
@@ -291,45 +289,6 @@
       resubscribeInProgress = false;
     }
   }
-
-  // ===== LIFECYCLE HOOKS =====
-  // Initialize Stripe on mount
-  onMount(async () => {
-    stripe = await initializeStripe();
-
-    // Initialize socket with event handlers
-    socket = initializeStripeSocket(API_BASE_URL, {
-      onPaymentSuccess: (data) => {
-        console.log('Payment success:', data);
-        refetchSubscription();
-        refetchHub();
-      },
-      onPaymentFailed: (data) => {
-        console.log('Payment failed:', data);
-        refetchSubscription();
-        refetchHub();
-      },
-      onSubscriptionUpdated: (data) => {
-        refetchSubscription();
-        refetchHub();
-      },
-      onSubscriptionCreated: (data) => {
-        refetchSubscription();
-        refetchHub();
-      },
-      onSubscriptionCanceled: (data) => {
-        refetchSubscription();
-        refetchHub();
-      },
-    });
-  });
-
-  // Cleanup socket connection on component destroy
-  onDestroy(() => {
-    if (socket) {
-      socket.disconnect();
-    }
-  });
 </script>
 
 {#if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}

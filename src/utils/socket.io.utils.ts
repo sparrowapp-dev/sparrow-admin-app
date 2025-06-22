@@ -9,19 +9,31 @@ interface StripeHandlers {
   onSubscriptionUpdated?: (data: any) => void;
   onSubscriptionCreated?: (data: any) => void;
   onSubscriptionCanceled?: (data: any) => void;
+  onHubJoined?: (data: { hubId: string }) => void;
+  onJoinHubError?: (data: { message: string }) => void;
 }
 
 let globalSocket: Socket | null = null;
 
 /**
- * Initialize a Socket.IO connection for Stripe events
+ * Initialize a Socket.IO connection for Stripe events with hub-based rooms
  * @param apiBaseUrl Base API URL
+ * @param hubId Hub ID to join specific room
  * @param handlers Object containing event handlers
  * @returns Socket instance
  */
-export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandlers = {}): Socket {
-  // If socket already exists and is connected, clean up previous event listeners and reuse the connection
+export function initializeStripeSocket(
+  apiBaseUrl: string,
+  hubId: string,
+  handlers: StripeHandlers = {},
+): Socket {
+  // If socket already exists and is connected, update handlers and join new hub room
   if (globalSocket && globalSocket.connected) {
+    // Join the new hub room if hubId is provided
+    if (hubId) {
+      globalSocket.emit('join-hub', { hubId });
+    }
+
     // Remove any existing listeners to prevent duplicates
     if (handlers.onPaymentSuccess) {
       globalSocket.off('payment_success');
@@ -46,6 +58,16 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
     if (handlers.onSubscriptionCanceled) {
       globalSocket.off('subscription_canceled');
       globalSocket.on('subscription_canceled', handlers.onSubscriptionCanceled);
+    }
+
+    if (handlers.onHubJoined) {
+      globalSocket.off('hub-joined');
+      globalSocket.on('hub-joined', handlers.onHubJoined);
+    }
+
+    if (handlers.onJoinHubError) {
+      globalSocket.off('join-hub-error');
+      globalSocket.on('join-hub-error', handlers.onJoinHubError);
     }
 
     // Return the existing socket with updated handlers
@@ -75,6 +97,12 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
   // Connection events
   socket.on('connect', () => {
     console.log('Connected to stripe-events socket:', socket.id);
+
+    // Join hub-specific room immediately after connection
+    if (hubId) {
+      socket.emit('join-hub', { hubId });
+    }
+
     if (handlers.onConnect) handlers.onConnect(socket.id);
   });
 
@@ -87,6 +115,15 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
     console.log('Disconnected from stripe-events socket:', reason);
     if (handlers.onDisconnect) handlers.onDisconnect(reason);
   });
+
+  // Hub room events
+  if (handlers.onHubJoined) {
+    socket.on('hub-joined', handlers.onHubJoined);
+  }
+
+  if (handlers.onJoinHubError) {
+    socket.on('join-hub-error', handlers.onJoinHubError);
+  }
 
   // Payment events
   if (handlers.onPaymentSuccess) {
@@ -111,6 +148,18 @@ export function initializeStripeSocket(apiBaseUrl: string, handlers: StripeHandl
   }
 
   return socket;
+}
+
+/**
+ * Join a specific hub room
+ * @param hubId Hub ID to join
+ */
+export function joinHubRoom(hubId: string): void {
+  if (globalSocket && globalSocket.connected) {
+    globalSocket.emit('join-hub', { hubId });
+  } else {
+    console.warn('Socket not connected. Cannot join hub room.');
+  }
 }
 
 /**
