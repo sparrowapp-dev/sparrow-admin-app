@@ -47,11 +47,10 @@
   async function handleLogout() {
     try {
       isProfileDropdownOpen = false;
-
+      navigate(LOGIN_REDIRECT_URL);
       setTimeout(async () => {
         await clearTokens();
-      }, 100);
-      navigate(LOGIN_REDIRECT_URL);
+      }, 300);
     } catch (error) {
       console.error('Logout failed:', error);
     }
