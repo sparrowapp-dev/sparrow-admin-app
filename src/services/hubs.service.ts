@@ -181,7 +181,7 @@ export class HubsService {
     const res = await makeRequest('PUT', url, data);
   }
 
-  public async getHubDetails(hubId: string): Promise<any> {
+  public async getHubDetails(hubId: string | undefined | null): Promise<any> {
     if (!hubId) {
       return;
     }
