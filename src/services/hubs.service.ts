@@ -288,6 +288,14 @@ export class HubsService {
     const res = await makeRequest('DELETE', url);
     return res.data;
   }
+
+  public async getHubStatics(hubId: string): Promise<any> {
+    if (!hubId) {
+      return null;
+    }
+    const res = await makeRequest('GET', `/api/admin/hub-statistics?hubId=${hubId}`);
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

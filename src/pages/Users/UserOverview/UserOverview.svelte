@@ -11,6 +11,7 @@
   import TablePagination from '@/components/TablePagination/TablePagination.svelte';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import { ModalData } from '@/interface/Users';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
 
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
@@ -30,6 +31,7 @@
   let filters = { searchTerm: '' };
   let pagination = { pageIndex: 0, pageSize: 10 };
   let sorting: SortingState = [];
+  let liveEmailsCount = 0;
 
   const { data, isFetching, refetch } = createQuery(async () => userService.getUsers());
 
@@ -79,6 +81,52 @@
     });
   });
 
+  // Get hub details
+  const { data: hubDetailsData, refetch: hubDetailsRefetch } = createQuery(async () => {
+    if (!hubId) return null;
+    return hubsService.getHubDetails(hubId);
+  });
+
+  // Get hub statistics using the new API
+  const { data: hubStats, refetch: hubStatsRefetch } = createQuery(async () => {
+    if (!hubId) return null;
+    return hubsService.getHubStatics(hubId);
+  });
+
+  // Reactive variables for collaborator count and limits
+  $: hubUsers = $hubDetailsData?.data?.users || [];
+  $: user = hubUsers?.find((u) => u.id.toString() === $userId?.toString());
+  $: owner = hubUsers?.find((u) => u.role === 'owner');
+  $: isOwner = user?.role === 'owner';
+  $: collaboratorLimit = $hubDetailsData?.data?.plan?.limits?.usersPerHub?.value || 0;
+  $: collaboratorCount = $hubStats?.data?.collaboratorCount || 0;
+  $: pendingInvites = $hubStats?.data?.pendingInvites || 0;
+  $: totalCollaborators = collaboratorCount + pendingInvites;
+
+  let showUpgradePopup = false;
+
+  // Function to handle invite collaborators button click - properly connected to the button
+  function handleInviteButtonClick() {
+    if (totalCollaborators + liveEmailsCount >= collaboratorLimit) {
+      showUpgradePopup = true;
+    } else {
+      showModal = true;
+    }
+  }
+
+  // Redirect handler for upgrade popup
+  function handleRedirect() {
+    if (isOwner) {
+      navigate(`/billing/billingOverview/${hubId}`);
+    } else {
+      window.open(`mailto:${owner?.email}`);
+    }
+  }
+
+  function handleLiveEmailsCount(event) {
+    liveEmailsCount = event.detail;
+  }
+
   function handleSearchChange(event: CustomEvent<string>) {
     filters.searchTerm = event.detail;
     pagination.pageIndex = 0;
@@ -96,7 +144,11 @@
     selected = event.detail;
     pagination.pageIndex = 0;
     hubId = selected?.value !== 'all' ? selected.value : null;
-    if (hubId) refetchMembers();
+    if (hubId) {
+      refetchMembers();
+      hubDetailsRefetch();
+      hubStatsRefetch();
+    }
   }
 
   let showModal = false;
@@ -128,7 +180,11 @@
   function handleModalSuccess() {
     closePopups();
     refetch();
-    if (hubId) refetchMembers();
+    if (hubId) {
+      refetchMembers();
+      hubDetailsRefetch();
+      hubStatsRefetch();
+    }
   }
 
   $: columns =
@@ -233,137 +289,162 @@
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
-  {/if}
-  <div class="bg-surface-900 flex w-full flex-col px-4 text-left">
-    <div class="flex flex-col gap-6">
-      <div class="flex justify-between">
-        <div class="flex flex-col gap-2">
-          <h2 class="font-inter text-fs-20 leading-lh-ds-120 font-medium text-neutral-50">Users</h2>
-          <h2 class="font-inter text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
-            Manage users and their access rights
-          </h2>
-        </div>
-        <Button
-          variant="filled-primary"
-          size="small"
-          iconLeft={true}
-          on:click={() => (showModal = true)}
-          disabled={selected.value === 'all'}
-        >
-          <svelte:fragment slot="iconLeft">
-            <ManageMembersIcon />
-          </svelte:fragment>
-          Invite Collaborators
-        </Button>
-      </div>
-
-      <div class="bg-surface-900">
-        <div class="flex items-center gap-3 py-6">
-          <TableSearch
-            value={filters.searchTerm}
-            on:search={handleSearchChange}
-            isLoading={$isFetching}
-            placeholder="Search user"
-          />
-          <DropdownNoSearch
-            {options}
-            bind:selected
-            placeholder="Select Team"
-            leftIcon={AllHubsIcon}
-            variant="primary"
-            width="w-48"
-            on:select={handleSelect}
-            pinLastOptionBottom={true}
-          />
-        </div>
-        {#if totalItems === 0 && !$isFetching}
-          <div class="flex flex-col items-center justify-center py-16">
-            <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No Results Found</p>
+  {:else}
+    <div class="bg-surface-900 flex w-full flex-col px-4 text-left">
+      <div class="flex flex-col gap-6">
+        <div class="flex justify-between">
+          <div class="flex flex-col gap-2">
+            <h2 class="font-inter text-fs-20 leading-lh-ds-120 font-medium text-neutral-50">
+              Users
+            </h2>
+            <h2 class="font-inter text-fs-ds-14 leading-lh-ds-143 font-light text-neutral-100">
+              Manage users and their access rights
+            </h2>
           </div>
-        {:else}
-          <div>
-            <Table
-              {columns}
-              data={paginatedUsers}
-              isLoading={$isFetching}
-              pageIndex={pagination.pageIndex}
-              pageSize={pagination.pageSize}
-              {totalItems}
-              on:sortingChange={handleSortingChange}
-              on:rowClick={handleRowClick}
-            />
+          <Button
+            variant="filled-primary"
+            size="small"
+            iconLeft={true}
+            on:click={() => (showModal = true)}
+            disabled={selected.value === 'all'}
+          >
+            <svelte:fragment slot="iconLeft">
+              <ManageMembersIcon />
+            </svelte:fragment>
+            Invite Collaborators
+          </Button>
+        </div>
 
-            <TablePagination
-              pageIndex={pagination.pageIndex}
-              pageSize={pagination.pageSize}
-              {totalItems}
+        <div class="bg-surface-900">
+          <div class="flex items-center gap-3 py-6">
+            <TableSearch
+              value={filters.searchTerm}
+              on:search={handleSearchChange}
               isLoading={$isFetching}
-              on:pageChange={handlePageChange}
-              on:pageSizeChange={handlePageSizeChange}
+              placeholder="Search user"
+            />
+            <DropdownNoSearch
+              {options}
+              bind:selected
+              placeholder="Select Team"
+              leftIcon={AllHubsIcon}
+              variant="primary"
+              width="w-48"
+              on:select={handleSelect}
+              pinLastOptionBottom={true}
             />
           </div>
-        {/if}
+          {#if totalItems === 0 && !$isFetching}
+            <div class="flex flex-col items-center justify-center py-16">
+              <p class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">No Results Found</p>
+            </div>
+          {:else}
+            <div>
+              <Table
+                {columns}
+                data={paginatedUsers}
+                isLoading={$isFetching}
+                pageIndex={pagination.pageIndex}
+                pageSize={pagination.pageSize}
+                {totalItems}
+                on:sortingChange={handleSortingChange}
+                on:rowClick={handleRowClick}
+              />
+
+              <TablePagination
+                pageIndex={pagination.pageIndex}
+                pageSize={pagination.pageSize}
+                {totalItems}
+                isLoading={$isFetching}
+                on:pageChange={handlePageChange}
+                on:pageSizeChange={handlePageSizeChange}
+              />
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
-  </div>
 
-  {#if showModal}
-    <Modal on:close={closePopups}>
-      {#if modalVariants.changeRole}
-        <ChangeUserRole
-          onClose={closePopups}
-          data={$membersData.data?.members?.find(
-            (data) => data.id.toString() === modalData?.data?.id?.toString(),
-          )}
-          removeUserPopupOpen={() => {
-            modalVariants.changeRole = false;
-            modalVariants.removeUser = true;
-          }}
-          changingRolePopupOpen={() => {
-            modalVariants.changeRole = false;
-            modalVariants.removeUser = false;
-            modalVariants.changingRole = true;
-          }}
-          hubId={selected.value !== 'all' ? selected.value : ''}
-          onSuccess={() => {
-            refetch();
-            refetchMembers();
-          }}
+    {#if showModal}
+      <Modal on:close={closePopups}>
+        {#if modalVariants.changeRole}
+          <ChangeUserRole
+            onClose={closePopups}
+            data={$membersData.data?.members?.find(
+              (data) => data.id.toString() === modalData?.data?.id?.toString(),
+            )}
+            removeUserPopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = true;
+            }}
+            changingRolePopupOpen={() => {
+              modalVariants.changeRole = false;
+              modalVariants.removeUser = false;
+              modalVariants.changingRole = true;
+            }}
+            hubId={selected.value !== 'all' ? selected.value : ''}
+            onSuccess={() => {
+              refetch();
+              refetchMembers();
+              hubDetailsRefetch();
+              hubStatsRefetch();
+            }}
+          />
+        {:else if modalVariants.removeUser}
+          <RemoveuserPopup
+            onSuccess={() => {
+              refetchMembers();
+              handleModalSuccess();
+              hubDetailsRefetch();
+              hubStatsRefetch();
+            }}
+            onClose={closePopups}
+            hubName={currentHubName}
+            data={$membersData.data?.members?.find(
+              (data) => data.id.toString() === modalData?.data?.id.toString(),
+            )}
+            hubId={selected.value !== 'all' ? selected.value : ''}
+          />
+        {:else if modalVariants.changingRole}
+          <ChangingRolesPopup
+            onSuccess={() => {
+              refetch();
+              refetchMembers();
+              hubDetailsRefetch();
+              hubStatsRefetch();
+            }}
+            onClose={closePopups}
+            hubName={currentHubName}
+            data={$membersData.data?.members?.find(
+              (data) => data.id.toString() === modalData?.data?.id.toString(),
+            )}
+            {hubId}
+          />
+        {:else}
+          <InviteCollaborators
+            onClose={() => (showModal = false)}
+            {hubId}
+            hubName={currentHubName}
+            on:emailsChange={handleLiveEmailsCount}
+            onSuccess={() => {}}
+            on:openUpgradePlan={handleInviteButtonClick}
+          />
+        {/if}
+      </Modal>
+    {/if}
+
+    {#if showUpgradePopup}
+      <Modal on:close={() => (showUpgradePopup = false)}>
+        <UpgradeHubPopup
+          onClose={() => (showUpgradePopup = false)}
+          limit={collaboratorLimit}
+          userRole={user?.role}
+          {isOwner}
+          reDirect={handleRedirect}
+          limitText="Collaborators"
+          currentCount={totalCollaborators + liveEmailsCount}
         />
-      {:else if modalVariants.removeUser}
-        <RemoveuserPopup
-          onSuccess={() => {
-            refetchMembers();
-            handleModalSuccess();
-          }}
-          onClose={closePopups}
-          hubName={currentHubName}
-          data={$membersData.data?.members?.find(
-            (data) => data.id.toString() === modalData?.data?.id.toString(),
-          )}
-          hubId={selected.value !== 'all' ? selected.value : ''}
-        />
-      {:else if modalVariants.changingRole}
-        <ChangingRolesPopup
-          onSuccess={() => {
-            refetch();
-            refetchMembers();
-          }}
-          onClose={closePopups}
-          hubName={currentHubName}
-          data={$membersData.data?.members?.find(
-            (data) => data.id.toString() === modalData?.data?.id.toString(),
-          )}
-          {hubId}
-        />
-      {:else}
-        <InviteCollaborators
-          onClose={() => (showModal = false)}
-          {hubId}
-          hubName={currentHubName}
-          onSuccess={() => {}}
-        />
-      {/if}
-    </Modal>
+      </Modal>
+    {/if}
   {/if}
 </section>

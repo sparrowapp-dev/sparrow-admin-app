@@ -21,9 +21,11 @@
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import LaunchApp from '@/components/TableComponents/LaunchApp.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
+  import { userId } from '@/store/auth';
   import { userService } from '@/services/users.service';
   const location = useLocation();
-
+  let workspaceExhausted = false;
   // State management
   let showModal = false;
   let params: string | undefined;
@@ -144,6 +146,8 @@
 
     return hubsService.getHubWorkspaces(queryParams);
   });
+
+  $: workspaceCount = $workspacesData?.data?.hubs?.length;
   //Function to fetch user Role in Hub
   const {
     data: userRole,
@@ -156,11 +160,26 @@
     return userService.getUserRole(queryParams);
   });
 
+  $: workspaceExhausted =
+    ($workspacesData?.data?.hubs?.length || 0) >=
+    ($hubData?.data?.plan?.limits?.workspacesPerHub?.value || 0);
+
+  const {
+    data: hubData,
+    refetch: hubsDataRefetch,
+    isFetching: HubsDataFetching,
+  } = createQuery(async () => {
+    return hubsService.getHubDetails(params);
+  });
   // refetch data when params change
   $: if (params) {
     refetch();
     roleRefetch();
+    hubsDataRefetch();
   }
+  $: users = $hubData?.data?.users;
+  $: user = users?.find((u) => u.id.toString() === $userId?.toString());
+  $: owner = users?.find((u) => u.role === 'owner');
 
   const extractedParam = derived(location, ($location) => {
     const match = $location.pathname.match(/\/hubs\/(?:workspace|settings|members)\/([^\/]+)/);
@@ -225,6 +244,15 @@
     { label: 'Hubs', path: '/hubs' },
     { label: data.teamName, path: `/hubs/workspace/${params}` },
   ];
+
+  $: isOwner = user?.role === 'owner';
+  const handleRedirect = () => {
+    if (isOwner) {
+      navigate(`/billing/billingOverview/${params}`);
+    } else {
+      window.open(`mailto:${owner?.email}`);
+    }
+  };
 </script>
 
 <section class="w-full">
@@ -320,11 +348,23 @@
 
     {#if showModal}
       <Modal on:close={() => (showModal = false)}>
-        <AddWorkspace
-          onClose={() => (showModal = false)}
-          hubId={params}
-          onSuccess={handleWorkspaceCreated}
-        />
+        {#if !workspaceExhausted}
+          <AddWorkspace
+            onClose={() => (showModal = false)}
+            hubId={params}
+            onSuccess={handleWorkspaceCreated}
+          />
+        {:else}
+          <UpgradeHubPopup
+            onClose={() => (showModal = false)}
+            limit={$hubData?.data?.plan?.limits?.workspacesPerHub?.value}
+            userRole={user?.role}
+            {isOwner}
+            reDirect={handleRedirect}
+            limitText="Workspaces"
+            currentCount={workspaceCount}
+          />
+        {/if}
       </Modal>
     {/if}
   {/if}

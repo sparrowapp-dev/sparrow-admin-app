@@ -28,7 +28,7 @@
           <!-- Item with custom action -->
           <button
             on:click={item.action}
-            class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] truncate text-neutral-50"
+            class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] cursor-pointer truncate text-neutral-50"
             title={item.label}
           >
             {item.label}

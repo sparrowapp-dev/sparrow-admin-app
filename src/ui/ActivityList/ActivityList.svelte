@@ -40,9 +40,6 @@
     </div>
   {:else}
     <div class="relative flex flex-col space-y-8">
-      <!-- Vertical timeline line -->
-      <div class="bg-surface-600 absolute top-5 bottom-5 left-5 z-0 w-0.5"></div>
-
       {#each displayActivities as activity, i}
         <div class="relative z-10 flex items-start space-x-3">
           <!-- User initial circle -->

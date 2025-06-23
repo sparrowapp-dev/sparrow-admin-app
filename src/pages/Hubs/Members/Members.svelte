@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-  import { useLocation } from 'svelte-routing';
+  import { navigate, useLocation } from 'svelte-routing';
   import { derived } from 'svelte/store';
   import TableSearch from '@/components/TableSearch/TableSearch.svelte';
   import Table from '@/components/Table/Table.svelte';
@@ -20,24 +20,38 @@
   import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { userService } from '@/services/users.service';
+  import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
+  import { userId } from '@/store/auth';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
   let showModal = false;
-  let params: string | undefined;
+  let params: string | '';
   let unsubscribe;
   let breadcrumbItems;
   // Pagination and filtering
   let membersPagination = { pageIndex: 0, pageSize: 10 };
   let membersFilters = { searchTerm: '' };
-  let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
+  let modalVariants = {
+    changeRole: false,
+    removeUser: false,
+    changingRole: false,
+    upGradePlan: false,
+  };
   let modalData = { data: null };
   let invitesPagination = { pageIndex: 0, pageSize: 10 };
   let invitesFilters = { searchTerm: '' };
+  let liveEmailsCount = 0;
+
+  function handleLiveEmailsCount(event) {
+    liveEmailsCount = event.detail;
+  }
+
   function closePopups() {
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
     modalVariants.changingRole = false;
+    modalVariants.upGradePlan = false;
     showModal = false;
     modalData.data = null;
   }
@@ -136,6 +150,8 @@
           row: row,
           hubId: params,
           refetchInvites,
+          hubsDataRefetch,
+          hubStatsRefetch,
         },
       }),
     },
@@ -208,14 +224,38 @@
     return hubsService.getHubInvites(queryParams);
   });
 
+  const {
+    data: hubData,
+    refetch: hubsDataRefetch,
+    isFetching: HubsDataFetching,
+  } = createQuery(async () => {
+    return hubsService.getHubDetails(params);
+  });
+
+  // Get hub statistics using the new API
+  const { data: hubStats, refetch: hubStatsRefetch } = createQuery(async () => {
+    if (!params) return null;
+    return hubsService.getHubStatics(params);
+  });
+
+  $: totalUserCount =
+    $hubStats?.data?.collaboratorCount + $hubStats?.data?.pendingInvites + liveEmailsCount;
+
   // refetch data when params change
   $: if (params) {
     refetchMembers();
     refetchInvites();
     roleRefetch();
+    hubsDataRefetch();
+    hubStatsRefetch();
   }
+
   $: userRoleData = $userRole?.data;
   // Switch tabs
+  $: users = $hubData?.data?.users;
+  $: user = users?.find((u) => u.id.toString() === $userId?.toString());
+  $: isOwner = user?.role === 'owner';
+
   function setActiveTab(tab) {
     activeTab = tab;
   }
@@ -258,6 +298,8 @@
   function handleInviteComplete() {
     showModal = false;
     refetchInvites();
+    hubsDataRefetch();
+    hubStatsRefetch();
   }
 
   // Reactive data processing
@@ -274,6 +316,14 @@
     { label: hubName, path: `/hubs/workspace/${params}` },
     { label: 'Members', path: `/hubs/members/${params}` },
   ];
+  $: owner = users?.find((u) => u.role === 'owner');
+  const handleRedirect = () => {
+    if (isOwner) {
+      navigate(`/billing/billingOverview/${params}`);
+    } else {
+      window.open(`mailto:${owner?.email}`);
+    }
+  };
 </script>
 
 <section class="w-full">
@@ -418,7 +468,7 @@
           <ChangeUserRole
             onClose={closePopups}
             data={$membersData.data?.members?.find(
-              (data) => data.id.toString() === modalData?.data?.id.toString(),
+              (data) => data.id.toString() === modalData?.data?.id?.toString(),
             )}
             removeUserPopupOpen={() => {
               modalVariants.changeRole = false;
@@ -430,11 +480,19 @@
               modalVariants.changingRole = true;
             }}
             hubId={params}
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
           />
         {:else if modalVariants.removeUser}
           <RemoveuserPopup
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
             onClose={closePopups}
             {hubName}
             data={modalData.data}
@@ -442,11 +500,25 @@
           />
         {:else if modalVariants.changingRole}
           <ChangingRolesPopup
-            onSuccess={() => refetchMembers()}
+            onSuccess={() => {
+              refetchMembers();
+              hubsDataRefetch();
+              hubStatsRefetch();
+            }}
             onClose={closePopups}
             {hubName}
             data={modalData.data}
             hubId={params}
+          />
+        {:else if modalVariants?.upGradePlan}
+          <UpgradeHubPopup
+            onClose={closePopups}
+            limit={$hubData?.data?.plan?.limits?.usersPerHub?.value}
+            userRole={user?.role}
+            {isOwner}
+            reDirect={handleRedirect}
+            limitText="Collaborators"
+            currentCount={totalUserCount}
           />
         {:else}
           <InviteCollaborators
@@ -454,6 +526,10 @@
             hubId={params}
             {hubName}
             onSuccess={handleInviteComplete}
+            on:emailsChange={handleLiveEmailsCount}
+            on:openUpgradePlan={() => {
+              modalVariants.upGradePlan = true;
+            }}
           />{/if}
       </Modal>
     {/if}

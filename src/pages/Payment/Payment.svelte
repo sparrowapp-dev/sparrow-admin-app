@@ -1,13 +1,22 @@
 <script lang="ts">
-  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
-  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+  // Svelte
+  import { navigate, Route, Router, useLocation } from 'svelte-routing';
+
+  // Services
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
-  import { navigate, Route, Router, useLocation } from 'svelte-routing';
+
+  // App Components
+  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+
+  // Local Components
   import Overview from './Overview/Overview.svelte';
   import PaymentInformation from './PaymentInformation/PaymentInformation.svelte';
   import PaymentInvoices from './PaymentInvoices/PaymentInvoices.svelte';
-  import HubsOverview from './PaymentHubsPage/HubsOverview.svelte';
+  import PaymentDetails from './PaymentInformation/PaymentDetails/PaymentDetails.svelte';
+  import PaymentMethodSelectionPage from './PaymentInformation/PaymentMethodSelectionPage.svelte';
+  import ChangePlanPage from './PaymentInformation/ChangePlanPage.svelte';
 
   interface Team {
     teamId: string;
@@ -61,24 +70,32 @@
     pathname: string,
     dropdownOptions: DropdownOption[],
   ): PathMatcherResult => {
-    let currentId = null;
-    let selectOption = null;
-    // Match any payment route pattern
-    const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?/);
+    let currentId: string | null = null;
+    let selectOption: Team | null = null;
+
+    // Match any payment route pattern including addPaymentDetails and paymentMethod
+    const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);
 
     if (paymentRouteMatch) {
-      const [, section, teamId] = paymentRouteMatch;
+      const [, section, subsection, teamId] = paymentRouteMatch;
 
-      // If we have a teamId, find the matching team
-      if (teamId) {
-        const foundTeam = dropdownOptions.find((option) => option.value.teamId === teamId);
+      // Handle nested routes like addPaymentDetails or selectPaymentMethod
+      const isNestedRoute = ['addPaymentDetails', 'selectPaymentMethod'].includes(subsection);
+      const actualTeamId = isNestedRoute ? teamId : subsection;
+
+      if (actualTeamId) {
+        const foundTeam = dropdownOptions.find((option) => option.value.teamId === actualTeamId);
         if (foundTeam) {
-          currentId = teamId;
+          currentId = actualTeamId;
           selectOption = foundTeam.value;
         }
       }
-      // If no teamId but section matches our known sections, use first team
-      else if (['billingOverview', 'billingInformation', 'billingInvoices'].includes(section)) {
+      // Handle root sections
+      else if (
+        ['billingOverview', 'billingInformation', 'billingInvoices', 'addPaymentDetails', 'selectPaymentMethod'].includes(
+          section,
+        )
+      ) {
         const firstTeam = dropdownOptions[0]?.value || null;
         navigate(`/billing/billingOverview/${firstTeam?.teamId || ''}`);
         if (firstTeam) {
@@ -112,10 +129,12 @@
 
   <!-- Nested Route Content -->
   <div class="w-[100%] overflow-auto p-4">
-    <Breadcrumbs />
     <Router>
       <Route path="billingOverview/:id" component={Overview} />
       <Route path="billingInformation/:id" component={PaymentInformation} />
+      <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
+      <Route path="billingInformation/selectPaymentMethod/:id" component={PaymentMethodSelectionPage} />
+      <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
       <Route path="billingInvoices/:id" component={PaymentInvoices} />
     </Router>
   </div>

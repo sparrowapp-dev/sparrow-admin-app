@@ -8,6 +8,8 @@
 
   export let row;
   export let refetchInvites;
+  export let hubsDataRefetch;
+  export let hubStatsRefetch;
   export let hubId;
 
   let isOpen = false;
@@ -66,6 +68,8 @@
       await hubsService.withdrawInvite(hubId, email);
       notification.success('Invite withdrawn successfully.');
       refetchInvites();
+      hubsDataRefetch();
+      hubStatsRefetch();
       closeDropdown();
     } catch (error: any) {
       console.error('Error withdrawing invite:', error);
@@ -86,6 +90,8 @@
       await hubsService.resendInvite(hubId, email);
       notification.success('Invite resent successfully.');
       refetchInvites();
+      hubsDataRefetch();
+      hubStatsRefetch();
       closeDropdown();
     } catch (error: any) {
       console.error('Error resending invite:', error);

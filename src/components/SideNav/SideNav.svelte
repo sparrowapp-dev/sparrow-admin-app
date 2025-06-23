@@ -242,7 +242,7 @@
       size="sm"
     >
       <button
-        class="group hover:bg-surface-500 active:bg-surface-400 pointer-events-none relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/billing')}
         on:click={() => navigate('/billing')}
         on:mouseenter={() => (hoveredPath = '/billing')}
@@ -252,7 +252,7 @@
         on:pointerdown={() => handlePointerDown('/billing')}
       >
         <div class="pointer-events-none rounded px-3 py-3">
-          <!-- <BillingIcon
+          <BillingIcon
             variant={hoveredPath === '/billing' &&
             !isPathActive('/billing') &&
             pressedPath !== '/billing'
@@ -260,8 +260,7 @@
               : pressedPath === '/billing'
                 ? 'selected'
                 : billingVariant}
-          /> -->
-          <BillingIcon variant="disabled" />
+          />
         </div>
         <div
           class={`absolute inset-y-1 left-0 w-[2px] rounded transition-all ${

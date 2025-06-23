@@ -27,6 +27,8 @@
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import Tooltip from '@/components/Tooltip/Tooltip.svelte';
   import NameWithTooltip from '@/components/TableComponents/NameWithTooltip.svelte';
+  import Tag from '@/ui/Tag/Tag.svelte';
+  import { getDynamicCssClasses } from '@/utils/planTagStyles';
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
@@ -117,10 +119,18 @@
     {
       id: 'Plans',
       header: 'Hub Plan',
-      cell: () => {
-        return `
-        <div class=" px-1 py-0.5 w-fit border border-neutral-500 bg-neutral-700 rounded-[2px] text-fs-ds-12 leading-lh-ds-130 font-inter font-regular">Community</div>
-        `;
+      cell: ({ row }) => {
+        let tagProps = getDynamicCssClasses(row?.original?.plan?.name);
+        return {
+          Component: Tag,
+          props: {
+            text: row?.original?.plan?.name,
+            bgColor: tagProps.bgColor,
+            borderColor: tagProps.borderColor,
+            textColor: tagProps.textColor,
+            size: 'xs',
+          },
+        };
       },
     },
     {
