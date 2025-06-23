@@ -22,6 +22,7 @@
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { createQuery } from '@/services/api.common';
   import { userService } from '@/services/users.service';
+  import { triggerHubDetailsRefresh } from '@/store/hubs';
 
   const location = useLocation();
 
@@ -172,6 +173,8 @@
       }
 
       notification.success('Hub details updated successfully.');
+      // Trigger refresh of hub details in other components
+      triggerHubDetailsRefresh();
     } catch (error) {
       // Revert to original value on error
       hubData[field] = originalData[field];
