@@ -6,6 +6,8 @@
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import { hubDetailsRefreshTrigger } from '@/store/hubs';
+  import { onDestroy } from 'svelte';
 
   interface Team {
     teamId: string;
@@ -40,32 +42,40 @@
   const { data, isFetching, isError, refetch } = createQuery<ApiResponse>(() =>
     hubsService.getAllHubs(),
   );
-  $: {
-    if ($data?.data?.length) {
-      dropdownOptions = $data.data.map((team) => ({
-        id: team.teamId,
-        label: team.teamName || '',
-        value: team,
-        plan: null,
-      }));
-    } else {
-      dropdownOptions = [];
-    }
+  $: if ($data?.data?.length) {
+    dropdownOptions = $data.data.map((team) => ({
+      id: team.teamId,
+      label: team.teamName || '',
+      value: team,
+      plan: null,
+    }));
+  } else {
+    dropdownOptions = [];
   }
+
   export function handleSelection(val: Team) {
     selectOption = val;
     if (val?.teamId) {
       navigate(`${link}/${options[0].id}/${val.teamId}`);
     }
   }
-  $: {
-    if (!selectOption && dropdownOptions.length && $location) {
-      const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
-      if (newSelection) {
-        selectOption = newSelection;
-      }
+  $: if (dropdownOptions.length && $location) {
+    const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
+    if (newSelection) {
+      selectOption = newSelection;
     }
   }
+
+  // Subscribe to hub details refresh trigger
+  let unsubscribe = hubDetailsRefreshTrigger.subscribe((value) => {
+    if (value > 0) {
+      refetch();
+    }
+  });
+
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe();
+  });
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
