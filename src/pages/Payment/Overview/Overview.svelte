@@ -383,7 +383,7 @@
               {/if}
             </div>
 
-            {#if false}
+            {#if !subscriptionData?.schedule}
               {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
@@ -574,6 +574,7 @@
           {hubName}
           {currentPlan}
           accessUntil={nextBillingDate}
+          {hubId}
           on:close={closeCancelSuccessModal}
           on:confirmResubscribe={confirmResubscription}
         />
