@@ -5,9 +5,9 @@
   // Services
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
+  import { userService } from '@/services/users.service';
 
   // App Components
-  import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
   import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
 
   // Local Components
@@ -17,6 +17,8 @@
   import PaymentDetails from './PaymentInformation/PaymentDetails/PaymentDetails.svelte';
   import PaymentMethodSelectionPage from './PaymentInformation/PaymentMethodSelectionPage.svelte';
   import ChangePlanPage from './PaymentInformation/ChangePlanPage.svelte';
+  import BillingAccessDenied from './BillingAccessDenied.svelte';
+  import { userId } from '@/store/auth';
 
   interface Team {
     teamId: string;
@@ -37,6 +39,8 @@
   }
 
   let dropdownOptions: Array<DropdownOption> = [];
+  let currentTeamId = '';
+  let hasAccess = true;
 
   const location = useLocation();
   // queries
@@ -66,6 +70,28 @@
       navigate(`/billing/billingOverview/${firstTeamId}`);
     }, 100);
   }
+
+  // Get user role for current team
+  $: if (currentTeamId) {
+    checkUserRoleInTeam(currentTeamId);
+  }
+
+  // Function to check if user has access to billing
+  async function checkUserRoleInTeam(teamId) {
+    if (!teamId) return;
+
+    try {
+      const response = await userService.getUserRole({ hubId: teamId });
+      const userRole = response?.data;
+
+      // Only owners and admins have access to billing
+      hasAccess = userRole === 'owner' || userRole === 'admin';
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      hasAccess = false;
+    }
+  }
+
   const paymentPathMatcher = (
     pathname: string,
     dropdownOptions: DropdownOption[],
@@ -88,19 +114,29 @@
         if (foundTeam) {
           currentId = actualTeamId;
           selectOption = foundTeam.value;
+
+          // Store current team ID to check user role
+          currentTeamId = actualTeamId;
         }
       }
       // Handle root sections
       else if (
-        ['billingOverview', 'billingInformation', 'billingInvoices', 'addPaymentDetails', 'selectPaymentMethod'].includes(
-          section,
-        )
+        [
+          'billingOverview',
+          'billingInformation',
+          'billingInvoices',
+          'addPaymentDetails',
+          'selectPaymentMethod',
+        ].includes(section)
       ) {
         const firstTeam = dropdownOptions[0]?.value || null;
         navigate(`/billing/billingOverview/${firstTeam?.teamId || ''}`);
         if (firstTeam) {
           currentId = firstTeam.teamId;
           selectOption = firstTeam;
+
+          // Store current team ID to check user role
+          currentTeamId = firstTeam.teamId;
         }
       }
     }
@@ -129,13 +165,20 @@
 
   <!-- Nested Route Content -->
   <div class="w-[100%] overflow-auto p-4">
-    <Router>
-      <Route path="billingOverview/:id" component={Overview} />
-      <Route path="billingInformation/:id" component={PaymentInformation} />
-      <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
-      <Route path="billingInformation/selectPaymentMethod/:id" component={PaymentMethodSelectionPage} />
-      <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
-      <Route path="billingInvoices/:id" component={PaymentInvoices} />
-    </Router>
+    {#if hasAccess}
+      <Router>
+        <Route path="billingOverview/:id" component={Overview} />
+        <Route path="billingInformation/:id" component={PaymentInformation} />
+        <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
+        <Route
+          path="billingInformation/selectPaymentMethod/:id"
+          component={PaymentMethodSelectionPage}
+        />
+        <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
+        <Route path="billingInvoices/:id" component={PaymentInvoices} />
+      </Router>
+    {:else}
+      <BillingAccessDenied />
+    {/if}
   </div>
 </div>
