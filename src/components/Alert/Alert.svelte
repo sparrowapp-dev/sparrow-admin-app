@@ -10,6 +10,26 @@
   export let buttonText: string = '';
   export let showButton: boolean = true;
   export let class_name: string = '';
+  export let variant: 'error' | 'warning' | 'info' = 'error';
+
+  // Variant-specific styling
+  $: variantStyles = {
+    error: {
+      gradient: 'from-red-400/18',
+      border: 'border-red-400',
+      iconColor: '#EB5651'
+    },
+    warning: {
+      gradient: 'from-yellow-300/18',
+      border: 'border-yellow-300',
+      iconColor: '#FFC93D'
+    },
+    info: {
+      gradient: 'from-blue-300/18',
+      border: 'border-blue-300',
+      iconColor: '#63B3ED'
+    }
+  };
 
   const dispatch = createEventDispatcher();
 
@@ -19,14 +39,14 @@
 </script>
 
 <div
-  class="via-surface-600 to-surface-600 rounded-md bg-gradient-to-r from-red-400/18 from-1% via-10% p-5 {class_name} border-l-2 border-red-400"
+  class="via-surface-600 to-surface-600 rounded-md bg-gradient-to-r {variantStyles[variant].gradient} from-1% via-10% p-5 {class_name} border-l-2 {variantStyles[variant].border}"
 >
   <div class="flex flex-col gap-4">
     <div class="flex justify-between">
       <!-- Payment Issue Icon -->
       <div class="flex items-start gap-4">
         <div class="h-10 w-10">
-          <AlertIcon />
+          <AlertIcon color={variantStyles[variant].iconColor} />
         </div>
 
         <div>

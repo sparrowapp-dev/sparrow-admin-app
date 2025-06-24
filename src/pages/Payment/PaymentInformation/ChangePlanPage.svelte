@@ -261,7 +261,7 @@
                     <Button
                       variant="filled-primary"
                       on:click={() => selectPlan(plan)}
-                      disabled={plan === 'community' || buttonText === 'Downgrade'}
+                      disabled={plan === 'community'}
                     >
                       {buttonText}
                     </Button>

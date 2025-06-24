@@ -329,6 +329,7 @@
     {#if planStatus === 'payment_failed'}
       <div class="mt-2 mb-8">
         <Alert
+          variant="error"
           title="Payment Issue Detected"
           subtitle="Your last payment failed, and your plan is at risk of being paused. Please update your payment information to ensure uninterrupted access."
           showButton={true}
@@ -344,8 +345,9 @@
     {#if subscriptionData?.schedule}
       <div class="mt-2 mb-8">
         <Alert
-          title="Scheduled Plan Change"
-          subtitle={`You have a scheduled plan change in progress. Your subscription will be downgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade or downgrade your plan until this change takes effect.`}
+          variant="warning"
+          title="Scheduled Downgrade"
+          subtitle={`You have a scheduled downgrade in progress. Your subscription will be downgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade, downgrade or cancel your plan until this change takes effect.`}
           showButton={false}
           class_name="border-l-2 border-blue-400 bg-gradient-to-r from-blue-400/18 from-1% via-10% via-surface-600 to-surface-600"
         />

@@ -206,6 +206,7 @@
     {#if customerId && paymentMethods.length === 0}
       <div class="mt-2 mb-8">
         <Alert
+          variant="error"
           title="No Payment Method Found"
           subtitle="You don’t have a saved payment method. Please add a card to continue with any purchases or upgrades."
           showButton={true}
