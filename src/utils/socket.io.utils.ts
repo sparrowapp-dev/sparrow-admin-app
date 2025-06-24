@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { APP_ENVIRONMENT } from '@/constants/environment';
 
 interface StripeHandlers {
   onConnect?: (id: any) => void;
@@ -14,6 +15,7 @@ interface StripeHandlers {
 }
 
 let globalSocket: Socket | null = null;
+const isProduction = APP_ENVIRONMENT === 'production';
 
 /**
  * Initialize a Socket.IO connection for Stripe events with hub-based rooms
@@ -85,7 +87,7 @@ export function initializeStripeSocket(
 
   // Create a new socket only if one doesn't exist yet
   const socket = io(`${apiBaseUrl}`, {
-    path: '/socket.io',
+    path: isProduction ? '/v2/socket.io' : '/socket.io',
     transports: ['polling'],
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
