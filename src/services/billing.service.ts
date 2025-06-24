@@ -46,6 +46,11 @@ interface ReactivateSubscriptionParams {
   metadata?: Record<string, string>;
 }
 
+interface HubFeedbackParams {
+  hubId: string;
+  feedback: string;
+}
+
 export class BillingService {
   /**
    * Create a new customer
@@ -256,6 +261,16 @@ export class BillingService {
   public async simulatePayment(customerId: string, priceId: string): Promise<any> {
     const url = `/api/stripe/subscriptions/simulate-invoice`;
     const res = await makeRequest('POST', url, { customerId, priceId });
+    return res?.data;
+  }
+
+  /**
+   * Submit feedback when a hub subscription is cancelled
+   * @param params Object containing hubId and feedback text
+   */
+  public async submitHubFeedback(params: HubFeedbackParams): Promise<any> {
+    const url = `/api/admin/hub-feedback`;
+    const res = await makeRequest('POST', url, params);
     return res?.data;
   }
 
