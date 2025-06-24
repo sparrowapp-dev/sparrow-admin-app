@@ -16,7 +16,6 @@ interface StripeHandlers {
 
 let globalSocket: Socket | null = null;
 const isProduction = APP_ENVIRONMENT === 'production';
-debugger;
 
 /**
  * Initialize a Socket.IO connection for Stripe events with hub-based rooms
@@ -30,6 +29,8 @@ export function initializeStripeSocket(
   hubId: string,
   handlers: StripeHandlers = {},
 ): Socket {
+  console.log('env:', APP_ENVIRONMENT);
+
   // If socket already exists and is connected, update handlers and join new hub room
   if (globalSocket && globalSocket.connected) {
     // Join the new hub room if hubId is provided
@@ -85,7 +86,7 @@ export function initializeStripeSocket(
     globalSocket.disconnect();
     globalSocket = null;
   }
-  debugger;
+
   // Create a new socket only if one doesn't exist yet
   const socket = io(`${apiBaseUrl}`, {
     path: isProduction ? '/v2/socket.io' : '/socket.io',
