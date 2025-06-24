@@ -78,6 +78,7 @@
   {#if nextBillingDate && daysLeft > 0}
     <div class="mb-6 shadow-lg">
       <Alert
+        variant="error"
         showButton={false}
         subtitle={`You're cancelling the ${currentPlan} plan for '${hubName}' Hub. Paid features stay active until ${nextBillingDate} (${daysLeft} days left), after which your hub will move to the community plan.`}
       />

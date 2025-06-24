@@ -242,6 +242,7 @@
     {#if planStatus === 'payment_failed'}
       <div class="">
         <Alert
+          variant="error"
           title="Payment Issue Detected"
           subtitle="Your last payment failed, and your plan is at risk of being paused. Please update your payment information to ensure uninterrupted access."
           showButton={true}
