@@ -416,12 +416,17 @@
           </div>
           <div class="pt-0">
             <div class="flex flex-col gap-1">
-              {#if nextBillingDate}
+              {#if subscriptionId && subscriptionData?.cancel_at_period_end}
+                <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+                  Next billing date: –
+                </p>
+              {:else if nextBillingDate}
                 <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                   Next billing date: {nextBillingDate}
                   {currentBillingCycle === 'monthly' ? '(Billed monthly)' : '(Billed annually)'}
                 </p>
               {/if}
+
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                 Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
@@ -432,7 +437,7 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule}
+              {#if !subscriptionData?.schedule && !subscriptionData?.cancel_at_period_end}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
@@ -459,7 +464,7 @@
             variant="outline-primary"
             size="medium"
             on:click={handleUpgradeClick}
-            disabled={subscriptionData?.schedule}
+            disabled={subscriptionData?.schedule || subscriptionData?.cancel_at_period_end}
             tooltipText={subscriptionData?.schedule
               ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
               : ''}
