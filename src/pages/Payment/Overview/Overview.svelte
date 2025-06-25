@@ -135,7 +135,7 @@
   $: if ($hubData !== undefined) {
     currentHubData = $hubData?.data || null;
     hubName = currentHubData?.name || '';
-    userCount = currentHubData?.users?.length || 1;
+    userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
     planStatus = currentHubData?.billing?.status;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
@@ -163,7 +163,7 @@
       nextBillingDate = processedData.nextBillingDate;
       lastInvoiceAmount = processedData.lastInvoiceAmount;
       totalPaidAmount = processedData.totalPaidAmount;
-      userCount = processedData.userCount;
+      userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
     } else {
       // If subscription is canceled or inactive, use default values
@@ -208,6 +208,7 @@
       currentBillingCycle,
       subscriptionId: subscriptionId || '',
       status: subscriptionStatus,
+      userCount: userCount.toString(),
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
