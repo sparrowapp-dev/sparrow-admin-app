@@ -13,12 +13,13 @@ interface BillingDetailsUpdateParams {
   };
 }
 
-// Subscription interfaces migrated from billingV2.service.ts
 interface CreateSubscriptionParams {
   customerId: string;
   priceId: string;
   paymentMethodId: string;
   metadata?: Record<string, string>;
+  trialPeriodDays?: number;
+  seats?: number;
 }
 
 interface UpdateSubscriptionParams {
