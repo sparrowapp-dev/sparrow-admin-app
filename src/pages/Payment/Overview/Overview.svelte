@@ -437,7 +437,7 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule && !subscriptionData?.cancel_at_period_end}
+              {#if !subscriptionData?.schedule && (subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled')}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
@@ -464,7 +464,8 @@
             variant="outline-primary"
             size="medium"
             on:click={handleUpgradeClick}
-            disabled={subscriptionData?.schedule || subscriptionData?.cancel_at_period_end}
+            disabled={subscriptionData?.schedule ||
+              (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
             tooltipText={subscriptionData?.schedule
               ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
               : ''}
