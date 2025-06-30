@@ -8,6 +8,7 @@
   export let placeholder = 'Select the role';
   export let hasError = false;
   export let errorMessage = '';
+  export let showDescription = true;
   export let options = [
     {
       id: 'admin',
@@ -93,7 +94,7 @@
               <BlueCheckIcon />
             {/if}
           </div>
-          {#if role.description}
+          {#if showDescription && role.description}
             <p class="text-fs-ds-12 font-fw-ds-300 mt-1 text-neutral-300">{role.description}</p>
           {/if}</button
         >

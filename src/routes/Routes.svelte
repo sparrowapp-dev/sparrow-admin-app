@@ -26,7 +26,7 @@
   <PrivateRoute path="/billing/*" component={Payment} />
 
   <!-- Trail Flow -->
-   <Route path="/trailflow" component={TrialFlow} />
+   <Route path="/trialflow" component={TrialFlow} />
 
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />
