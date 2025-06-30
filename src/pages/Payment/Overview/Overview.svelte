@@ -39,9 +39,6 @@
   const location = useLocation();
 
   // ===== STATE VARIABLES =====
-  // Stripe and socket instances
-  let stripe;
-  let socket;
 
   // URL and hub data
   let hubId = null;
@@ -62,6 +59,7 @@
   let planStatus = '';
   let subscriptionStatus = '';
   let invoiceUrl = '';
+  let isScheduledDowngrade = false;
 
   // UI state
   let isLoadingSubscription = false;
@@ -140,6 +138,7 @@
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
     invoiceUrl = currentHubData?.billing?.failed_invoice_url || '';
+    isScheduledDowngrade = currentHubData?.billing?.scheduledDowngrade || false;
   }
 
   // Process subscription data when it changes
@@ -343,7 +342,7 @@
     {/if}
 
     <!-- Schedule Alert -->
-    {#if subscriptionData?.schedule}
+    {#if isScheduledDowngrade}
       <div class="mt-2 mb-8">
         <Alert
           variant="warning"
@@ -386,7 +385,7 @@
               {/if}
             </div>
 
-            {#if !subscriptionData?.schedule}
+            {#if !isScheduledDowngrade}
               {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
@@ -437,7 +436,7 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule && (subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled')}
+              {#if !isScheduledDowngrade && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
@@ -464,9 +463,9 @@
             variant="outline-primary"
             size="medium"
             on:click={handleUpgradeClick}
-            disabled={subscriptionData?.schedule ||
+            disabled={isScheduledDowngrade ||
               (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
-            tooltipText={subscriptionData?.schedule
+            tooltipText={isScheduledDowngrade
               ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
               : ''}
             tooltipPosition="bottom"
