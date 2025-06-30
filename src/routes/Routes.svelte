@@ -9,6 +9,7 @@
   import Private from '@/assets/icons/Private.svelte';
   import Payment from '@/pages/Payment/Payment.svelte';
   import TrialFlow from '@/pages/TrialFlow/TrialFlow.svelte';
+  import TrialSuccess from '@/pages/TrialSuccess/TrialSuccess.svelte';
 
   // URL passed from parent component
   export let url: string = '';
@@ -26,8 +27,10 @@
   <PrivateRoute path="/billing/*" component={Payment} />
 
   <!-- Trail Flow -->
-   <Route path="/trialflow" component={TrialFlow} />
+  <Route path="/trialflow" component={TrialFlow} />
 
+  <!-- Trail Flow Success -->
+  <Route path="/trialsuccess" component={TrialSuccess} />
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />
 </Router>

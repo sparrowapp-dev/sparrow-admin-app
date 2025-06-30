@@ -3,6 +3,8 @@
   import WelcomePage from '@/assets/images/WelcomePage.png';
   import Button from '@/ui/Button/Button.svelte';
   import { HubDetails, CardDetails, TeamDetails } from '@/components/TrialFlow';
+  import Modal from '@/components/Modal/Modal.svelte';
+  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
 
   let currentStep = 1;
   let formData = {
@@ -32,6 +34,8 @@
     { id: 2, title: 'Add Card Details', icon: '2' },
     { id: 3, title: 'Invite Team', icon: '3' },
   ];
+
+  let showProcessingModal = false;
 
   function handleInputChange(field, value) {
     formData = { ...formData, [field]: value };
@@ -110,7 +114,7 @@
     <!-- Fixed Header Section -->
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        Welcome to <span class="text-blue-500">Sparrow</span>, John
+        Welcome to <span class="gradient-text">Sparrow</span>, John
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
         We're excited to have you on board! Let's quickly set up your hub so you can start exploring
@@ -214,3 +218,23 @@
     {/if}
   </div>
 </div>
+
+{#if showProcessingModal}
+  <Modal width="max-w-xl" on:close={() => (showProcessingModal = false)}>
+    <PaymentProcessingModal
+      title="Activating Your Trial"
+      description="Please don’t close this window. We’re setting up your hub and activating your trial. This will only take a moment."
+      on:close={() => (showProcessingModal = false)}
+    />
+  </Modal>
+{/if}
+
+<style>
+  .gradient-text {
+    background: linear-gradient(180deg, #11adf0 0%, #6147ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+</style>
