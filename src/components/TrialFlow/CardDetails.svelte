@@ -565,7 +565,7 @@
               placeholder="Enter Billing Email"
               hasError={formSubmitted && !formData.billingEmail?.trim()}
               errorMessage={formSubmitted && !formData.billingEmail?.trim()
-                ? 'Please enter valid billing email.'
+                ? 'Please enter valid billing email'
                 : ''}
               disabled={isSaving}
             />
