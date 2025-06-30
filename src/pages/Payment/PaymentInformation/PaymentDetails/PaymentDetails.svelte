@@ -283,7 +283,7 @@
 
     // Validate email format
     if (!isValidEmail(billingEmail)) {
-      error = 'Please enter valid billing email.';
+      error = 'Please enter valid billing email';
       return false;
     }
 
@@ -424,7 +424,7 @@
             required={true}
             placeholder="Enter Name"
             hasError={formSubmitted && !billingName}
-            errorMessage="Please enter billing name"
+            errorMessage="Please enter a valid name"
             inputType="name"
           />
         </div>
@@ -436,8 +436,9 @@
             required={true}
             inputType="email"
             placeholder="Enter Billing Email"
-            errorMessage="Please enter valid billing email."
-            emailErrorMessage="Please enter valid billing email."
+            hasError={formSubmitted && !billingEmail.trim()}
+            errorMessage="Please enter valid billing email"
+            emailErrorMessage="Please enter valid billing email"
           />
         </div>
         <div class="form-group">
@@ -447,7 +448,7 @@
             required={true}
             placeholder="Enter Address Line 1"
             hasError={formSubmitted && !line1}
-            errorMessage="Please enter Address"
+            errorMessage="Please enter your address"
           />
         </div>
 
@@ -484,7 +485,7 @@
             required={true}
             placeholder="Enter City"
             hasError={formSubmitted && !city}
-            errorMessage="Please enter a valid city."
+            errorMessage="Please enter a valid city"
           />
         </div>
         <div class="form-group">
@@ -494,7 +495,7 @@
             required={true}
             placeholder="Enter State"
             hasError={formSubmitted && !state}
-            errorMessage="Please enter a valid state."
+            errorMessage="Please enter a valid state"
           />
         </div>
         <div class="form-group">
@@ -506,7 +507,7 @@
             placeholder="Enter ZIP Code"
             inputType="postal"
             hasError={formSubmitted && !postalCode}
-            errorMessage="Please enter a valid ZIP or postal code."
+            errorMessage="Please enter a valid ZIP or postal code"
           />
         </div>
       </div>

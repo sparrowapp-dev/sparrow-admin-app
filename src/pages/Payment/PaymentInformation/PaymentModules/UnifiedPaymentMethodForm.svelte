@@ -664,7 +664,7 @@
                 disabled={isSaving}
                 hasError={formSubmitted && !billingEmail.trim()}
                 errorMessage={formSubmitted && !billingEmail.trim()
-                  ? 'Please enter valid billing email.'
+                  ? 'Please enter valid billing email'
                   : ''}
                 emailErrorMessage="Please enter valid billing email"
               />
