@@ -4,11 +4,12 @@
   export let showOnHover = false;
   export let maxWidth = '200px';
   export let isLastColumn = false;
+  export let columnWidth = 'auto';
 
   // Get cell value as string for title attribute
   $: cellValue = typeof cell.getValue() === 'string' ? cell.getValue() : '';
-  // Set width for last column
-  $: columnWidth = isLastColumn ? '100px' : maxWidth;
+  // Use columnWidth prop if provided, otherwise fall back to existing logic
+  $: finalColumnWidth = columnWidth !== 'auto' ? columnWidth : (isLastColumn ? '100px' : maxWidth);
 </script>
 
 <td
@@ -27,7 +28,7 @@
       ${showOnHover ? 'opacity-0 transition-opacity duration-150 group-hover/row:opacity-100' : ''}
       ${className}
     `}
-  style={`max-width: ${columnWidth};`}
+  style={`width: ${finalColumnWidth};`}
   on:click
 >
   <div class="overflow-hidden text-ellipsis whitespace-nowrap" title={cellValue}>
