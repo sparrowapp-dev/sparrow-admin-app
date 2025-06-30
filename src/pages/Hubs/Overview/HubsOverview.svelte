@@ -176,6 +176,7 @@
       header: '',
       enableSorting: false,
       size: 300,
+      width: '130px',
       cell: ({ row }) => ({
         Component: LaunchApp,
         props: {
