@@ -544,7 +544,7 @@
               inputType="name"
               bind:value={formData.billingName}
               required={true}
-              placeholder="Enter name"
+              placeholder="Enter Name"
               hasError={formSubmitted && !formData.billingName?.trim()}
               errorMessage={formSubmitted && !formData.billingName?.trim()
                 ? 'Please enter a valid name'
@@ -579,7 +579,7 @@
               name="line1"
               bind:value={formData.billingAddress}
               required={true}
-              placeholder="Enter address line 1"
+              placeholder="Enter Address Line 1"
               hasError={formSubmitted && !formData.billingAddress?.trim()}
               errorMessage={formSubmitted && !formData.billingAddress?.trim()
                 ? 'Please enter your address'
@@ -595,7 +595,7 @@
               id="line2"
               name="line2"
               bind:value={formData.billingAddress2}
-              placeholder="Enter address line 2"
+              placeholder="Enter Address Line 2"
               disabled={isSaving}
             />
           </div>
@@ -667,7 +667,7 @@
               inputType="postal"
               bind:value={formData.billingZip}
               required={true}
-              placeholder="Enter ZIP code"
+              placeholder="Enter ZIP Code"
               hasError={formSubmitted && !formData.billingZip?.trim()}
               errorMessage={formSubmitted && !formData.billingZip?.trim()
                 ? 'Please enter a valid ZIP or postal code'

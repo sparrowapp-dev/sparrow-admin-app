@@ -435,7 +435,7 @@
             bind:value={billingEmail}
             required={true}
             inputType="email"
-            placeholder="Enter Billing Address"
+            placeholder="Enter Billing Email"
             errorMessage="Please enter valid billing email."
             emailErrorMessage="Please enter valid billing email."
           />
@@ -503,7 +503,7 @@
             label="ZIP Code"
             bind:value={postalCode}
             required={true}
-            placeholder="Enter ZIP code"
+            placeholder="Enter ZIP Code"
             inputType="postal"
             hasError={formSubmitted && !postalCode}
             errorMessage="Please enter a valid ZIP or postal code."
