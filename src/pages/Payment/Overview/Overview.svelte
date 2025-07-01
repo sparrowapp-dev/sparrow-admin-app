@@ -163,7 +163,8 @@
       nextBillingDate = processedData.nextBillingDate;
       lastInvoiceAmount = processedData.lastInvoiceAmount;
       totalPaidAmount = processedData.totalPaidAmount;
-      userCount = userCount;
+      // userCount = userCount enable later;
+      userCount = 1;
       subscriptionStatus = processedData.subscriptionStatus;
     } else {
       // If subscription is canceled or inactive, use default values
@@ -437,7 +438,7 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule && (subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled')}
+              {#if !subscriptionData?.schedule && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
