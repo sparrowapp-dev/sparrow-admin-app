@@ -135,7 +135,8 @@
   $: if ($hubData !== undefined) {
     currentHubData = $hubData?.data || null;
     hubName = currentHubData?.name || '';
-    userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
+    // userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
+    userCount = 1;
     planStatus = currentHubData?.billing?.status;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
