@@ -9,6 +9,7 @@
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
+    const trialId = params.get('trialId');
 
     if (!token) {
       window.location.href = '/login';
@@ -24,6 +25,10 @@
       });
 
       // Redirect to the app
+      if(trialId) { 
+        window.location.href = `/trial?trialId=${trialId}`;
+        return;
+      }
       window.location.href = '/hubs';
     } catch (err) {
       errorMessage = 'Authentication failed. Redirecting to login...';

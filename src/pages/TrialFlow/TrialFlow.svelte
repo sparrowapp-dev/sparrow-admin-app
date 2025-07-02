@@ -1,10 +1,13 @@
-<script>
+<script lang="ts">
   import TrialNav from '@/components/TrialNav/TrialNav.svelte';
   import WelcomePage from '@/assets/images/WelcomePage.png';
   import Button from '@/ui/Button/Button.svelte';
   import { HubDetails, CardDetails, TeamDetails } from '@/components/TrialFlow';
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { onMount } from 'svelte';
+  import TrialFlowViewModel from './TrialFlow.ViewModel';
+  let _viewModel = new TrialFlowViewModel();
 
   let currentStep = 1;
   let formData = {
@@ -34,11 +37,45 @@
     { id: 2, title: 'Add Card Details', icon: '2' },
     { id: 3, title: 'Invite Team', icon: '3' },
   ];
+  let hubFormError = {
+    hubNameError: false,
+    hubUrlError: false,
+    hubNameErrorMessage: 'Please enter your hub name.',
+    hubUrlErrorMessage: 'Please enter a valid hub URL.',
+  };
 
   let showProcessingModal = false;
+  let isHubUrlExist = false;
+  let isHubCreated = false;
+  let createdHubId = '';
+  let trailData;
 
-  function handleInputChange(field, value) {
+  const formatHubUrl = (value) => {
+    return value ? `https://${value}.sparrowhub.net` : '';
+  };
+
+  async function handleInputChange(field, value) {
     formData = { ...formData, [field]: value };
+    if (field === 'hubUrl') {
+      // Convert value to full hub URL
+      const hubUrlExist = await _viewModel.checkHubUrlExists({
+        hubUrl: formatHubUrl(value?.trim()),
+      });
+      if (hubUrlExist.isSuccessful) {
+        if (hubUrlExist.data.data.isExist) {
+          isHubUrlExist = true;
+          hubFormError.hubUrlError = true;
+          hubFormError.hubUrlErrorMessage =
+            'This hub URL is already in use. Please enter a different one.';
+        } else {
+          isHubUrlExist = false;
+          hubFormError.hubUrlError = false;
+          hubFormError.hubUrlErrorMessage = '';
+        }
+      } else {
+        console.error('Failed to check hub URL existence:', isHubUrlExist);
+      }
+    }
   }
 
   function handleTeamEmailChange(index, value) {
@@ -57,9 +94,51 @@
     cardDetailsView = event.detail;
   }
 
-  function nextStep() {
+  async function nextStep() {
     // Special handling for step 2
-    if (currentStep === 2 && cardDetailsView === 'cardDetails') {
+    if (currentStep == 1) {
+      if (formData.hubName === '') {
+        hubFormError.hubNameError = 'Please enter your hub name.';
+        hubFormError.hubNameError = true;
+      } else if (formData.hubUrl === '') {
+        hubFormError.hubUrlError = 'Please enter a valid hub URL.';
+        hubFormError.hubUrlError = true;
+        hubFormError.hubNameError = false;
+      } else if (isHubUrlExist) {
+        hubFormError.hubUrlError = 'This hub URL is already in use. Please enter a different one.';
+        hubFormError.hubUrlError = true;
+        hubFormError.hubNameError = false;
+      } else {
+        hubFormError.hubNameError = false;
+        hubFormError.hubUrlError = false;
+        if (!isHubCreated) {
+          // Create FormData for file upload with additional fields
+          const formDataToSend = new FormData();
+          formDataToSend.append('name', formData.hubName.trim());
+          formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
+          formDataToSend.append('isTrialHub', true);
+          formDataToSend.append('trialId', trailData?.data?._id);
+          const createdHub = await _viewModel.createTrialHub(formDataToSend);
+          if (createdHub?.isSuccessful) {
+            isHubCreated = true;
+            createdHubId = createdHub.data.data._id;
+            currentStep += 1; // Move to next step after processing
+          } else {
+            console.error('Failed to create hub:', createdHub);
+          }
+        } else {
+          const formDataToSend = new FormData();
+          formDataToSend.append('name', formData.hubName.trim());
+          formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
+          const updatedHub = await _viewModel.updateTrialHub(createdHubId, formDataToSend);
+          if (updatedHub?.isSuccessful) {
+            currentStep += 1; // Move to next step after processing
+          } else {
+            console.error('Failed to create hub:', updatedHub);
+          }
+        }
+      }
+    } else if (currentStep === 2 && cardDetailsView === 'cardDetails') {
       // Add null check before calling setView
       if (cardDetailsComponent && cardDetailsComponent.setView) {
         cardDetailsComponent.setView('billingDetails');
@@ -102,6 +181,40 @@
       }
     }
   }
+  // Extracts the subdomain from a SparrowHub URL like "https://fivee.sparrowhub.net"
+  function getSubdomainFromHubUrl(url: string): string | null {
+    try {
+      const { hostname } = new URL(url);
+      const suffix = '.sparrowhub.net';
+      if (hostname.endsWith(suffix)) {
+        // Remove the suffix and return everything before it
+        return hostname.slice(0, -suffix.length);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+  onMount(async () => {
+    const params = new URLSearchParams(window.location.search);
+    const trialId = params.get('trialId');
+    // console.log('trailId-----', trialId);
+    const response = await _viewModel.getTrialDetails(trialId);
+    if (response?.isSuccessful) {
+      trailData = response.data;
+      isHubCreated = trailData?.data?.isHubCreated || false;
+      createdHubId = trailData?.data?.createdHubId || '';
+      if (isHubCreated) {
+        const hubDetails = await _viewModel.getHubDetails(createdHubId);
+        if (hubDetails?.isSuccessful) {
+          formData.hubName = hubDetails.data.data.name || '';
+          formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
+        } else {
+          console.error('Failed to fetch hub details:', hubDetails);
+        }
+      }
+    }
+  });
 </script>
 
 <TrialNav />
@@ -160,7 +273,7 @@
     <!-- Dynamic Content Area -->
     <div class="mb-8 w-full">
       {#if currentStep === 1}
-        <HubDetails {formData} {handleInputChange} />
+        <HubDetails {formData} {handleInputChange} {hubFormError} />
       {:else if currentStep === 2}
         <CardDetails
           bind:this={cardDetailsComponent}

@@ -27,7 +27,7 @@
   <PrivateRoute path="/billing/*" component={Payment} />
 
   <!-- Trail Flow -->
-  <Route path="/trialflow" component={TrialFlow} />
+  <Route path="/trial" component={TrialFlow} />
 
   <!-- Trail Flow Success -->
   <Route path="/trialsuccess" component={TrialSuccess} />
