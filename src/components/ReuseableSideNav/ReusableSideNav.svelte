@@ -73,7 +73,7 @@
     }
   });
   let dropdownRef: HTMLDivElement | null = null;
-  function handleDocumentClick(event: MouseEvent) {
+  function handleOutsideClick(event: MouseEvent) {
     if (dropdownOpen && dropdownRef && !dropdownRef.contains(event.target as Node)) {
       dropdownOpen = false;
     }
@@ -83,9 +83,9 @@
     if (unsubscribe) unsubscribe();
   });
   onMount(() => {
-    document.addEventListener('click', handleDocumentClick, true);
+    document.addEventListener('click', handleOutsideClick, true);
     return () => {
-      document.removeEventListener('click', handleDocumentClick, true);
+      document.removeEventListener('click', handleOutsideClick, true);
     };
   });
 </script>
