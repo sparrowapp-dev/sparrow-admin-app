@@ -28,10 +28,43 @@
     billingZip: '',
     billingCountry: null,
     isDefaultPayment: false,
-
-    // Team emails
-    teamEmails: [''],
   };
+
+  let teamdata = [
+    {
+      id: 1,
+      email: '',
+      role: { id: '', name: '' },
+    },
+  ];
+
+  function saveTeamData() {
+    try {
+      localStorage.setItem('teamdata', JSON.stringify(teamdata));
+    } catch (error) {
+      console.error('Error saving team data:', error);
+    }
+  }
+
+  function loadTeamData() {
+    try {
+      const savedData = localStorage.getItem('teamdata');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        if (Array.isArray(parsedData)) {
+          teamdata = parsedData;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading team data:', error);
+    }
+  }
+
+  function handleTeamDataChange(event) {
+    teamdata = event.detail;
+    saveTeamData();
+  }
+
   const steps = [
     { id: 1, title: 'Name Your Hub', icon: '1' },
     { id: 2, title: 'Add Card Details', icon: '2' },
@@ -78,15 +111,6 @@
     }
   }
 
-  function handleTeamEmailChange(index, value) {
-    const newEmails = [...formData.teamEmails];
-    newEmails[index] = value;
-    formData = { ...formData, teamEmails: newEmails };
-  }
-
-  function addTeamEmail() {
-    formData = { ...formData, teamEmails: [...formData.teamEmails, ''] };
-  }
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
 
@@ -198,8 +222,8 @@
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const trialId = params.get('trialId');
-    // console.log('trailId-----', trialId);
     const response = await _viewModel.getTrialDetails(trialId);
+    loadTeamData();
     if (response?.isSuccessful) {
       trailData = response.data;
       isHubCreated = trailData?.data?.isHubCreated || false;
@@ -282,7 +306,7 @@
           on:viewChange={handleCardViewChange}
         />
       {:else if currentStep === 3}
-        <TeamDetails />
+        <TeamDetails {teamdata} on:change={handleTeamDataChange} />
       {/if}
     </div>
 
@@ -290,7 +314,7 @@
     {#if currentStep === 1}
       <!-- Step 1: Continue only -->
       <div class="-mt-10 flex w-full">
-        <div class="mr-45 ml-20 flex-1">
+        <div class="mr-40 ml-25 flex-1">
           <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
             Continue
           </Button>

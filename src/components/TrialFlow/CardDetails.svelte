@@ -381,7 +381,7 @@
   }
 </script>
 
-<div class="flex flex-col gap-10">
+<div class="-mt-11 flex flex-col gap-10">
   <div class="flex flex-col gap-5">
     <div class="text-fs-ds-24 font-fw-ds-500 text-center text-neutral-50">
       Step 2: Add Payment Details
