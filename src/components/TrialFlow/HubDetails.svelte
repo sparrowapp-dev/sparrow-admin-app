@@ -4,6 +4,7 @@
 
   export let formData;
   export let handleInputChange;
+  export let hubFormError;
   let isUrlInputFocused = false;
 </script>
 
@@ -51,11 +52,15 @@
     <div>
       <Input
         label="Hub Name"
+        id="hubName"
+        name="hubName"
         required={true}
         placeholder="Enter hub name"
         value={formData.hubName}
         subtitle="Give your hub a name"
         on:input={(e) => handleInputChange('hubName', e.detail.target.value)}
+        hasError={hubFormError?.hubNameError}
+        errorMessage={hubFormError?.hubNameErrorMessage}
       />
     </div>
 
@@ -85,6 +90,8 @@
             }}
             on:focus={() => (isUrlInputFocused = true)}
             on:blur={() => (isUrlInputFocused = false)}
+            hasError={hubFormError?.hubUrlError}
+            errorMessage={hubFormError?.hubUrlErrorMessage}
           />
         </div>
         <span
