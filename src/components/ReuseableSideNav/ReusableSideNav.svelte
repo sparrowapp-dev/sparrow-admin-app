@@ -72,14 +72,26 @@
       refetch();
     }
   });
+  let dropdownRef: HTMLDivElement | null = null;
+  function handleOutsideClick(event: MouseEvent) {
+    if (dropdownOpen && dropdownRef && !dropdownRef.contains(event.target as Node)) {
+      dropdownOpen = false;
+    }
+  }
 
   onDestroy(() => {
     if (unsubscribe) unsubscribe();
   });
+  onMount(() => {
+    document.addEventListener('click', handleOutsideClick, true);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick, true);
+    };
+  });
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3" bind:this={dropdownRef}>
     {#if isDropdownRequired}
       <div class="border-surface-100 border-b pb-3">
         <Dropdown
