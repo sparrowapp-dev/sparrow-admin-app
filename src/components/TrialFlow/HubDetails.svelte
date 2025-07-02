@@ -105,7 +105,7 @@
           </span>
         </div>
         {#if hubFormError?.hubUrlError}
-          <div class="mt-2 text-sm text-red-400">
+          <div class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 mt-2 text-red-300">
             {hubFormError?.hubUrlErrorMessage}
           </div>
         {/if}
@@ -121,7 +121,7 @@
     transition: border-color 0.2s ease;
   }
   .url-input-wrapper.error {
-    border-color: #ef4444 !important;
+    border-color: #f37472 !important;
   }
   .url-input-wrapper:hover {
     border-color: #9b9da1;
