@@ -8,34 +8,36 @@
 
   // Initial state
   export let rows = [{ id: 1, email: '', role: { id: '', name: '' } }];
+  export let maxRows;
+
+  function canAddRow() {
+    // If maxRows is 0 or 1, never allow more than one row
+    if (maxRows === 0 || maxRows === 1) return false;
+    // If maxRows is undefined, allow unlimited
+    if (!maxRows) return true;
+    // Otherwise, check against maxRows
+    return rows.length < maxRows;
+  }
 
   // Handle email changes (for adding new rows)
   function handleEmailChange(id) {
-    // Find the row
     const row = rows.find((r) => r.id === id);
     if (!row) return;
 
-    // Add new row if this is the last one and has content
     const isLastRow = id === Math.max(...rows.map((r) => r.id));
-    if (row.email?.trim() && isLastRow) {
+    if (row.email?.trim() && isLastRow && canAddRow()) {
       const newId = Math.max(...rows.map((r) => r.id)) + 1;
       rows = [...rows, { id: newId, email: '', role: { id: '', name: '' } }];
     }
-
-    // Notify parent about changes
     dispatch('change', rows);
   }
 
-  // Handle role change (for adding new rows)
   function handleRoleChange(id, selectedRole) {
-    // Add new row if this is the last one and has role
     const isLastRow = id === Math.max(...rows.map((r) => r.id));
-    if (selectedRole?.id && isLastRow) {
+    if (selectedRole?.id && isLastRow && canAddRow()) {
       const newId = Math.max(...rows.map((r) => r.id)) + 1;
       rows = [...rows, { id: newId, email: '', role: { id: '', name: '' } }];
     }
-
-    // Notify parent about changes
     dispatch('change', rows);
   }
 
