@@ -1,9 +1,6 @@
 <script lang="ts">
   // Svelte
   import { navigate, Route, Router, useLocation } from 'svelte-routing';
-  import { tweened } from 'svelte/motion';
-  import { cubicOut } from 'svelte/easing';
-  import { onMount } from 'svelte';
 
   // Services
   import { createQuery } from '@/services/api.common';
@@ -149,36 +146,11 @@
       selectOption,
     };
   };
-
-  // Animation stores for sidebar slide-in effect
-  const sidebarOpacity = tweened(0, {
-    duration: 500,
-    easing: cubicOut,
-  });
-
-  const sidebarTranslateX = tweened(-100, {
-    duration: 500,
-    easing: cubicOut,
-  });
-
-  onMount(() => {
-    // Trigger slide-in animation
-    setTimeout(() => {
-      sidebarOpacity.set(1);
-      sidebarTranslateX.set(0);
-    }, 150);
-  });
 </script>
 
 <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-  <!-- Sidebar with slide-in animation -->
-  <div
-    class="max-w-[266px] min-w-[266px]"
-    style="
-      transform: translateX({$sidebarTranslateX}px);
-      opacity: {$sidebarOpacity};
-    "
-  >
+  <!-- Sidebar - no longer passing data prop -->
+  <div class="max-w-[266px] min-w-[266px]">
     <ReusableSideNav
       link={'/billing'}
       options={[
