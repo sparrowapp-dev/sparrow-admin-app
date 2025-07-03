@@ -80,8 +80,8 @@
       <Alert
         variant="error"
         showButton={false}
-        type='v2'
-        subtitle={`You're cancelling the <strong>${currentPlan}</strong> plan for '<strong>${hubName}</strong>' Hub. Paid features stay active until <strong>${nextBillingDate}</strong> (${daysLeft} days left), after which your hub will move to the community plan.`}
+        type="v2"
+        subtitle={`You're cancelling the ${currentPlan} plan for '<strong class='font-fw-ds-500'>${hubName}</strong>' Hub. Paid features stay active until <strong class='font-fw-ds-500'>${nextBillingDate}</strong> (${daysLeft} days left), after which your hub will move to the community plan.`}
       />
     </div>
   {/if}
