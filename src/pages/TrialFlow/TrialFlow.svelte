@@ -82,6 +82,9 @@
   let isHubCreated = false;
   let createdHubId = '';
   let trailData;
+  let inviteCount;
+  let trialPeriod;
+  let name;
 
   const formatHubUrl = (value) => {
     return value ? `https://${value}.sparrowhub.net` : '';
@@ -222,10 +225,13 @@
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const trialId = params.get('trialId');
+    name = params.get('name');
     const response = await _viewModel.getTrialDetails(trialId);
     loadTeamData();
     if (response?.isSuccessful) {
       trailData = response.data;
+      inviteCount = trailData?.data?.inviteCount ?? 0;
+      trialPeriod = Math.round(trailData?.data?.trialPeriod / 30);
       isHubCreated = trailData?.data?.isHubCreated || false;
       createdHubId = trailData?.data?.createdHubId || '';
       if (isHubCreated) {
@@ -251,11 +257,11 @@
     <!-- Fixed Header Section -->
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        Welcome to <span class="gradient-text">Sparrow</span>, John
+        Welcome to <span class="gradient-text">Sparrow</span>, {name}
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
         We're excited to have you on board! Let's quickly set up your hub so you can start exploring
-        all the features of your 2-month free trial.
+        all the features of your {trialPeriod}-month free trial.
       </p>
     </div>
 
@@ -306,7 +312,7 @@
           on:viewChange={handleCardViewChange}
         />
       {:else if currentStep === 3}
-        <TeamDetails {teamdata} on:change={handleTeamDataChange} />
+        <TeamDetails {teamdata} on:change={handleTeamDataChange} {inviteCount} />
       {/if}
     </div>
 

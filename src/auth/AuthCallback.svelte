@@ -10,6 +10,7 @@
     const params = new URLSearchParams(window.location.search);
     const token = params.get('accessToken');
     const trialId = params.get('trialId');
+    const name = params.get('name');
 
     if (!token) {
       window.location.href = '/login';
@@ -25,8 +26,8 @@
       });
 
       // Redirect to the app
-      if(trialId) { 
-        window.location.href = `/trial?trialId=${trialId}`;
+      if (trialId) {
+        window.location.href = `/trial?trialId=${trialId}&name=${name}`;
         return;
       }
       window.location.href = '/hubs';

@@ -3,6 +3,7 @@
   import { createEventDispatcher } from 'svelte';
 
   export let teamdata;
+  export let inviteCount;
 
   const dispatch = createEventDispatcher();
 
@@ -20,7 +21,7 @@
       <p class="mx-auto max-w-2xl text-gray-300">
         Invite teammates or collaborators to join your hub and start working together. You can add
         people now or skip this step and do it anytime later from your dashboard. The Standard Trial
-        supports up to 10 members, including you.
+        supports up to {inviteCount} members, including you.
       </p>
     </div>
   </div>
@@ -39,7 +40,7 @@
     <div
       class="scrollbar-thin scrollbar-thumb-surface-400 scrollbar-track-surface-600 max-h-[170px] overflow-y-auto pr-1"
     >
-      <InviteForm bind:rows={teamdata} on:change={handleFormChange} />
+      <InviteForm bind:rows={teamdata} maxRows={inviteCount} on:change={handleFormChange} />
     </div>
   </div>
 </div>
