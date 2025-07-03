@@ -57,6 +57,16 @@ class TrialFlowViewModel {
       return errorResponse(error?.message || 'Failed to fetch hub details', null);
     }
   }
+
+  public async bulkInviteUsers(data: any): Promise<ResponseInterface<any>> {
+    try {
+      const response = await this.hubService.bulkInviteUsers(data);
+      return successResponse(response);
+    } catch (error) {
+      console.error('Error bulk inviting users:', error);
+      return errorResponse(error?.message || 'Failed to bulk invite users', null);
+    }
+  }
 }
 
 export default TrialFlowViewModel;
