@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { Route, navigate } from 'svelte-routing';
+  import { Route } from 'svelte-routing';
   import { auth } from '@/store/auth';
   import BaseLayout from '@/layouts/BaseLayout.svelte';
-  import { onMount } from 'svelte';
-  import { checkAndRefreshToken } from '@/utils/checkAndRefreshToken';
 
   export let path: string;
   export let component: any;
