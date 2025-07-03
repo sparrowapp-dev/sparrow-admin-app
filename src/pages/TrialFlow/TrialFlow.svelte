@@ -7,6 +7,12 @@
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { onMount } from 'svelte';
   import TrialFlowViewModel from './TrialFlow.ViewModel';
+  import { billingService } from '@/services/billing.service';
+  import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
+  import { initializeStripeSocket } from '@/utils/socket.io.utils';
+  import { API_BASE_URL } from '@/constants/environment';
+  import { notification } from '@/components/Toast';
+  import { navigate } from 'svelte-routing';
   let _viewModel = new TrialFlowViewModel();
 
   let currentStep = 1;
@@ -82,6 +88,12 @@
   let isHubCreated = false;
   let createdHubId = '';
   let trailData;
+  let customerId = '';
+  let paymentMethodId = '';
+  let isCardDetailsAdded = false;
+  let stripe;
+  let socket;
+  // let hubId = '';
 
   const formatHubUrl = (value) => {
     return value ? `https://${value}.sparrowhub.net` : '';
@@ -113,6 +125,9 @@
 
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
+  let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
+  let trialstart = '';
+  let trialend = '';
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -164,18 +179,124 @@
       }
     } else if (currentStep === 2 && cardDetailsView === 'cardDetails') {
       // Add null check before calling setView
-      if (cardDetailsComponent && cardDetailsComponent.setView) {
-        cardDetailsComponent.setView('billingDetails');
-        cardDetailsView = 'billingDetails';
+      if (cardDetailsComponent && cardDetailsComponent.setView && !isCardDetailsAdded) {
+        const cardData = await cardDetailsComponent.processCardDetailsAdd();
+        if (cardData?.success) {
+          paymentMethodId = cardData?.paymentMethodId || '';
+          isCardDetailsAdded = true;
+          cardDetailsComponent.setView('billingDetails');
+          cardDetailsView = 'billingDetails';
+        } else {
+          console.error('Failed to process card details:', cardData);
+        }
       } else {
         // Fallback if component isn't ready
+        cardDetailsComponent.setView('billingDetails');
         cardDetailsView = 'billingDetails';
       }
+    } else if (currentStep === 2 && cardDetailsView === 'billingDetails') {
+      // Add null check before calling setView
+      // if (cardDetailsComponent && cardDetailsComponent.setView) {
+      if (cardDetailsComponent) {
+        const billingData = await cardDetailsComponent.processBillingDetails();
+        if (billingData.success) {
+          currentStep += 1;
+        }
+      } else {
+        currentStep += 1;
+      }
+
+      //   cardDetailsComponent.setView('billingDetails');
+      //   cardDetailsView = 'billingDetails';
+      // } else {
+      //   // Fallback if component isn't ready
+      //   cardDetailsView = 'billingDetails';
+      // }
     } else {
       // Normal behavior
       if (currentStep < 3) currentStep += 1;
     }
   }
+
+  const handleFinalSetup = async () => {
+    socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
+      onPaymentSuccess: (data) => {
+        console.log('Payment success:', data);
+        const { team } = data;
+        console.log('Payment success team:', team);
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
+
+          // Set data for success modal
+          selectedPlanDetails = {
+            fromPlan: 'Community',
+            toPlan: 'Standard',
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+          navigate(
+            `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+          );
+        }, 5000);
+
+        // Show success modal
+        setTimeout(() => {
+          // showSubscriptionConfirmModal = true;
+        }, 5000);
+      },
+      onPaymentFailed: (data) => {
+        console.log('Payment failed:', data);
+        const { team } = data;
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
+
+          // Set data for failure modal
+          selectedPlanDetails = {
+            fromPlan: 'Community',
+            toPlan: 'Standard',
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+        }, 5000);
+
+        setTimeout(() => {
+          showSubscriptionFailedModal = true;
+          notification.error('Failed to start Trial.');
+        }, 5000);
+      },
+      // onSubscriptionUpdated: () => {},
+      onSubscriptionCreated: (data) => {
+        console.log('Subscription created:', data);
+        // showProcessingModal = false;
+      },
+    });
+    showProcessingModal = true;
+    const metadata = {
+      hubId: createdHubId,
+      userCount: teamdata.length.toString(),
+      planName: 'Standard',
+    };
+    const result = await billingService.createSubscription({
+      customerId,
+      priceId,
+      paymentMethodId: paymentMethodId,
+      metadata,
+      trialPeriodDays: trailData?.data?.trialPeriod || 0,
+      seats: teamdata.length || 1,
+    });
+    console.log('Subscription result:', result);
+    trialstart = result?.subscription?.trial_start;
+    trialend = result?.subscription?.trial_end;
+    // Check if additional authentication is required (like 3D Secure)
+    if (result.requiresAction && result.clientSecret) {
+      await handleStripePaymentConfirmation(stripe, result.clientSecret);
+    }
+
+    // At this point, we just wait for socket events
+    // The modals will be shown/hidden by the socket event handlers
+  };
   function prevStep() {
     // If we're on step 2 and in billing details view, switch to card details view
     if (currentStep === 2 && cardDetailsView === 'billingDetails') {
@@ -219,6 +340,16 @@
       return null;
     }
   }
+  // Subscription Related
+  let showSubscriptionFailedModal = false;
+  let isProcessing = false;
+  let selectedPlanDetails = {
+    fromPlan: 'Community',
+    toPlan: 'Standard',
+    hubName: '',
+    nextBilling: '',
+  };
+  let showSubscriptionConfirmModal = false;
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     const trialId = params.get('trialId');
@@ -238,6 +369,10 @@
         }
       }
     }
+    // Initialize Stripe
+    stripe = await initializeStripe();
+
+    // Set up socket connection for payment events
   });
 </script>
 
@@ -304,6 +439,9 @@
           {formData}
           {handleInputChange}
           on:viewChange={handleCardViewChange}
+          bind:customerId
+          {paymentMethodId}
+          {isCardDetailsAdded}
         />
       {:else if currentStep === 3}
         <TeamDetails {teamdata} on:change={handleTeamDataChange} />
@@ -349,7 +487,9 @@
         <!-- Button group on the right side -->
         <div class="flex gap-3">
           <Button variant="filled-secondary" size="medium" on:click={prevStep}>Previous</Button>
-          <Button variant="filled-primary" size="medium" on:click={nextStep}>Finish Setup</Button>
+          <Button variant="filled-primary" size="medium" on:click={handleFinalSetup}
+            >Finish Setup</Button
+          >
         </div>
       </div>
     {/if}
