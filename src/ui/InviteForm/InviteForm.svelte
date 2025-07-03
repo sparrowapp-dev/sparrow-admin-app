@@ -8,34 +8,90 @@
 
   // Initial state
   export let rows = [{ id: 1, email: '', role: { id: '', name: '' } }];
+  export let maxRows;
+  let errors = {};
+
+  export function validate() {
+    let newErrors = {};
+    let hasErrors = false;
+
+    rows.forEach((row) => {
+      // Skip completely empty rows
+      if (!row.email && !row.role.id) return;
+
+      const rowErrors = {};
+
+      // If one field is filled but the other isn't, show error
+      if (row.email && !row.role.id) {
+        rowErrors.role = 'Please select a role';
+        hasErrors = true;
+      }
+
+      if (!row.email && row.role.id) {
+        rowErrors.email = 'Please enter an email';
+        hasErrors = true;
+      }
+
+      // Add email format validation
+      if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+        rowErrors.email = 'Please enter a valid email address';
+        hasErrors = true;
+      }
+
+      if (Object.keys(rowErrors).length > 0) {
+        newErrors[row.id] = rowErrors;
+      }
+    });
+
+    // Create a new object reference to ensure reactivity
+    errors = { ...newErrors };
+
+    // Force component update if needed
+    rows = [...rows];
+
+    return !hasErrors;
+  }
+
+  function canAddRow() {
+    // If maxRows is 0 or 1, never allow more than one row
+    if (maxRows === 0 || maxRows === 1) return false;
+    // If maxRows is undefined, allow unlimited
+    if (!maxRows) return true;
+    // Otherwise, check against maxRows
+    return rows.length < maxRows;
+  }
 
   // Handle email changes (for adding new rows)
   function handleEmailChange(id) {
-    // Find the row
+    if (errors[id]) {
+      errors = {
+        ...errors,
+        [id]: { ...errors[id], email: null },
+      };
+    }
     const row = rows.find((r) => r.id === id);
     if (!row) return;
 
-    // Add new row if this is the last one and has content
     const isLastRow = id === Math.max(...rows.map((r) => r.id));
-    if (row.email?.trim() && isLastRow) {
+    if (row.email?.trim() && isLastRow && canAddRow()) {
       const newId = Math.max(...rows.map((r) => r.id)) + 1;
       rows = [...rows, { id: newId, email: '', role: { id: '', name: '' } }];
     }
-
-    // Notify parent about changes
     dispatch('change', rows);
   }
 
-  // Handle role change (for adding new rows)
   function handleRoleChange(id, selectedRole) {
-    // Add new row if this is the last one and has role
+    if (errors[id]?.role) {
+      errors = {
+        ...errors,
+        [id]: { ...errors[id], role: null },
+      };
+    }
     const isLastRow = id === Math.max(...rows.map((r) => r.id));
-    if (selectedRole?.id && isLastRow) {
+    if (selectedRole?.id && isLastRow && canAddRow()) {
       const newId = Math.max(...rows.map((r) => r.id)) + 1;
       rows = [...rows, { id: newId, email: '', role: { id: '', name: '' } }];
     }
-
-    // Notify parent about changes
     dispatch('change', rows);
   }
 
@@ -43,6 +99,11 @@
   function removeRow(id) {
     if (rows.length > 1) {
       rows = rows.filter((row) => row.id !== id);
+      // Remove any errors for this row
+      if (errors[id]) {
+        delete errors[id];
+        errors = { ...errors };
+      }
       dispatch('change', rows);
     }
   }
@@ -58,6 +119,8 @@
           bind:value={row.email}
           type="email"
           inputType="email"
+          hasError={Boolean(errors[row.id]?.email)}
+          errorMessage={errors[row.id]?.email || ''}
           on:input={() => handleEmailChange(row.id)}
         />
       </div>
@@ -68,6 +131,8 @@
           selected={row.role}
           placeholder="Select role"
           showDescription={false}
+          hasError={Boolean(errors[row.id]?.role)}
+          errorMessage={errors[row.id]?.role || ''}
           on:change={(e) => {
             row.role = e.detail;
             handleRoleChange(row.id, e.detail);

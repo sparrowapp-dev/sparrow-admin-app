@@ -1,10 +1,19 @@
-<script>
+<script lang="ts">
   import TrialNav from '@/components/TrialNav/TrialNav.svelte';
   import WelcomePage from '@/assets/images/WelcomePage.png';
   import Button from '@/ui/Button/Button.svelte';
   import { HubDetails, CardDetails, TeamDetails } from '@/components/TrialFlow';
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { onMount } from 'svelte';
+  import TrialFlowViewModel from './TrialFlow.ViewModel';
+  import { billingService } from '@/services/billing.service';
+  import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
+  import { initializeStripeSocket } from '@/utils/socket.io.utils';
+  import { API_BASE_URL } from '@/constants/environment';
+  import { notification } from '@/components/Toast';
+  import { navigate } from 'svelte-routing';
+  let _viewModel = new TrialFlowViewModel();
 
   let currentStep = 1;
   let formData = {
@@ -25,54 +34,292 @@
     billingZip: '',
     billingCountry: null,
     isDefaultPayment: false,
-
-    // Team emails
-    teamEmails: [''],
   };
+
+  let teamdata = [
+    {
+      id: 1,
+      email: '',
+      role: { id: '', name: '' },
+    },
+  ];
+
+  // function saveTeamData() {
+  //   try {
+  //     localStorage.setItem('teamdata', JSON.stringify(teamdata));
+  //   } catch (error) {
+  //     console.error('Error saving team data:', error);
+  //   }
+  // }
+
+  // function loadTeamData() {
+  //   try {
+  //     const savedData = localStorage.getItem('teamdata');
+  //     if (savedData) {
+  //       const parsedData = JSON.parse(savedData);
+  //       if (Array.isArray(parsedData)) {
+  //         teamdata = parsedData;
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading team data:', error);
+  //   }
+  // }
+
+  function handleTeamDataChange(event) {
+    teamdata = event.detail;
+  }
+
   const steps = [
     { id: 1, title: 'Name Your Hub', icon: '1' },
     { id: 2, title: 'Add Card Details', icon: '2' },
     { id: 3, title: 'Invite Team', icon: '3' },
   ];
+  let hubFormError = {
+    hubNameError: false,
+    hubUrlError: false,
+    hubNameErrorMessage: 'Please enter your hub name.',
+    hubUrlErrorMessage: 'Please enter a valid hub URL.',
+  };
 
   let showProcessingModal = false;
+  let isHubUrlExist = false;
+  let isHubCreated = false;
+  let createdHubId = '';
+  let trailData;
+  let customerId = '';
+  let paymentMethodId = '';
+  let isCardDetailsAdded = false;
+  let stripe;
+  let socket;
+  // let hubId = '';
+  let inviteCount;
+  let trialPeriod;
+  let name;
+  let teamDetailsComponent;
 
-  function handleInputChange(field, value) {
+  const formatHubUrl = (value) => {
+    return value ? `https://${value}.sparrowhub.net` : '';
+  };
+
+  async function handleInputChange(field, value) {
     formData = { ...formData, [field]: value };
+    if (field === 'hubUrl') {
+      // Convert value to full hub URL
+      const hubUrlExist = await _viewModel.checkHubUrlExists({
+        hubUrl: formatHubUrl(value?.trim()),
+      });
+      if (hubUrlExist.isSuccessful) {
+        if (hubUrlExist.data.data.isExist) {
+          isHubUrlExist = true;
+          hubFormError.hubUrlError = true;
+          hubFormError.hubUrlErrorMessage =
+            'This hub URL is already in use. Please enter a different one.';
+        } else {
+          isHubUrlExist = false;
+          hubFormError.hubUrlError = false;
+          hubFormError.hubUrlErrorMessage = '';
+        }
+      } else {
+        console.error('Failed to check hub URL existence:', isHubUrlExist);
+      }
+    }
   }
 
-  function handleTeamEmailChange(index, value) {
-    const newEmails = [...formData.teamEmails];
-    newEmails[index] = value;
-    formData = { ...formData, teamEmails: newEmails };
-  }
-
-  function addTeamEmail() {
-    formData = { ...formData, teamEmails: [...formData.teamEmails, ''] };
-  }
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
+  let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
+  let trialstart = '';
+  let trialend = '';
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
   }
 
-  function nextStep() {
+  async function nextStep() {
     // Special handling for step 2
-    if (currentStep === 2 && cardDetailsView === 'cardDetails') {
+    if (currentStep == 1) {
+      if (formData.hubName === '') {
+        hubFormError.hubNameError = 'Please enter your hub name.';
+        hubFormError.hubNameError = true;
+      } else if (formData.hubUrl === '') {
+        hubFormError.hubUrlError = 'Please enter a valid hub URL.';
+        hubFormError.hubUrlError = true;
+        hubFormError.hubNameError = false;
+      } else if (isHubUrlExist) {
+        hubFormError.hubUrlError = 'This hub URL is already in use. Please enter a different one.';
+        hubFormError.hubUrlError = true;
+        hubFormError.hubNameError = false;
+      } else {
+        hubFormError.hubNameError = false;
+        hubFormError.hubUrlError = false;
+        if (!isHubCreated) {
+          // Create FormData for file upload with additional fields
+          const formDataToSend = new FormData();
+          formDataToSend.append('name', formData.hubName.trim());
+          formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
+          formDataToSend.append('isTrialHub', true);
+          formDataToSend.append('trialId', trailData?.data?._id);
+          const createdHub = await _viewModel.createTrialHub(formDataToSend);
+          if (createdHub?.isSuccessful) {
+            isHubCreated = true;
+            createdHubId = createdHub.data.data._id;
+            currentStep += 1; // Move to next step after processing
+          } else {
+            console.error('Failed to create hub:', createdHub);
+          }
+        } else {
+          const formDataToSend = new FormData();
+          formDataToSend.append('name', formData.hubName.trim());
+          formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
+          const updatedHub = await _viewModel.updateTrialHub(createdHubId, formDataToSend);
+          if (updatedHub?.isSuccessful) {
+            currentStep += 1; // Move to next step after processing
+          } else {
+            console.error('Failed to create hub:', updatedHub);
+          }
+        }
+      }
+    } else if (currentStep === 2 && cardDetailsView === 'cardDetails') {
       // Add null check before calling setView
-      if (cardDetailsComponent && cardDetailsComponent.setView) {
-        cardDetailsComponent.setView('billingDetails');
-        cardDetailsView = 'billingDetails';
+      if (cardDetailsComponent && cardDetailsComponent.setView && !isCardDetailsAdded) {
+        const cardData = await cardDetailsComponent.processCardDetailsAdd();
+        if (cardData?.success) {
+          paymentMethodId = cardData?.paymentMethodId || '';
+          isCardDetailsAdded = true;
+          cardDetailsComponent.setView('billingDetails');
+          cardDetailsView = 'billingDetails';
+        } else {
+          console.error('Failed to process card details:', cardData);
+        }
       } else {
         // Fallback if component isn't ready
+        cardDetailsComponent.setView('billingDetails');
         cardDetailsView = 'billingDetails';
       }
+    } else if (currentStep === 2 && cardDetailsView === 'billingDetails') {
+      // Add null check before calling setView
+      // if (cardDetailsComponent && cardDetailsComponent.setView) {
+      if (cardDetailsComponent) {
+        const billingData = await cardDetailsComponent.processBillingDetails();
+        if (billingData.success) {
+          currentStep += 1;
+        }
+      } else {
+        currentStep += 1;
+      }
+
+      //   cardDetailsComponent.setView('billingDetails');
+      //   cardDetailsView = 'billingDetails';
+      // } else {
+      //   // Fallback if component isn't ready
+      //   cardDetailsView = 'billingDetails';
+      // }
     } else {
       // Normal behavior
       if (currentStep < 3) currentStep += 1;
     }
   }
+
+  const handleFinalSetup = async (triggerPoint: string) => {
+    if (triggerPoint === 'finish') {
+      // First validate that rows with data have both email and role
+      const isValid = teamDetailsComponent?.validateForm();
+      if (!isValid) {
+        // Form has validation errors, don't proceed
+        return;
+      }
+    }
+    socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
+      onPaymentSuccess: (data) => {
+        console.log('Payment success:', data);
+        const { team } = data;
+        console.log('Payment success team:', team);
+        setTimeout(async () => {
+          if (triggerPoint === 'finish') {
+            const formatTeamData = teamdata
+              .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
+              .map((user) => ({
+                email: user.email.trim(),
+                role: user.role.id === 'admin' ? 'admin' : 'member',
+              }));
+            const inviteResponse = await _viewModel.bulkInviteUsers({
+              teamId: team._id,
+              users: formatTeamData,
+            });
+          }
+          isProcessing = false;
+          showProcessingModal = false;
+
+          // Set data for success modal
+          selectedPlanDetails = {
+            fromPlan: 'Community',
+            toPlan: 'Standard',
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+          navigate(
+            `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+          );
+        }, 5000);
+
+        // Show success modal
+        setTimeout(() => {
+          // showSubscriptionConfirmModal = true;
+        }, 5000);
+      },
+      onPaymentFailed: (data) => {
+        console.log('Payment failed:', data);
+        const { team } = data;
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
+
+          // Set data for failure modal
+          selectedPlanDetails = {
+            fromPlan: 'Community',
+            toPlan: 'Standard',
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+        }, 5000);
+
+        setTimeout(() => {
+          showSubscriptionFailedModal = true;
+          notification.error('Failed to start Trial.');
+        }, 5000);
+      },
+      // onSubscriptionUpdated: () => {},
+      onSubscriptionCreated: (data) => {
+        console.log('Subscription created:', data);
+        // showProcessingModal = false;
+      },
+    });
+    showProcessingModal = true;
+    const metadata = {
+      hubId: createdHubId,
+      userCount: teamdata.length.toString(),
+      planName: 'Standard',
+    };
+    const result = await billingService.createSubscription({
+      customerId,
+      priceId,
+      paymentMethodId: paymentMethodId,
+      metadata,
+      trialPeriodDays: trailData?.data?.trialPeriod || 0,
+      seats: teamdata.length || 1,
+    });
+    console.log('Subscription result:', result);
+    trialstart = result?.subscription?.trial_start;
+    trialend = result?.subscription?.trial_end;
+    // Check if additional authentication is required (like 3D Secure)
+    if (result.requiresAction && result.clientSecret) {
+      await handleStripePaymentConfirmation(stripe, result.clientSecret);
+    }
+
+    // At this point, we just wait for socket events
+    // The modals will be shown/hidden by the socket event handlers
+  };
   function prevStep() {
     // If we're on step 2 and in billing details view, switch to card details view
     if (currentStep === 2 && cardDetailsView === 'billingDetails') {
@@ -102,6 +349,58 @@
       }
     }
   }
+  // Extracts the subdomain from a SparrowHub URL like "https://fivee.sparrowhub.net"
+  function getSubdomainFromHubUrl(url: string): string | null {
+    try {
+      const { hostname } = new URL(url);
+      const suffix = '.sparrowhub.net';
+      if (hostname.endsWith(suffix)) {
+        // Remove the suffix and return everything before it
+        return hostname.slice(0, -suffix.length);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+  // Subscription Related
+  let showSubscriptionFailedModal = false;
+  let isProcessing = false;
+  let selectedPlanDetails = {
+    fromPlan: 'Community',
+    toPlan: 'Standard',
+    hubName: '',
+    nextBilling: '',
+  };
+  let showSubscriptionConfirmModal = false;
+  onMount(async () => {
+    const params = new URLSearchParams(window.location.search);
+    const trialId = params.get('trialId');
+    name = params.get('name');
+    const response = await _viewModel.getTrialDetails(trialId);
+    if (response?.isSuccessful) {
+      trailData = response.data;
+      inviteCount = trailData?.data?.inviteCount ?? 0;
+      trialPeriod = Math.round(trailData?.data?.trialPeriod / 30);
+      isHubCreated = trailData?.data?.isHubCreated || false;
+      createdHubId = trailData?.data?.createdHubId || '';
+      if (isHubCreated) {
+        const hubDetails = await _viewModel.getHubDetails(createdHubId);
+        if (hubDetails?.isSuccessful) {
+          formData.hubName = hubDetails.data.data.name || '';
+          formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
+        } else {
+          console.error('Failed to fetch hub details:', hubDetails);
+        }
+      } else {
+        formData.hubName = trailData?.data?.companyName || '';
+      }
+    }
+    // Initialize Stripe
+    stripe = await initializeStripe();
+
+    // Set up socket connection for payment events
+  });
 </script>
 
 <TrialNav />
@@ -114,11 +413,11 @@
     <!-- Fixed Header Section -->
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        Welcome to <span class="gradient-text">Sparrow</span>, John
+        Welcome to <span class="gradient-text">Sparrow</span>, {name}
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
         We're excited to have you on board! Let's quickly set up your hub so you can start exploring
-        all the features of your 2-month free trial.
+        all the features of your {trialPeriod}-month free trial.
       </p>
     </div>
 
@@ -160,16 +459,25 @@
     <!-- Dynamic Content Area -->
     <div class="mb-8 w-full">
       {#if currentStep === 1}
-        <HubDetails {formData} {handleInputChange} />
+        <HubDetails {formData} {handleInputChange} {hubFormError} />
       {:else if currentStep === 2}
         <CardDetails
           bind:this={cardDetailsComponent}
           {formData}
           {handleInputChange}
           on:viewChange={handleCardViewChange}
+          bind:customerId
+          {paymentMethodId}
+          {isCardDetailsAdded}
         />
       {:else if currentStep === 3}
-        <TeamDetails />
+        <TeamDetails
+          bind:this={teamDetailsComponent}
+          {teamdata}
+          on:change={handleTeamDataChange}
+          {inviteCount}
+          {formData}
+        />
       {/if}
     </div>
 
@@ -177,7 +485,7 @@
     {#if currentStep === 1}
       <!-- Step 1: Continue only -->
       <div class="-mt-10 flex w-full">
-        <div class="mr-45 ml-20 flex-1">
+        <div class="mr-40 ml-25 flex-1">
           <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
             Continue
           </Button>
@@ -204,7 +512,9 @@
         <!-- "I'll add later" on the left side -->
         <button
           class="text-sm text-gray-400 transition-colors hover:text-gray-300"
-          on:click={() => {}}
+          on:click={() => {
+            handleFinalSetup('skip');
+          }}
         >
           I'll add later
         </button>
@@ -212,7 +522,13 @@
         <!-- Button group on the right side -->
         <div class="flex gap-3">
           <Button variant="filled-secondary" size="medium" on:click={prevStep}>Previous</Button>
-          <Button variant="filled-primary" size="medium" on:click={nextStep}>Finish Setup</Button>
+          <Button
+            variant="filled-primary"
+            size="medium"
+            on:click={() => {
+              handleFinalSetup('finish');
+            }}>Finish Setup</Button
+          >
         </div>
       </div>
     {/if}
