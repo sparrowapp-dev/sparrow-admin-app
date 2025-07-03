@@ -4,6 +4,7 @@
 
   export let teamdata;
   export let inviteCount;
+  export let formData;
 
   const dispatch = createEventDispatcher();
 
@@ -15,7 +16,7 @@
 <div class="-mt-11 flex flex-col gap-10">
   <div class="flex flex-col gap-5">
     <div class="text-fs-ds-24 font-fw-ds-500 text-center text-neutral-50">
-      Step 3: Add People to Techdome Hub
+      Step 3: Add People to {formData?.hubName} Hub
     </div>
     <div class="mb-6 text-center">
       <p class="mx-auto max-w-2xl text-gray-300">

@@ -44,31 +44,31 @@
     },
   ];
 
-  function saveTeamData() {
-    try {
-      localStorage.setItem('teamdata', JSON.stringify(teamdata));
-    } catch (error) {
-      console.error('Error saving team data:', error);
-    }
-  }
+  // function saveTeamData() {
+  //   try {
+  //     localStorage.setItem('teamdata', JSON.stringify(teamdata));
+  //   } catch (error) {
+  //     console.error('Error saving team data:', error);
+  //   }
+  // }
 
-  function loadTeamData() {
-    try {
-      const savedData = localStorage.getItem('teamdata');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        if (Array.isArray(parsedData)) {
-          teamdata = parsedData;
-        }
-      }
-    } catch (error) {
-      console.error('Error loading team data:', error);
-    }
-  }
+  // function loadTeamData() {
+  //   try {
+  //     const savedData = localStorage.getItem('teamdata');
+  //     if (savedData) {
+  //       const parsedData = JSON.parse(savedData);
+  //       if (Array.isArray(parsedData)) {
+  //         teamdata = parsedData;
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading team data:', error);
+  //   }
+  // }
 
   function handleTeamDataChange(event) {
     teamdata = event.detail;
-    saveTeamData();
+    // saveTeamData();
   }
 
   const steps = [
@@ -370,7 +370,7 @@
     const trialId = params.get('trialId');
     name = params.get('name');
     const response = await _viewModel.getTrialDetails(trialId);
-    loadTeamData();
+    // loadTeamData();
     if (response?.isSuccessful) {
       trailData = response.data;
       inviteCount = trailData?.data?.inviteCount ?? 0;
@@ -385,6 +385,8 @@
         } else {
           console.error('Failed to fetch hub details:', hubDetails);
         }
+      } else {
+        formData.hubName = trailData?.data?.companyName || '';
       }
     }
     // Initialize Stripe
@@ -462,7 +464,7 @@
           {isCardDetailsAdded}
         />
       {:else if currentStep === 3}
-        <TeamDetails {teamdata} on:change={handleTeamDataChange} {inviteCount} />
+        <TeamDetails {teamdata} on:change={handleTeamDataChange} {inviteCount} {formData} />
       {/if}
     </div>
 
