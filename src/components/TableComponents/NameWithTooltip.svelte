@@ -5,7 +5,7 @@
 </script>
 
 <Tooltip text={Value} position="top" mode="hover" size="xs">
-  <div class="">
+  <div class="truncate max-w-[180px]">
     {Value}
   </div>
 </Tooltip>
