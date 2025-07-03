@@ -218,13 +218,25 @@
     }
   }
 
-  const handleFinalSetup = async () => {
+  const handleFinalSetup = async (triggerPoint: string) => {
     socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
         const { team } = data;
         console.log('Payment success team:', team);
-        setTimeout(() => {
+        setTimeout(async () => {
+          if (triggerPoint === 'finish') {
+            const formatTeamData = teamdata
+              .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
+              .map((user) => ({
+                email: user.email.trim(),
+                role: user.role.id === 'admin' ? 'admin' : 'member',
+              }));
+            const inviteResponse = await _viewModel.bulkInviteUsers({
+              teamId: team._id,
+              users: formatTeamData,
+            });
+          }
           isProcessing = false;
           showProcessingModal = false;
 
@@ -479,7 +491,9 @@
         <!-- "I'll add later" on the left side -->
         <button
           class="text-sm text-gray-400 transition-colors hover:text-gray-300"
-          on:click={() => {}}
+          on:click={() => {
+            handleFinalSetup('skip');
+          }}
         >
           I'll add later
         </button>
@@ -487,8 +501,12 @@
         <!-- Button group on the right side -->
         <div class="flex gap-3">
           <Button variant="filled-secondary" size="medium" on:click={prevStep}>Previous</Button>
-          <Button variant="filled-primary" size="medium" on:click={handleFinalSetup}
-            >Finish Setup</Button
+          <Button
+            variant="filled-primary"
+            size="medium"
+            on:click={() => {
+              handleFinalSetup('finish');
+            }}>Finish Setup</Button
           >
         </div>
       </div>
