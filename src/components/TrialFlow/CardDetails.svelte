@@ -227,6 +227,7 @@
       // Use billing service to fetch payment method
       const data = await billingService.getPaymentMethod(paymentMethodId);
       existingPaymentMethod = data.paymentMethod;
+      console.log('Fetched existing payment method:', existingPaymentMethod);
 
       // Pre-fill card details (read-only in edit mode)
       if (existingPaymentMethod.card) {
@@ -268,10 +269,20 @@
     setTimeout(() => {
       mountStripeElements();
     }, 100);
+    console.log('CardDetails mounted', isCardDetailsAdded);
     if (isCardDetailsAdded) {
       fetchPaymentMethod();
     }
   });
+
+  $: {
+    if (isCardDetailsAdded) {
+      console.log('CardDetails added variable', isCardDetailsAdded);
+      fetchPaymentMethod();
+    } else {
+      console.log('CardDetails not added yet, initializing elements', isCardDetailsAdded);
+    }
+  }
 
   onDestroy(() => {
     // Clean up Stripe elements
@@ -873,12 +884,12 @@
     {/if}
   </div>
 
-  {#if isSaving}
+  <!-- {#if isSaving}
     <div class="flex justify-center py-4">
-      <CircularLoader size="sm" />
+      <CircularLoader />
       <span class="ml-2 text-white">Processing payment information...</span>
     </div>
-  {/if}
+  {/if} -->
 </div>
 
 <style>

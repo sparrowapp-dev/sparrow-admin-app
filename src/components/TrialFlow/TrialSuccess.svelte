@@ -2,6 +2,17 @@
   import fallingConfetti from '@/assets/images/falling_confetti_purple_red.gif';
   import CheckmarkStarburst from '@/assets/icons/CheckmarkStarburst.svelte';
   import Button from '@/ui/Button/Button.svelte';
+  import { navigate } from 'svelte-routing';
+  export let hub = '';
+  export let users = '';
+
+  export let trialStartDate = '';
+  export let trialEndDate = '';
+  export let amount = 0;
+  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
+  function handleLaunch() {
+    window.open(`${launchUrl}`, '_blank');
+  }
 </script>
 
 <div class="flex items-center justify-center">
@@ -12,8 +23,8 @@
           <CheckmarkStarburst />
           <div class="text-fs-ds-16">Congratulations! Your Standard Trial is Unlocked</div>
           <div class="text-fs-ds-14">
-            You’ve successfully activated the Standard Trial for ‘Techdome Hub’. All premium
-            features are now available, start exploring, collaborating, and building with your team.
+            You’ve successfully activated the Standard Trial for ‘{hub} Hub’. All premium features are
+            now available, start exploring, collaborating, and building with your team.
           </div>
         </div>
         <div class="mr-5 ml-15 flex w-full max-w-md flex-col gap-8">
@@ -23,11 +34,11 @@
           >
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Hub Name</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">Techdome Hub</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{hub}</span>
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Amount After Trial</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">$39.96/month</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">${amount}/month</span>
             </div>
           </div>
           <div
@@ -36,11 +47,11 @@
           >
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Trial Start Date</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">July 2, 2025</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{trialStartDate}</span>
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Trial End Date</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">September 2, 2025</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{trialEndDate}</span>
             </div>
           </div>
           <div
@@ -49,16 +60,26 @@
           >
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Total Members</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">04</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{users}</span>
             </div>
           </div>
         </div>
         <div>
           <div class="flex justify-center gap-3">
-            <Button variant="filled-secondary" size="medium" on:click={() => {}}
-              >Open Admin Panel</Button
+            <Button
+              variant="filled-secondary"
+              size="medium"
+              on:click={() => {
+                navigate('/hubs');
+              }}>Open Admin Panel</Button
             >
-            <Button variant="filled-primary" size="medium" on:click={() => {}}>Open Web App</Button>
+            <Button
+              variant="filled-primary"
+              size="medium"
+              on:click={() => {
+                handleLaunch();
+              }}>Open Web App</Button
+            >
           </div>
         </div>
       </div>

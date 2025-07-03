@@ -392,6 +392,8 @@
         } else {
           console.error('Failed to fetch hub details:', hubDetails);
         }
+      } else {
+        formData.hubName = trailData?.data?.companyName || '';
       }
     }
     // Initialize Stripe
@@ -474,6 +476,7 @@
           {teamdata}
           on:change={handleTeamDataChange}
           {inviteCount}
+          {formData}
         />
       {/if}
     </div>
