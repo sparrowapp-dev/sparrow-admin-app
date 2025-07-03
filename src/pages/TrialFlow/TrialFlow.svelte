@@ -68,7 +68,6 @@
 
   function handleTeamDataChange(event) {
     teamdata = event.detail;
-    // saveTeamData();
   }
 
   const steps = [
@@ -97,6 +96,7 @@
   let inviteCount;
   let trialPeriod;
   let name;
+  let teamDetailsComponent;
 
   const formatHubUrl = (value) => {
     return value ? `https://${value}.sparrowhub.net` : '';
@@ -222,6 +222,14 @@
   }
 
   const handleFinalSetup = async (triggerPoint: string) => {
+    if (triggerPoint === 'finish') {
+      // First validate that rows with data have both email and role
+      const isValid = teamDetailsComponent?.validateForm();
+      if (!isValid) {
+        // Form has validation errors, don't proceed
+        return;
+      }
+    }
     socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
@@ -370,7 +378,6 @@
     const trialId = params.get('trialId');
     name = params.get('name');
     const response = await _viewModel.getTrialDetails(trialId);
-    // loadTeamData();
     if (response?.isSuccessful) {
       trailData = response.data;
       inviteCount = trailData?.data?.inviteCount ?? 0;
@@ -464,7 +471,13 @@
           {isCardDetailsAdded}
         />
       {:else if currentStep === 3}
-        <TeamDetails {teamdata} on:change={handleTeamDataChange} {inviteCount} {formData} />
+        <TeamDetails
+          bind:this={teamDetailsComponent}
+          {teamdata}
+          on:change={handleTeamDataChange}
+          {inviteCount}
+          {formData}
+        />
       {/if}
     </div>
 
