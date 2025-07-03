@@ -6,9 +6,14 @@
   export let inviteCount;
 
   const dispatch = createEventDispatcher();
+  let inviteFormComponent;
 
   function handleFormChange(event) {
     dispatch('change', event.detail);
+  }
+
+  export function validateForm() {
+    return inviteFormComponent.validate();
   }
 </script>
 
@@ -40,7 +45,12 @@
     <div
       class="scrollbar-thin scrollbar-thumb-surface-400 scrollbar-track-surface-600 max-h-[170px] overflow-y-auto pr-1"
     >
-      <InviteForm bind:rows={teamdata} maxRows={inviteCount} on:change={handleFormChange} />
+      <InviteForm
+        bind:this={inviteFormComponent}
+        bind:rows={teamdata}
+        maxRows={inviteCount}
+        on:change={handleFormChange}
+      />
     </div>
   </div>
 </div>
