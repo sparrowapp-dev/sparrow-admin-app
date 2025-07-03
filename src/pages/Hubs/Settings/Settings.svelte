@@ -1,7 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { tweened } from 'svelte/motion';
-  import { cubicOut } from 'svelte/easing';
   import FileUploadDragDrop from '@/components/FileUploadDragDrop/FileUploadDragDrop.svelte';
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
@@ -27,27 +25,6 @@
   import { triggerHubDetailsRefresh } from '@/store/hubs';
 
   const location = useLocation();
-
-  // Animation stores
-  const opacity = tweened(0, {
-    duration: 200,
-    easing: cubicOut,
-  });
-
-  const translateY = tweened(20, {
-    duration: 1000,
-    easing: cubicOut,
-  });
-
-  const logoOpacity = tweened(0, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const formOpacity = tweened(0, {
-    duration: 300,
-    easing: cubicOut,
-  });
 
   // State management
   let hubData = {
@@ -80,15 +57,6 @@
   });
 
   onMount(() => {
-    // Trigger animations
-    setTimeout(() => {
-      opacity.set(1);
-      translateY.set(0);
-    }, 100);
-
-    setTimeout(() => logoOpacity.set(1), 300);
-    setTimeout(() => formOpacity.set(1), 400);
-
     extractedParam.subscribe((id) => {
       if (id) {
         params = id;
@@ -290,10 +258,7 @@
         </Button>
       </div> -->
     </div>
-    <div 
-      class="mb-8 flex flex-col gap-2 {restrictAccess ? 'cursor-not-allowed' : ''}"
-      style="opacity: {$logoOpacity};"
-    >
+    <div class="mb-8 flex flex-col gap-2 {restrictAccess ? 'cursor-not-allowed' : ''}">
       <!-- Logo upload - using small variant -->
       <div class={restrictAccess ? 'pointer-events-none' : ''}>
         <FileUploadDragDrop
@@ -306,10 +271,7 @@
       </div>
     </div>
     <!-- Wrapper that switches to row layout on md+ screens -->
-    <div 
-      class="flex flex-col gap-8 md:flex-row md:gap-0"
-      style="opacity: {$formOpacity}; transform: translateY({$translateY}px);"
-    >
+    <div class="flex flex-col gap-8 md:flex-row md:gap-0">
       <!-- Left column -->
       <div class="flex flex-col gap-6 md:w-1/2 md:pr-6">
         <!-- Hub name with required field validation -->

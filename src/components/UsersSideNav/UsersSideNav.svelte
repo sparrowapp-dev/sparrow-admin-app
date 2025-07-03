@@ -1,22 +1,9 @@
 <script lang="ts">
   import { Link, navigate, useLocation } from 'svelte-routing';
   import { onMount } from 'svelte';
-  import { tweened } from 'svelte/motion';
-  import { cubicOut } from 'svelte/easing';
 
   // Get current path using the useLocation hook
   const location = useLocation();
-
-  // Animation stores for sidebar slide-in effect
-  const sidebarOpacity = tweened(0, {
-    duration: 500,
-    easing: cubicOut
-  });
-
-  const sidebarTranslateX = tweened(-100, {
-    duration: 500,
-    easing: cubicOut
-  });
 
   // Reactive variables for active states
   $: isOverviewActive =
@@ -32,23 +19,9 @@
   $: if ($location.pathname === '/users') {
     navigate('/users/users-dashboard', { replace: true });
   }
-
-  onMount(() => {
-    // Trigger slide-in animation
-    setTimeout(() => {
-      sidebarOpacity.set(1);
-      sidebarTranslateX.set(0);
-    }, 150);
-  });
 </script>
 
-<section
-  class="bg-surface-700 h-full w-full rounded-r-xl p-3"
-  style="
-    transform: translateX({$sidebarTranslateX}px);
-    opacity: {$sidebarOpacity};
-  "
->
+<section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
   <div class="flex flex-col gap-3">
     <nav class="flex flex-col gap-0.5 p-2">
       <button
