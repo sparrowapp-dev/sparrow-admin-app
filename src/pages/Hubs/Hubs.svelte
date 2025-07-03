@@ -10,6 +10,9 @@
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+
   interface Team {
     teamId: string;
     teamName: string;
@@ -93,6 +96,43 @@
 
     return { currentId: null, selectOption: null };
   };
+
+  // Animation stores for sidebar slide-in effect
+  let sidebarOpacity;
+  let sidebarTranslateX;
+  let hasOpened = false;
+
+  $: if (
+    ($location.pathname.startsWith('/hubs/workspace') ||
+      $location.pathname.startsWith('/hubs/settings') ||
+      $location.pathname.startsWith('/hubs/members')) &&
+    !hasOpened
+  ) {
+    sidebarOpacity = tweened(0, {
+      duration: 500,
+      easing: cubicOut,
+    });
+
+    sidebarTranslateX = tweened(-100, {
+      duration: 500,
+      easing: cubicOut,
+    });
+
+    setTimeout(() => {
+      sidebarOpacity.set(1);
+      sidebarTranslateX.set(0);
+    }, 150);
+    hasOpened = true;
+  } else if (
+    hasOpened &&
+    !(
+      $location.pathname.startsWith('/hubs/workspace') ||
+      $location.pathname.startsWith('/hubs/settings') ||
+      $location.pathname.startsWith('/hubs/members')
+    )
+  ) {
+    hasOpened = false;
+  }
 </script>
 
 <div>
@@ -101,8 +141,14 @@
       class="bg-surface-900 flex"
       style={topBannerShow ? 'height: calc(100vh - 68px);' : 'height: calc(100vh - 48px);'}
     >
-      <!-- Sidebar - no longer passing data prop -->
-      <div class="max-w-[266px] min-w-[266px]">
+      <!-- Sidebar with spring-in animation -->
+      <div
+        class="max-w-[266px] min-w-[266px]"
+        style="
+          transform: translateX({$sidebarTranslateX}px);
+          opacity: {$sidebarOpacity};
+        "
+      >
         <ReusableSideNav
           link={'/hubs'}
           options={[

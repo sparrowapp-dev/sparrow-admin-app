@@ -1,6 +1,9 @@
 <script>
   // Svelte
   import { useLocation } from 'svelte-routing';
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
 
   // Services
   import { createQuery } from '@/services/api.common';
@@ -165,6 +168,34 @@
     // Refetch data
     refetchPaymentMethods();
   }
+
+  // Animation stores
+  const pageOpacity = tweened(0, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const cardOpacity = tweened(0, {
+    duration: 500,
+    easing: cubicOut,
+  });
+
+  const cardScale = tweened(0.95, {
+    duration: 500,
+    easing: cubicOut,
+  });
+
+  // Trigger animations when data is loaded
+  $: if ($customerData?.httpStatusCode && !$isLoadingPaymentMethods && !$isLoadingCustomer) {
+    setTimeout(() => {
+      pageOpacity.set(1);
+    }, 100);
+
+    setTimeout(() => {
+      cardOpacity.set(1);
+      cardScale.set(1);
+    }, 300);
+  }
 </script>
 
 {#if !$customerData?.httpStatusCode || $isLoadingPaymentMethods || $isLoadingCustomer}
@@ -172,7 +203,7 @@
     <CircularLoader />
   </div>
 {:else}
-  <section class="payment-information text-white">
+  <section class="payment-information text-white" style="opacity: {$pageOpacity}; ">
     <div class="mb-6 flex items-end justify-between">
       <div>
         <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Information</h1>
@@ -218,7 +249,10 @@
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <!-- Payment Method Section -->
-      <div class="payment-method bg-surface-600 rounded-md p-6">
+      <div
+        class="payment-method bg-surface-600 rounded-md p-6"
+        style="opacity: {$cardOpacity}; transform: scale({$cardScale});"
+      >
         <div class="mb-4 flex items-center gap-2">
           <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
           {#if selectedPaymentMethod?.isDefault}
