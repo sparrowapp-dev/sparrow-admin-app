@@ -23,8 +23,13 @@
   // Import modal components
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
-  import { PlanUpdateSuccess, PlanUpdateFailed } from '@/components/PlanUpdateStatus';
+  import {
+    PlanUpdateSuccess,
+    PlanUpdateFailed,
+    PlanScheduleSuccess,
+  } from '@/components/PlanUpdateStatus';
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
+  import Alert from '@/components/Alert/Alert.svelte';
 
   const location = useLocation();
 
@@ -78,6 +83,7 @@
   let showProcessingModal = false;
   let showSubscriptionConfirmModal = false;
   let showSubscriptionFailedModal = false;
+  let showSubscriptionScheduleConfirmModal = false;
   let invoiceUrl = '';
   let selectedPlanDetails = {
     fromPlan: currentPlan,
@@ -139,6 +145,27 @@
       },
       onSubscriptionUpdated: () => {},
       onSubscriptionCreated: () => {},
+      onScheduleCreated: (data) => {
+        console.log('Schedule updated:', data);
+        const { team } = data;
+        setTimeout(() => {
+          isProcessing = false;
+          showProcessingModal = false;
+
+          // Set data for scheduled downgrade modal
+          selectedPlanDetails = {
+            fromPlan: currentPlan,
+            toPlan: planName,
+            hubName: team?.name || '',
+            nextBilling: team?.billing?.current_period_end,
+          };
+        }, 5000);
+
+        // Show scheduled downgrade modal
+        setTimeout(() => {
+          showSubscriptionScheduleConfirmModal = true;
+        }, 5000);
+      },
     });
   });
 
@@ -299,6 +326,8 @@
           priceId,
           paymentMethodId: selectedPaymentMethodId,
           metadata,
+          trialPeriodDays: 0,
+          seats: userCount || 1,
         });
       } else {
         throw new Error('No customer ID available to create subscription');
@@ -313,17 +342,6 @@
       // The modals will be shown/hidden by the socket event handlers
     } catch (err) {
       console.error('Error processing subscription:', err);
-      isProcessing = false;
-      showProcessingModal = false;
-
-      // Show the failed modal with the error
-      selectedPlanDetails = {
-        fromPlan: currentPlan,
-        toPlan: planName,
-        hubName: $hubDetails?.data?.name || '',
-        nextBilling: '',
-      };
-      showSubscriptionFailedModal = true;
     }
   }
 
@@ -358,12 +376,12 @@
 
       <!-- Downgrade Notice -->
       {#if isDowngrade}
-        <div class="mb-4 rounded-lg border border-blue-700 bg-blue-900/20 p-3">
-          <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-blue-300">
-            <strong>Downgrade Scheduled:</strong> Your plan will be downgraded at the end of the current
-            billing cycle. You’ll retain full access to your current features until then. Once downgraded,
-            further plan changes and cancellation will be disabled until the next cycle.
-          </p>
+        <div class="mb-6 shadow-lg">
+          <Alert
+            variant="info"
+            showButton={false}
+            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, or cancel your plan until the change takes effect.`}
+          />
         </div>
       {/if}
     </div>
@@ -489,7 +507,12 @@
   <!-- Processing Payment Modal -->
   {#if showProcessingModal}
     <Modal width="max-w-xl" on:close={() => (showProcessingModal = false)}>
-      <PaymentProcessingModal on:close={() => (showProcessingModal = false)} />
+      <PaymentProcessingModal
+        title="Processing Your Payment"
+        description="Please don't close this window, We're processing your payment. Your hub will be ready as
+        soon as the payment is confirmed."
+        on:close={() => (showProcessingModal = false)}
+      />
     </Modal>
   {/if}
 
@@ -540,6 +563,30 @@
         }}
         on:goToDashboard={() => {
           showSubscriptionConfirmModal = false;
+          navigate(`/billing/billingOverview/${hubId}`);
+        }}
+      />
+    </Modal>
+  {/if}
+
+  <!-- Subscription Confirmation Modal -->
+  {#if showSubscriptionScheduleConfirmModal}
+    <Modal
+      width="max-w-xl"
+      on:close={() => {
+        showSubscriptionScheduleConfirmModal = false;
+        navigate(`/billing/billingOverview/${hubId}`);
+      }}
+    >
+      <PlanScheduleSuccess
+        hubName={selectedPlanDetails.hubName}
+        currentPlan={selectedPlanDetails.fromPlan}
+        nextBillingDate={selectedPlanDetails.nextBilling}
+        fromPlan={selectedPlanDetails.fromPlan}
+        toPlan={selectedPlanDetails?.toPlan}
+        {hubId}
+        on:close={() => {
+          showSubscriptionScheduleConfirmModal = false;
           navigate(`/billing/billingOverview/${hubId}`);
         }}
       />

@@ -24,6 +24,7 @@
   export let tooltipText: string = '';
   export let tooltipPosition: 'top' | 'right' | 'bottom' | 'left' = 'top';
   export let tooltipDelay: number = 0;
+  export let className = '';
 
   const sizeClasses = {
     small: 'text-fs-ds-12 rounded-[4px] px-2 py-1.5 h-[28px]',
@@ -76,16 +77,12 @@
       inline-flex items-center justify-center gap-2 transition-all outline-none
       ${sizeClasses[size]} ${variantClasses[variant]}
       ${disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}
+      ${className} 
     `;
 </script>
 
 {#if tooltipText}
-  <Tooltip 
-    text={tooltipText} 
-    position={tooltipPosition} 
-    showDelay={tooltipDelay}
-    size='xs'
-  >
+  <Tooltip text={tooltipText} position={tooltipPosition} showDelay={tooltipDelay} size="xs">
     <button
       class={baseClasses}
       {type}

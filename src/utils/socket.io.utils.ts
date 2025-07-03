@@ -7,6 +7,7 @@ interface StripeHandlers {
   onDisconnect?: (reason: string) => void;
   onPaymentSuccess?: (data: any) => void;
   onPaymentFailed?: (data: any) => void;
+  onScheduleCreated?: (data: any) => void;
   onSubscriptionUpdated?: (data: any) => void;
   onSubscriptionCreated?: (data: any) => void;
   onSubscriptionCanceled?: (data: any) => void;
@@ -29,6 +30,8 @@ export function initializeStripeSocket(
   hubId: string,
   handlers: StripeHandlers = {},
 ): Socket {
+  console.log('env:', APP_ENVIRONMENT);
+
   // If socket already exists and is connected, update handlers and join new hub room
   if (globalSocket && globalSocket.connected) {
     // Join the new hub room if hubId is provided
@@ -45,6 +48,11 @@ export function initializeStripeSocket(
     if (handlers.onPaymentFailed) {
       globalSocket.off('payment_failed');
       globalSocket.on('payment_failed', handlers.onPaymentFailed);
+    }
+
+    if (handlers.onScheduleCreated) {
+      globalSocket.off('subscription_schedule_updated');
+      globalSocket.on('subscription_schedule_updated', handlers.onScheduleCreated);
     }
 
     if (handlers.onSubscriptionUpdated) {
@@ -147,6 +155,9 @@ export function initializeStripeSocket(
 
   if (handlers.onSubscriptionCanceled) {
     socket.on('subscription_canceled', handlers.onSubscriptionCanceled);
+  }
+  if (handlers.onScheduleCreated) {
+    socket.on('subscription_schedule_updated', handlers.onScheduleCreated);
   }
 
   return socket;

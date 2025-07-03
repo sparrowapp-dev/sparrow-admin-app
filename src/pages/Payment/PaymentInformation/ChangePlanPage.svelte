@@ -7,10 +7,6 @@
   import Tag from '@/ui/Tag/Tag.svelte';
   import Button from '@/ui/Button/Button.svelte';
 
-  // Services
-  import { hubsService } from '@/services/hubs.service';
-  import { createQuery } from '@/services/api.common';
-
   // Icons
   import CheckIcon from '@/assets/icons/Check.svelte';
 
@@ -46,6 +42,7 @@
 
     // Extract query parameters from URL search params
     const searchParams = new URLSearchParams($location?.search || '');
+
     currentPlan = searchParams.get('currentPlan') || 'Community';
     const billingCycleParam = searchParams.get('currentBillingCycle') || 'monthly';
     currentBillingCycle = (
@@ -53,13 +50,7 @@
     ) as BillingCycleType;
     subscriptionId = searchParams.get('subscriptionId') || '';
     subscriptionStatus = searchParams.get('status') || '';
-  }
-
-  // Fetch hub details
-  const { data: hubDetails } = createQuery(() => hubsService.getHubDetails(hubId));
-
-  $: if ($hubDetails?.data) {
-    userCount = $hubDetails.data.users?.length || 1;
+    userCount = parseInt(searchParams.get('userCount') || '1', 10);
   }
 
   // Plan details for comparison
@@ -261,7 +252,7 @@
                     <Button
                       variant="filled-primary"
                       on:click={() => selectPlan(plan)}
-                      disabled={plan === 'community' || buttonText === 'Downgrade'}
+                      disabled={plan === 'community'}
                     >
                       {buttonText}
                     </Button>

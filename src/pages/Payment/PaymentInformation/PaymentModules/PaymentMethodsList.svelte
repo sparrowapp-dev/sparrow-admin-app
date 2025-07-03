@@ -79,6 +79,7 @@
       accessorKey: 'card.brand',
       id: 'card_brand',
       header: 'Card details',
+      width: '250px',
       cell: ({ row }) => ({
         Component: DefaultCard,
         props: {

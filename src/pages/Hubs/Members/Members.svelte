@@ -82,18 +82,18 @@
       enableSorting: false,
       cell: ({ getValue }) => `${getValue()}`,
     },
-    {
-      accessorKey: 'lastActive',
-      header: 'Last Active',
-      enableSorting: false,
-      cell: ({ getValue }) => {
-        const date = getValue();
-        const relativeTime = getRelativeTime(date);
-        return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
-            ${relativeTime}
-          </span>`;
-      },
-    },
+    // {
+    //   accessorKey: 'lastActive',
+    //   header: 'Last Active',
+    //   enableSorting: false,
+    //   cell: ({ getValue }) => {
+    //     const date = getValue();
+    //     const relativeTime = getRelativeTime(date);
+    //     return `<span class="text-neutral-50" title="${new Date(date).toLocaleString()}">
+    //         ${relativeTime}
+    //       </span>`;
+    //   },
+    // },
     {
       id: 'actions',
       header: '',

@@ -642,7 +642,7 @@
                 inputType="name"
                 bind:value={billingName}
                 required={true}
-                placeholder="Enter name"
+                placeholder="Enter Name"
                 disabled={isSaving}
                 hasError={formSubmitted && !billingName.trim()}
                 errorMessage={formSubmitted && !billingName.trim()
@@ -664,7 +664,7 @@
                 disabled={isSaving}
                 hasError={formSubmitted && !billingEmail.trim()}
                 errorMessage={formSubmitted && !billingEmail.trim()
-                  ? 'Please enter valid billing email.'
+                  ? 'Please enter valid billing email'
                   : ''}
                 emailErrorMessage="Please enter valid billing email"
               />
@@ -678,7 +678,7 @@
                 name="line1"
                 bind:value={line1}
                 required={true}
-                placeholder="Enter address line 1"
+                placeholder="Enter Address Line 1"
                 disabled={isSaving}
                 hasError={formSubmitted && !line1.trim()}
                 errorMessage={formSubmitted && !line1.trim() ? 'Please enter your address' : ''}
@@ -692,7 +692,7 @@
                 id="line2"
                 name="line2"
                 bind:value={line2}
-                placeholder="Enter address line 2"
+                placeholder="Enter Address Line 2"
                 disabled={isSaving}
               />
             </div>
@@ -759,7 +759,7 @@
                 inputType="postal"
                 bind:value={postalCode}
                 required={true}
-                placeholder="Enter ZIP code"
+                placeholder="Enter ZIP Code"
                 disabled={isSaving}
                 hasError={formSubmitted && !postalCode.trim()}
                 errorMessage={formSubmitted && !postalCode.trim()

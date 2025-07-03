@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { writable } from 'svelte/store';
+import { setTokens } from '@/store/auth';
 
 // Response interface - matches AxiosResponse but with isSuccess added
 export interface HttpClientResponseInterface<T = any> extends Omit<AxiosResponse<T>, 'data'> {
@@ -27,6 +28,11 @@ const DEFAULT_CONFIG: AxiosRequestConfig = {
 // Create HTTP Client class
 export class HttpClient {
   private instance: AxiosInstance;
+  private isRefreshing = false;
+  private failedQueue: Array<{
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+  }> = [];
 
   constructor(config: AxiosRequestConfig = {}) {
     this.instance = axios.create({
@@ -37,7 +43,7 @@ export class HttpClient {
     // Request interceptor
     this.instance.interceptors.request.use(
       (config) => {
-        // Get token from localStorage or other state management
+        // Get token from localStorage
         const token = localStorage.getItem('accessToken');
 
         // If token exists, add it to the headers
@@ -50,9 +56,115 @@ export class HttpClient {
       (error) => Promise.reject(error),
     );
 
-    // Response interceptor - we'll handle success manually
-    // in each method to properly type the responses
-    this.instance.interceptors.response.use((response) => response, this.handleError);
+    // Response interceptor with automatic token refresh
+    this.instance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        // Check if error is 401 and we haven't already tried to refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            // If we're already refreshing, queue this request
+            return new Promise((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject });
+            })
+              .then(() => {
+                return this.instance(originalRequest);
+              })
+              .catch((err) => {
+                return Promise.reject(err);
+              });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            if (!refreshToken) {
+              this.logout();
+              return Promise.reject(this.createErrorResponse('No refresh token available'));
+            }
+
+            // Call refresh token API
+            const refreshResponse = await axios.post(
+              `${this.instance.defaults.baseURL}/api/admin/auth/refresh-token`,
+              { refreshToken },
+            );
+            if (
+              refreshResponse.data?.data?.accessToken &&
+              refreshResponse.data?.data?.refreshToken
+            ) {
+              const accessToken = refreshResponse.data.data.accessToken.token;
+              const refreshToken = refreshResponse.data.data.refreshToken.token;
+              // Update tokens in localStorage
+              localStorage.setItem('accessToken', accessToken);
+              localStorage.setItem('refreshToken', refreshToken);
+              // Update auth store
+              setTokens({
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+              });
+              // Process failed queue
+              this.processQueue(null);
+
+              // Retry original request with new token
+              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+              return this.instance(originalRequest);
+            } else {
+              this.logout();
+              return Promise.reject(this.createErrorResponse('Invalid refresh response'));
+            }
+          } catch (refreshError) {
+            // Refresh failed, logout user
+            this.processQueue(refreshError);
+            this.logout();
+            return Promise.reject(this.createErrorResponse('Token refresh failed'));
+          } finally {
+            this.isRefreshing = false;
+          }
+        }
+
+        return this.handleError(error);
+      },
+    );
+  }
+
+  private processQueue(error: any) {
+    this.failedQueue.forEach(({ resolve, reject }) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(null);
+      }
+    });
+
+    this.failedQueue = [];
+  }
+
+  private logout() {
+    // Clear tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // Clear auth store
+    import('@/store/auth').then(({ clearTokens }) => {
+      clearTokens();
+    });
+
+    // Redirect to login
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+
+  private createErrorResponse(message: string): HttpClientErrorInterface {
+    return {
+      message,
+      status: 401,
+    };
   }
 
   private handleSuccess<T>(response: AxiosResponse<T>): HttpClientResponseInterface<T> {
@@ -71,15 +183,6 @@ export class HttpClient {
         status: error.response.status,
         data: error.response.data,
       };
-
-      // Handle specific status codes if needed
-      if (error.response.status === 401) {
-        // Handle unauthorized - maybe redirect to login
-        console.error('Unauthorized access, please login again');
-        localStorage.removeItem('token');
-        // Optionally redirect to login page
-        // window.location.href = '/login';
-      }
 
       return Promise.reject(errorResponse);
     } else if (error.request) {

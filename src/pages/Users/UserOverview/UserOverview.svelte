@@ -57,7 +57,17 @@
     return isInTeam && matchesSearch;
   });
 
-  $: paginatedUsers = filteredUsers.slice(
+  $: sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sorting.length) return 0;
+    const { id: sortKey, desc } = sorting[0];
+    const aValue = (a[sortKey] || '').toString().toLowerCase();
+    const bValue = (b[sortKey] || '').toString().toLowerCase();
+    if (aValue < bValue) return desc ? 1 : -1;
+    if (aValue > bValue) return desc ? -1 : 1;
+    return 0;
+  });
+
+  $: paginatedUsers = sortedUsers.slice(
     pagination.pageIndex * pagination.pageSize,
     (pagination.pageIndex + 1) * pagination.pageSize,
   );

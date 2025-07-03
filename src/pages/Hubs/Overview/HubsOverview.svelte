@@ -118,7 +118,7 @@
     },
     {
       id: 'Plans',
-      header: 'Hub Plan',
+      header: 'Plans',
       cell: ({ row }) => {
         let tagProps = getDynamicCssClasses(row?.original?.plan?.name);
         return {
@@ -176,6 +176,7 @@
       header: '',
       enableSorting: false,
       size: 300,
+      width: '130px',
       cell: ({ row }) => ({
         Component: LaunchApp,
         props: {

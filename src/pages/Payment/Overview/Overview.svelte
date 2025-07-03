@@ -135,7 +135,8 @@
   $: if ($hubData !== undefined) {
     currentHubData = $hubData?.data || null;
     hubName = currentHubData?.name || '';
-    userCount = currentHubData?.users?.length || 1;
+    // userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
+    userCount = 1;
     planStatus = currentHubData?.billing?.status;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
@@ -163,7 +164,8 @@
       nextBillingDate = processedData.nextBillingDate;
       lastInvoiceAmount = processedData.lastInvoiceAmount;
       totalPaidAmount = processedData.totalPaidAmount;
-      userCount = processedData.userCount;
+      // userCount = userCount enable later;
+      userCount = 1;
       subscriptionStatus = processedData.subscriptionStatus;
     } else {
       // If subscription is canceled or inactive, use default values
@@ -208,6 +210,7 @@
       currentBillingCycle,
       subscriptionId: subscriptionId || '',
       status: subscriptionStatus,
+      userCount: userCount.toString(),
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -329,6 +332,7 @@
     {#if planStatus === 'payment_failed'}
       <div class="mt-2 mb-8">
         <Alert
+          variant="error"
           title="Payment Issue Detected"
           subtitle="Your last payment failed, and your plan is at risk of being paused. Please update your payment information to ensure uninterrupted access."
           showButton={true}
@@ -344,8 +348,9 @@
     {#if subscriptionData?.schedule}
       <div class="mt-2 mb-8">
         <Alert
-          title="Scheduled Plan Change"
-          subtitle={`You have a scheduled plan change in progress. Your subscription will be downgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade or downgrade your plan until this change takes effect.`}
+          variant="warning"
+          title="Scheduled Downgrade"
+          subtitle={`You have a scheduled downgrade in progress. Your subscription will be downgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade, downgrade or cancel your plan until this change takes effect.`}
           showButton={false}
           class_name="border-l-2 border-blue-400 bg-gradient-to-r from-blue-400/18 from-1% via-10% via-surface-600 to-surface-600"
         />
@@ -383,7 +388,7 @@
               {/if}
             </div>
 
-            {#if false}
+            {#if !subscriptionData?.schedule}
               {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
@@ -413,12 +418,17 @@
           </div>
           <div class="pt-0">
             <div class="flex flex-col gap-1">
-              {#if nextBillingDate}
+              {#if subscriptionId && subscriptionData?.cancel_at_period_end}
+                <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+                  Next billing date: –
+                </p>
+              {:else if nextBillingDate}
                 <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                   Next billing date: {nextBillingDate}
                   {currentBillingCycle === 'monthly' ? '(Billed monthly)' : '(Billed annually)'}
                 </p>
               {/if}
+
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                 Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
@@ -429,7 +439,7 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule}
+              {#if !subscriptionData?.schedule && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
@@ -456,7 +466,8 @@
             variant="outline-primary"
             size="medium"
             on:click={handleUpgradeClick}
-            disabled={subscriptionData?.schedule}
+            disabled={subscriptionData?.schedule ||
+              (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
             tooltipText={subscriptionData?.schedule
               ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
               : ''}
@@ -574,6 +585,7 @@
           {hubName}
           {currentPlan}
           accessUntil={nextBillingDate}
+          {hubId}
           on:close={closeCancelSuccessModal}
           on:confirmResubscribe={confirmResubscription}
         />

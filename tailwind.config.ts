@@ -31,6 +31,7 @@ const config: Config = {
         'fs-ds-52': '3.25rem', // 52px
         'fs-ds-48': '3rem', // 48px
         'fs-ds-42': '2.625rem', // 42px
+        'fs-ds-32': '2rem', // 32px
         'fs-ds-30': '1.875rem', // 30px
         'fs-ds-28': '1.75rem', // 28px
         'fs-ds-24': '1.5rem', // 24px

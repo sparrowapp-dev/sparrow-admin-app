@@ -3,20 +3,37 @@
   import Button from '@/ui/Button/Button.svelte';
   import Textarea from '@/ui/Textarea/Textarea.svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
+  import { billingService } from '@/services/billing.service';
 
   const dispatch = createEventDispatcher();
 
   export let hubName: string = '';
   export let currentPlan: string = '';
   export let accessUntil: string = '';
+  export let hubId: string = '';
 
   let feedback = '';
+
+  async function submitFeedback() {
+    if (!hubId) return;
+
+    try {
+      await billingService.submitHubFeedback({
+        hubId,
+        feedback: feedback.trim(),
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    } finally {
+    }
+  }
 
   function handleClose() {
     dispatch('close');
   }
 
   function handleResubscribe() {
+    submitFeedback();
     dispatch('confirmResubscribe');
   }
 </script>
@@ -61,7 +78,7 @@
   <!-- Feedback Section -->
   <div class="mb-6">
     <p class="text-fs-ds-12 font-fw-ds-300 mb-4 text-neutral-400">
-      We'd love to hear your feedback on why you canceled.
+      We'd love to hear your feedback on why you cancelled.
     </p>
 
     <div class="relative">

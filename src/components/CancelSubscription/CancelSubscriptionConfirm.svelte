@@ -78,8 +78,10 @@
   {#if nextBillingDate && daysLeft > 0}
     <div class="mb-6 shadow-lg">
       <Alert
+        variant="error"
         showButton={false}
-        subtitle={`You're cancelling the ${currentPlan} plan for '${hubName}' Hub. Paid features stay active until ${nextBillingDate} (${daysLeft} days left), after which your hub will move to the community plan.`}
+        type="v2"
+        subtitle={`You're cancelling the ${currentPlan} plan for '<strong class='font-fw-ds-500'>${hubName}</strong>' Hub. Paid features stay active until <strong class='font-fw-ds-500'>${nextBillingDate}</strong> (${daysLeft} days left), after which your hub will move to the community plan.`}
       />
     </div>
   {/if}

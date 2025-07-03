@@ -10,6 +10,27 @@
   export let buttonText: string = '';
   export let showButton: boolean = true;
   export let class_name: string = '';
+  export let type: 'v2' | 'v1' = 'v1';
+  export let variant: 'error' | 'warning' | 'info' = 'error';
+
+  // Variant-specific styling
+  $: variantStyles = {
+    error: {
+      gradient: 'from-red-400/18',
+      border: 'border-red-400',
+      iconColor: '#EB5651',
+    },
+    warning: {
+      gradient: 'from-yellow-300/18',
+      border: 'border-yellow-300',
+      iconColor: '#FFC93D',
+    },
+    info: {
+      gradient: 'from-blue-300/18',
+      border: 'border-blue-300',
+      iconColor: '#63B3ED',
+    },
+  };
 
   const dispatch = createEventDispatcher();
 
@@ -19,14 +40,17 @@
 </script>
 
 <div
-  class="via-surface-600 to-surface-600 rounded-md bg-gradient-to-r from-red-400/18 from-1% via-10% p-5 {class_name} border-l-2 border-red-400"
+  class="{type === 'v2'
+    ? 'via-surface-500 to-surface-500'
+    : 'via-surface-600 to-surface-600'} rounded-md bg-gradient-to-r {variantStyles[variant]
+    .gradient} from-1% via-10% p-5 {class_name} border-l-2 {variantStyles[variant].border}"
 >
   <div class="flex flex-col gap-4">
     <div class="flex justify-between">
       <!-- Payment Issue Icon -->
       <div class="flex items-start gap-4">
         <div class="h-10 w-10">
-          <AlertIcon />
+          <AlertIcon color={variantStyles[variant].iconColor} />
         </div>
 
         <div>
@@ -34,8 +58,12 @@
             <h2 class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-50">{title}</h2>
           {/if}
           {#if subtitle}
-            <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-neutral-100">
-              {subtitle}
+            <p
+              class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 {type === 'v2'
+                ? 'text-neutral-400'
+                : 'text-neutral-100'}"
+            >
+              {@html subtitle}
             </p>
           {/if}
         </div>

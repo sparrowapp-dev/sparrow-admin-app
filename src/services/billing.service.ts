@@ -13,12 +13,13 @@ interface BillingDetailsUpdateParams {
   };
 }
 
-// Subscription interfaces migrated from billingV2.service.ts
 interface CreateSubscriptionParams {
   customerId: string;
   priceId: string;
   paymentMethodId: string;
   metadata?: Record<string, string>;
+  trialPeriodDays?: number;
+  seats?: number;
 }
 
 interface UpdateSubscriptionParams {
@@ -44,6 +45,11 @@ interface CancelSubscriptionParams {
 interface ReactivateSubscriptionParams {
   subscriptionId: string;
   metadata?: Record<string, string>;
+}
+
+interface HubFeedbackParams {
+  hubId: string;
+  feedback: string;
 }
 
 export class BillingService {
@@ -256,6 +262,16 @@ export class BillingService {
   public async simulatePayment(customerId: string, priceId: string): Promise<any> {
     const url = `/api/stripe/subscriptions/simulate-invoice`;
     const res = await makeRequest('POST', url, { customerId, priceId });
+    return res?.data;
+  }
+
+  /**
+   * Submit feedback when a hub subscription is cancelled
+   * @param params Object containing hubId and feedback text
+   */
+  public async submitHubFeedback(params: HubFeedbackParams): Promise<any> {
+    const url = `/api/admin/hub-feedback`;
+    const res = await makeRequest('POST', url, params);
     return res?.data;
   }
 

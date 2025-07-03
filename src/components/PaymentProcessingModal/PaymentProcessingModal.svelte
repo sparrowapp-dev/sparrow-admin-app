@@ -13,6 +13,9 @@
   // Maximum time in seconds (5 minutes)
   const MAX_TIME = 300;
 
+  export let title;
+  export let description;
+
   let timeLeft = MAX_TIME;
   let timer;
   let progress = 0;
@@ -46,7 +49,7 @@
 <div class="bg-surface-600 flex flex-col items-center gap-4 rounded-lg p-6 text-white">
   <div class="w-full items-start justify-between">
     <div class="mb-4 flex w-full items-center justify-between">
-      <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 mb-2">Processing Your Payment</h2>
+      <h2 class="text-fs-ds-20 font-inter font-fw-ds-500">{title}</h2>
       <button on:click={handleClose} class="cursor-pointer">
         <CloseIcon />
       </button>
@@ -54,8 +57,7 @@
 
     <div class="flex items-center gap-2">
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-100">
-        Please don't close this window, We're processing your payment. Your hub will be ready as
-        soon as the payment is confirmed.
+        {description}
       </p>
       <div class="relative flex items-center justify-center">
         <!-- Timer circle background -->
