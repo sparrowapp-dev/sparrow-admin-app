@@ -60,7 +60,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1Re8x2Ldqw2Igdv3B1TVmnok',
+      priceId: 'price_1RWVleLdqw2Igdv35Pck94FB',
     },
     annual: {
       price: '$99',
@@ -83,7 +83,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RWVo9Ldqw2Igdv3ktkXFNKo',
+      priceId: 'price_1Rh8STLdqw2Igdv3Ta6ohGaZ',
     },
     annual: {
       price: '$199',
