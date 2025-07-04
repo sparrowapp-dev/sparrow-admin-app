@@ -296,6 +296,16 @@ export class HubsService {
     const res = await makeRequest('GET', `/api/admin/hub-statistics?hubId=${hubId}`);
     return res?.data;
   }
+
+  public async bulkInviteUsers(data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/team/${data.teamId}/bulk-invite`, data);
+    return res?.data;
+  }
+
+  public async sendConfirmationMail(trailId: string, data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/trial-confirmation-mail/${trailId}`, data);
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

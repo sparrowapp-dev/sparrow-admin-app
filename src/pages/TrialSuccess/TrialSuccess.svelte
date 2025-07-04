@@ -2,6 +2,40 @@
   import TrialNav from '@/components/TrialNav/TrialNav.svelte';
   import WelcomePage from '@/assets/images/WelcomePage.png';
   import TrialSuccess from '@/components/TrialFlow/TrialSuccess.svelte';
+  import { onMount } from 'svelte';
+  let hub = '';
+  let users = '';
+  let trialstart = '';
+  let trialend = '';
+  let trialStartDate = '';
+  let trialEndDate = '';
+  let amount = 0;
+  onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    hub = params.get('hub');
+    users = params.get('users');
+    trialstart = params.get('trialstart');
+    trialend = params.get('trialend');
+
+    // Convert Unix timestamp (seconds) to Date string
+    if (trialstart) {
+      const date = new Date(Number(trialstart) * 1000);
+      trialStartDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    if (trialend) {
+      const date = new Date(Number(trialend) * 1000);
+      trialEndDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    amount = users ? parseInt(users) * 9.99 : 9.99; // Assuming $9.99 per user
+  });
 </script>
 
 <TrialNav />
@@ -16,7 +50,7 @@
       </h1>
     </div>
     <div>
-      <TrialSuccess />
+      <TrialSuccess {hub} {users} {trialEndDate} {trialStartDate} {amount} />
     </div>
   </div>
 </div>

@@ -86,7 +86,7 @@
         </thead>
 
         <tbody>
-          {#each $table.getRowModel().rows as row}
+          {#each $table.getRowModel().rows as row, rowIndex}
             <tr
               class="group/row hover:bg-surface-800 border-surface-600 border-b transition-colors duration-150 {rowClassName}"
               on:click={() => handleRowClick(row)}
@@ -94,6 +94,7 @@
               {#each row.getVisibleCells() as cell}
                 <TableCell
                   {cell}
+                  {rowIndex}
                   className={cellClassName}
                   showOnHover={cell.column.id === 'launch'}
                   isLastColumn={cell.column.id === lastColumnId}

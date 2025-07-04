@@ -60,7 +60,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RWVleLdqw2Igdv35Pck94FB',
+      priceId: 'price_1RZaD7FLRwufXqZCEtDiMO02',
     },
     annual: {
       price: '$99',
@@ -71,7 +71,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17.4%',
-      priceId: 'price_1RWVpJLdqw2Igdv3tJJLzCE0',
+      priceId: 'price_1RZaFiFLRwufXqZCNc7JterI',
     },
   },
   professional: {
@@ -84,6 +84,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       priceId: 'price_1Rh8STLdqw2Igdv3Ta6ohGaZ',
+
     },
     annual: {
       price: '$199',
@@ -94,7 +95,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17%',
-      priceId: 'price_1RWVpsLdqw2Igdv3mRd83zkN',
+      priceId: 'price_1RZaGtFLRwufXqZCVUrpvs74',
     },
   },
   enterprise: {
