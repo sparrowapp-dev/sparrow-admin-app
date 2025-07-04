@@ -93,8 +93,10 @@ export function initializeStripeSocket(
     globalSocket = null;
   }
 
+  const cleanedBaseUrl = apiBaseUrl?.replace(/\/v2\/?$/, '');
+
   // Create a new socket only if one doesn't exist yet
-  const socket = io(`${apiBaseUrl}`, {
+  const socket = io(cleanedBaseUrl, {
     path: isProduction ? '/v2/socket.io' : '/socket.io',
     transports: ['polling'],
     reconnectionAttempts: 5,
