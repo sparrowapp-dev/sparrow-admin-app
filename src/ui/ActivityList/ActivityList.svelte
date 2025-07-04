@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
   import { formatDate } from '@/utils/TimeFunction';
 
   export let activities: Array<{ user: { name: string }; message: string; createdAt: string }> = [];
@@ -17,7 +20,6 @@
     return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
   }
 
-  // Slice the activities to only show the configured number
   $: displayActivities = activities;
 </script>
 
@@ -40,8 +42,11 @@
     </div>
   {:else}
     <div class="relative flex flex-col space-y-8">
-      {#each displayActivities as activity, i}
-        <div class="relative z-10 flex items-start space-x-3">
+      {#each displayActivities as activity, index}
+        <div
+          class="activity-item relative z-10 flex items-start space-x-3"
+          style="animation-delay: {index * 80}ms;"
+        >
           <!-- User initial circle -->
           <div
             class="border-surface-50 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border bg-purple-400 font-medium text-white"
@@ -64,3 +69,19 @@
     </div>
   {/if}
 </div>
+
+<style>
+  @keyframes stackIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .activity-item {
+    opacity: 0;
+    animation: stackIn 500ms ease-out forwards;
+  }
+</style>
