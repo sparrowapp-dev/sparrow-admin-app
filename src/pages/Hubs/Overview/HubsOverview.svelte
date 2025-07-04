@@ -231,7 +231,7 @@
 
 <section class="bg-surface-900 flex w-full flex-col gap-4 pt-4">
   <!-- Overview Cards Section -->
-  {#if !$hubsData?.httpStatusCode}
+  {#if !$hubsData?.httpStatusCode && !$summaryData?.httpStatusCode}
     <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
       <CircularLoader />
     </div>
@@ -245,7 +245,7 @@
           Manage and monitor all your Sparrow Hubs
         </h2>
       </div>
-      <div class="flex flex-row justify-between">
+      <div class="flex flex-row justify-between h-[7.5rem]">
         {#each cardsData as card}
           <OverviewCards
             icon={card.icon}

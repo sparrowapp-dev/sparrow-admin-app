@@ -217,6 +217,19 @@
     hoveredCardIndex = isHovering ? index : null;
     cardScale.set(isHovering ? 1.01 : 1);
   }
+
+  // Animation stores for toggle
+  const toggleIndicatorX = tweened(0, {
+    duration: 300,
+    easing: cubicOut
+  });
+
+  // Update toggle position when billing cycle changes
+  $: if (billingCycle === 'monthly') {
+    toggleIndicatorX.set(0);
+  } else {
+    toggleIndicatorX.set(100); // Move it fully to the right (100% of its width)
+  }
 </script>
 
 <div
@@ -233,20 +246,27 @@
     </p>
 
     <div class="mt-6">
-      <!-- Billing toggle with animation -->
+      <!-- Billing toggle with smooth sliding animation -->
       <div class="mb-6 flex">
         <div
-          class="border-surface-100 flex w-[350px] rounded-md border"
+          class="border-surface-100 relative flex w-[350px] rounded-md border overflow-hidden"
           style="transform: scale({$toggleScale});"
         >
+          <!-- Sliding background indicator -->
+          <div
+            class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-surface-600 rounded-md transition-transform duration-300 ease-out"
+            style="transform: translateX({$toggleIndicatorX}%);"
+          ></div>
+          
+          <!-- Toggle buttons -->
           <button
-            class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${billingCycle === 'monthly' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+            class={`text-fs-ds-12 font-inter font-fw-ds-400 relative z-10 m-1 flex-1 cursor-pointer rounded-md py-1.5 transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-white' : 'text-neutral-300'}`}
             on:click={() => (billingCycle = 'monthly')}
           >
             Monthly billing
           </button>
           <button
-            class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${billingCycle === 'annual' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+            class={`text-fs-ds-12 font-inter font-fw-ds-400 relative z-10 m-1 flex-1 cursor-pointer rounded-md py-1.5 transition-colors duration-200 ${billingCycle === 'annual' ? 'text-white' : 'text-neutral-300'}`}
             on:click={() => (billingCycle = 'annual')}
           >
             Annual billing
@@ -261,7 +281,7 @@
       >
         {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }, index}
           <div
-            class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] transition-all duration-200 ${isCurrentPlan ? 'border-1 border-neutral-50' : 'border-surface-500 border-2'}`}
+            class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] transition-all duration-200 ${isCurrentPlan ? 'border-2 border-neutral-50' : 'border-surface-500 border-2'}`}
             style="
               transform: scale({hoveredCardIndex === index ? $cardScale : 1});
               animation: cardSlideIn 300ms ease-out forwards {index * 100}ms;
