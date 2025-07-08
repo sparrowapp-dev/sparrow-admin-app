@@ -131,6 +131,7 @@
   let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
   let trialstart = '';
   let trialend = '';
+  let isPaymentProcessing = false;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -504,7 +505,17 @@
           </Button>
         </div>
         <div class="flex-1">
-          <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
+          <Button
+            disabled={isPaymentProcessing}
+            variant="filled-primary"
+            size="medium"
+            className="w-full"
+            on:click={async () => {
+              isPaymentProcessing = true;
+              await nextStep();
+              isPaymentProcessing = false;
+            }}
+          >
             {cardDetailsView === 'cardDetails' ? 'Next' : 'Continue'}
           </Button>
         </div>
