@@ -178,7 +178,6 @@
       // Check if elements exist
       if (!cardNumber || !cardExpiry || !cardCvc) {
         console.error('Stripe elements not initialized');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
@@ -190,7 +189,6 @@
 
       if (!cardNumberEl || !cardExpiryEl || !cardCvcEl) {
         console.error('Card element containers not found in DOM');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
