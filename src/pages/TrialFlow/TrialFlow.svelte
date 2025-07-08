@@ -260,6 +260,7 @@
           };
           navigate(
             `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+            { replace: true },
           );
         }, 5000);
 
