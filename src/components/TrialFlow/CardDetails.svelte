@@ -178,7 +178,6 @@
       // Check if elements exist
       if (!cardNumber || !cardExpiry || !cardCvc) {
         console.error('Stripe elements not initialized');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
@@ -190,7 +189,6 @@
 
       if (!cardNumberEl || !cardExpiryEl || !cardCvcEl) {
         console.error('Card element containers not found in DOM');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
@@ -324,7 +322,6 @@
         !formData.billingZip?.trim() ||
         !formData.billingCountry
       ) {
-        error = 'Please fill in all required billing details';
         return false;
       }
 
@@ -339,7 +336,7 @@
   }
 
   function validateFormCardDetails() {
-    // formSubmitted = true;
+    formSubmitted = true;
 
     if (activeView === 'cardDetails') {
       // Validate card fields
@@ -352,13 +349,11 @@
         !cardCvcComplete ||
         !formData.billingName?.trim()
       ) {
-        error = 'Please fill in all card information correctly';
         return false;
       }
 
       // Check for specific card errors
       if (cardNumberError || cardExpiryError || cardCvcError) {
-        error = 'Please correct the errors in the card information';
         return false;
       }
 
@@ -517,7 +512,7 @@
 <div class="-mt-11 flex flex-col gap-10">
   <div class="flex flex-col gap-5">
     <div class="text-fs-ds-24 font-fw-ds-500 text-center text-neutral-50">
-      Step 2: Add Payment Details
+      Step 2: Add Card Details
     </div>
     <div class="mb-6 text-center">
       <p class="mx-auto max-w-2xl text-gray-300">
@@ -587,16 +582,6 @@
             <div class="form-group">
               <div class="flex flex-col">
                 <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Cardholder Name <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
-                  {existingPaymentMethod?.billing_details?.name || ''}
-                </span>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
                   >Expiration Date <span class="text-red-400">*</span></label
                 >
                 <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
@@ -608,9 +593,19 @@
             <div class="form-group">
               <div class="flex flex-col">
                 <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >CVV <span class="text-red-400">*</span></label
+                  >CVV/Security Code<span class="text-red-400">*</span></label
                 >
                 <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="flex flex-col">
+                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                  >Cardholder Name <span class="text-red-400">*</span></label
+                >
+                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                  {existingPaymentMethod?.billing_details?.name || ''}
+                </span>
               </div>
             </div>
           </div>
@@ -637,24 +632,6 @@
                   {cardNumberError || 'Please enter your card number'}
                 </p>
               {/if}
-            </div>
-
-            <!-- Cardholder Name -->
-            <div class="form-group">
-              <Input
-                label="Cardholder Name"
-                id="cardholder-name"
-                name="cardholderName"
-                inputType="name"
-                bind:value={formData.billingName}
-                required={true}
-                placeholder="Enter Cardholder Name"
-                hasError={formSubmitted && !formData.billingName?.trim()}
-                errorMessage={formSubmitted && !formData.billingName?.trim()
-                  ? 'Please enter cardholder name'
-                  : ''}
-                disabled={isSaving}
-              />
             </div>
 
             <!-- Expiration Date -->
@@ -702,6 +679,24 @@
                 </p>
               {/if}
             </div>
+
+            <!-- Cardholder Name -->
+            <div class="form-group">
+              <Input
+                label="Cardholder Name"
+                id="cardholder-name"
+                name="cardholderName"
+                inputType="name"
+                bind:value={formData.billingName}
+                required={true}
+                placeholder="Enter Cardholder Name"
+                hasError={formSubmitted && !formData.billingName?.trim()}
+                errorMessage={formSubmitted && !formData.billingName?.trim()
+                  ? 'Please enter cardholder name'
+                  : ''}
+                disabled={isSaving}
+              />
+            </div>
           </div>
         {/if}
       </section>
@@ -715,7 +710,7 @@
             for verification and invoicing purposes.
           </p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="mb-7 grid grid-cols-2 gap-4">
           <!-- Name -->
           <div class="form-group">
             <Input

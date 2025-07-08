@@ -10,7 +10,7 @@
 
 <div class="-mt-11 flex flex-col gap-5">
   <div class="text-fs-ds-24 font-fw-ds-500 mr-2 text-center text-neutral-50">
-    Step 1: Set Your Hub Name
+    Step 1: Set Your Hub Name and URL
   </div>
   <div class="">
     <div class="mb-6 text-center">

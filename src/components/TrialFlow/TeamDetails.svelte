@@ -27,7 +27,7 @@
       <p class="mx-auto max-w-2xl text-gray-300">
         Invite teammates or collaborators to join your hub and start working together. You can add
         people now or skip this step and do it anytime later from your dashboard. The Standard Trial
-        supports up to {inviteCount} members, including you.
+        supports up to {inviteCount} members, excluding you.
       </p>
     </div>
   </div>

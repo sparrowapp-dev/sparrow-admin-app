@@ -131,6 +131,7 @@
   let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
   let trialstart = '';
   let trialend = '';
+  let isPaymentProcessing = false;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -140,14 +141,15 @@
     // Special handling for step 2
     if (currentStep == 1) {
       if (formData.hubName === '') {
-        hubFormError.hubNameError = 'Please enter your hub name.';
+        hubFormError.hubNameErrorMessage = 'Please enter your hub name.';
         hubFormError.hubNameError = true;
       } else if (formData.hubUrl === '') {
-        hubFormError.hubUrlError = 'Please enter a valid hub URL.';
+        hubFormError.hubUrlErrorMessage = 'Please enter a valid hub URL.';
         hubFormError.hubUrlError = true;
         hubFormError.hubNameError = false;
       } else if (isHubUrlExist) {
-        hubFormError.hubUrlError = 'This hub URL is already in use. Please enter a different one.';
+        hubFormError.hubUrlErrorMessage =
+          'This hub URL is already in use. Please enter a different one.';
         hubFormError.hubUrlError = true;
         hubFormError.hubNameError = false;
       } else {
@@ -433,9 +435,9 @@
               class={`text-fs-ds-12 font-fw-ds-500 flex h-6 w-6 items-center justify-center rounded-full border transition-all
           ${
             currentStep > step.id
-              ? 'border-green-500 bg-green-500 text-white'
+              ? 'border-green-400 bg-green-500 text-white'
               : currentStep === step.id
-                ? 'border-blue-600 bg-blue-600 text-white'
+                ? 'border-blue-400 bg-blue-500 text-white'
                 : 'border-gray-300 bg-white text-gray-500'
           }
         `}
@@ -487,7 +489,7 @@
     <!-- Navigation Buttons -->
     {#if currentStep === 1}
       <!-- Step 1: Continue only -->
-      <div class="-mt-10 flex w-full">
+      <div class="-mt-10 mb-8 flex w-full">
         <div class="mr-40 ml-25 flex-1">
           <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
             Continue
@@ -496,14 +498,24 @@
       </div>
     {:else if currentStep === 2}
       <!-- Step 2: Previous + Next/Continue -->
-      <div class="-mt-16 flex gap-3">
+      <div class="-mt-14 mb-8 flex gap-3">
         <div class="flex-1">
           <Button variant="filled-secondary" size="medium" className="w-full" on:click={prevStep}>
             Previous
           </Button>
         </div>
         <div class="flex-1">
-          <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
+          <Button
+            disabled={isPaymentProcessing}
+            variant="filled-primary"
+            size="medium"
+            className="w-full"
+            on:click={async () => {
+              isPaymentProcessing = true;
+              await nextStep();
+              isPaymentProcessing = false;
+            }}
+          >
             {cardDetailsView === 'cardDetails' ? 'Next' : 'Continue'}
           </Button>
         </div>
@@ -511,7 +523,7 @@
     {:else if currentStep === 3}
       <!-- Step 3: Skip + Previous + Finish Setup -->
       <!-- Step 3: Skip + Previous + Finish Setup -->
-      <div class="-mt-10 flex w-full items-center justify-between">
+      <div class="-mt-10 mb-8 flex w-full items-center justify-between">
         <!-- "I'll add later" on the left side -->
         <button
           class="text-sm text-gray-400 transition-colors hover:text-gray-300"
