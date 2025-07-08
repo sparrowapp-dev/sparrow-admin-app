@@ -67,6 +67,21 @@ class TrialFlowViewModel {
       return errorResponse(error?.message || 'Failed to bulk invite users', null);
     }
   }
+
+  public async sendConfirmationEmail(
+    trialId: string,
+    userCount: number,
+  ): Promise<ResponseInterface<any>> {
+    try {
+      const response = await this.hubService.sendConfirmationMail(trialId, {
+        userCount: userCount,
+      });
+      return successResponse(response);
+    } catch (error) {
+      console.error('Error sending confirmation email:', error);
+      return errorResponse(error?.message || 'Failed to send confirmation email', null);
+    }
+  }
 }
 
 export default TrialFlowViewModel;

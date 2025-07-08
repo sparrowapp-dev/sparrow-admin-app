@@ -235,9 +235,10 @@
         console.log('Payment success:', data);
         const { team } = data;
         console.log('Payment success team:', team);
+        let formatTeamData: { email: string; role: string }[] = [];
         setTimeout(async () => {
           if (triggerPoint === 'finish') {
-            const formatTeamData = teamdata
+            formatTeamData = teamdata
               .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
               .map((user) => ({
                 email: user.email.trim(),
@@ -258,6 +259,7 @@
             hubName: team?.name || '',
             nextBilling: team?.billing?.current_period_end,
           };
+          await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
           navigate(
             `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
             { replace: true },
