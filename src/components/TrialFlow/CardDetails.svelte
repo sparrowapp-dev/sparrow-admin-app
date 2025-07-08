@@ -710,7 +710,7 @@
             for verification and invoicing purposes.
           </p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="mb-7 grid grid-cols-2 gap-4">
           <!-- Name -->
           <div class="form-group">
             <Input
