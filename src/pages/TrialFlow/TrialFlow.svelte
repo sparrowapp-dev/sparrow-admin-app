@@ -261,7 +261,8 @@
           };
           await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${formatTeamData.length + 1 || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+            `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+            { replace: true },
           );
         }, 5000);
 
