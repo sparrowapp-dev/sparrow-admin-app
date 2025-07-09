@@ -73,6 +73,11 @@
   function switchView(view) {
     previousView = activeView;
     activeView = view;
+
+    // Reset validation state when switching views
+    formSubmitted = false;
+    error = null;
+
     dispatch('viewChange', activeView);
 
     // If switching back to card details, we need to remount elements
@@ -87,6 +92,10 @@
   export function setView(view) {
     previousView = activeView;
     activeView = view;
+
+    // Reset validation state when switching views
+    formSubmitted = false;
+    error = null;
 
     // If switching back to card details, we need to remount elements
     if (view === 'cardDetails' && previousView === 'billingDetails') {
