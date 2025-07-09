@@ -160,6 +160,7 @@
           showDescription={false}
           hasError={Boolean(errors[row.id]?.role)}
           errorMessage={errors[row.id]?.role || ''}
+          showAdminAndMember={true}
           on:change={(e) => {
             row.role = e.detail;
             handleRoleChange(row.id, e.detail);

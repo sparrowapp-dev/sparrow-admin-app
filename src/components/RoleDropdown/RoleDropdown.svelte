@@ -9,6 +9,7 @@
   export let hasError = false;
   export let errorMessage = '';
   export let showDescription = true;
+  export let showAdminAndMember = false;
   export let options = [
     {
       id: 'admin',
@@ -26,7 +27,17 @@
       name: 'Viewer',
       description: 'View resources in a workspace without making changes.',
     },
+    {
+      id: 'member',
+      name: 'Member',
+      description: '',
+    },
   ];
+
+  // Filter options based on the prop
+  $: displayOptions = showAdminAndMember
+    ? options.filter((opt) => opt.id === 'admin' || opt.id === 'member')
+    : options.filter((opt) => opt.id === 'admin' || opt.id === 'editor' || opt.id === 'viewer');
 
   const dispatch = createEventDispatcher();
 
@@ -132,7 +143,7 @@
         : `bottom: ${buttonRect ? window.innerHeight - buttonRect.top + 5 + 'px' : '-9999px'}`};
              visibility: {isPositioned ? 'visible' : 'hidden'};"
     >
-      {#each options as role}
+      {#each displayOptions as role}
         <button
           type="button"
           class="relative flex w-full flex-col p-3 text-left {role.id === selected.id

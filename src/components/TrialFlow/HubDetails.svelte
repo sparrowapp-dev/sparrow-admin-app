@@ -95,6 +95,7 @@
               on:focus={() => (isUrlInputFocused = true)}
               on:blur={() => (isUrlInputFocused = false)}
               hasError={hubFormError?.hubUrlError}
+              maxLength={50}
             />
           </div>
           <span

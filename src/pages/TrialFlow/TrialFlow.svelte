@@ -238,6 +238,7 @@
         const { team } = data;
         console.log('Payment success team:', team);
         let formatTeamData: { email: string; role: string }[] = [];
+        let userCount = 1;
         setTimeout(async () => {
           if (triggerPoint === 'finish') {
             formatTeamData = teamdata
@@ -250,6 +251,9 @@
               teamId: team._id,
               users: formatTeamData,
             });
+            if (inviteResponse?.isSuccessful) {
+              userCount = userCount + formatTeamData?.length;
+            }
           }
           isProcessing = false;
           showProcessingModal = false;
@@ -263,7 +267,7 @@
           };
           await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}`,
             { replace: true },
           );
         }, 5000);
