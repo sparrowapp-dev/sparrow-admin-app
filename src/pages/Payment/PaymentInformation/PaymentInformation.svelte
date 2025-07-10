@@ -138,8 +138,6 @@
 
   // Selected payment method
   $: selectedPaymentMethod = paymentMethods.length > 0 ? paymentMethods[selectedCardIndex] : null;
-  $: hasSelectedPaymentMethodBillingDetails =
-    !!selectedPaymentMethod?.billing_details?.address?.line1;
 
   // When a payment method is added or updated
   function handlePaymentMethodUpdated(event) {
