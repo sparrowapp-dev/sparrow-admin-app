@@ -27,24 +27,19 @@
             now available, start exploring, collaborating, and building with your team.
           </div>
         </div>
-        <div class="mr-5 ml-15 flex w-full max-w-md flex-col gap-8">
-          <div
-            class=" flex items-center
-          justify-between gap-7"
-          >
+        <div class="mr-5 ml-15 w-full max-w-md">
+          <div class="grid grid-cols-2 gap-x-20 gap-y-6">
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Hub Name</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{hub}</span>
+              <span
+                class="text-ds-ds-16 font-fw-ds-400 max-w-xs truncate text-center text-neutral-50"
+                >{hub}</span
+              >
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Amount After Trial</span>
               <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">${amount}/month</span>
             </div>
-          </div>
-          <div
-            class=" flex items-center
-          justify-between gap-5"
-          >
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Trial Start Date</span>
               <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{trialStartDate}</span>
@@ -53,11 +48,6 @@
               <span class="text-fs-ds-12 text-neutral-400">Trial End Date</span>
               <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{trialEndDate}</span>
             </div>
-          </div>
-          <div
-            class=" flex items-center
-          justify-between gap-5"
-          >
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Total Members</span>
               <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{users}</span>
