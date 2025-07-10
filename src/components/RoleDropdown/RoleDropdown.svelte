@@ -3,14 +3,19 @@
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
 
+  type RoleOption = {
+    id: string;
+    name: string;
+    description: string;
+  };
   // Added props for more flexibility
   export let selected = { id: '', name: '' };
   export let placeholder = 'Select the role';
   export let hasError = false;
   export let errorMessage = '';
   export let showDescription = true;
-  export let showAdminAndMember = false;
-  export let options = [
+  export let disableValues: string[] = [];
+  export let options: RoleOption[] = [
     {
       id: 'admin',
       name: 'Admin',
@@ -34,11 +39,6 @@
     },
   ];
 
-  // Filter options based on the prop
-  $: displayOptions = showAdminAndMember
-    ? options.filter((opt) => opt.id === 'admin' || opt.id === 'member')
-    : options.filter((opt) => opt.id === 'admin' || opt.id === 'editor' || opt.id === 'viewer');
-
   const dispatch = createEventDispatcher();
 
   let isOpen = false;
@@ -48,6 +48,9 @@
   let buttonRect; // To store button dimensions for positioning
   let position = 'bottom'; // Default position
   let dropdownHeight = 0; // Height of dropdown content
+
+  // Computed property to filter out disabled options
+  $: filteredOptions = options.filter((option) => !disableValues.includes(option.id));
 
   function toggleDropdown() {
     if (!isOpen) {
@@ -143,7 +146,7 @@
         : `bottom: ${buttonRect ? window.innerHeight - buttonRect.top + 5 + 'px' : '-9999px'}`};
              visibility: {isPositioned ? 'visible' : 'hidden'};"
     >
-      {#each displayOptions as role}
+      {#each filteredOptions as role}
         <button
           type="button"
           class="relative flex w-full flex-col p-3 text-left {role.id === selected.id
