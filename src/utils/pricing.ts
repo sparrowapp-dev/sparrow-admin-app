@@ -95,7 +95,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17%',
-      priceId: 'price_1Re8qSFLRwufXqZCJiyQ5TsV',
+      priceId: 'price_1RZaGtFLRwufXqZCVUrpvs74',
     },
   },
   enterprise: {
