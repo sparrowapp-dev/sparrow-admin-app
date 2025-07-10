@@ -6,7 +6,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { onMount } from 'svelte';
-  import TrialFlowViewModel from './MarketingTrialFlow.ViewModel';
+  import TrialFlowViewModel from './UserTrialFlow.ViewModel';
   import { billingService } from '@/services/billing.service';
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
