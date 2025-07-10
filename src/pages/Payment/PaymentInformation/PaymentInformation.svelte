@@ -84,6 +84,9 @@
     showPaymentFormModal = true;
   }
 
+  // property to check if this is the first card
+  $: isFirstCard = !selectedPaymentMethodId && paymentMethods?.length === 0;
+
   function closeModal() {
     showPaymentFormModal = false;
     selectedPaymentMethodId = null;
@@ -337,6 +340,7 @@
         <UnifiedPaymentMethodForm
           {customerId}
           {hubId}
+          {isFirstCard}
           paymentMethodId={selectedPaymentMethodId}
           isDefault={isSelectedPaymentMethodDefault}
           on:close={closeModal}
