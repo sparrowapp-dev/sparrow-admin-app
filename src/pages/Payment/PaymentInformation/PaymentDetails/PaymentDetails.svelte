@@ -73,7 +73,7 @@
   let state = '';
   let postalCode = '';
   let country: { label: string; value: string } | null = null;
-  let defaultPaymentMethod = false;
+  let defaultPaymentMethod = true;
 
   // State
   let isLoading = false;
