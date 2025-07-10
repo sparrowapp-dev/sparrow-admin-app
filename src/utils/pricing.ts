@@ -2,6 +2,8 @@
  * Plan details and pricing utility functions for the billing system
  */
 
+import { APP_ENVIRONMENT } from '@/constants/environment';
+
 // Plan types
 export type PlanType = 'community' | 'standard' | 'professional' | 'enterprise';
 export type BillingCycleType = 'monthly' | 'annual';
@@ -30,6 +32,8 @@ interface PlanDetails {
 /**
  * Default plan details with features and pricing
  */
+const isProduction = APP_ENVIRONMENT === 'production';
+
 export const DEFAULT_PLAN_DETAILS: PlanDetails = {
   community: {
     monthly: {
@@ -60,7 +64,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RZaD7FLRwufXqZCEtDiMO02',
+      priceId: isProduction ? 'price_1Re8x2Ldqw2Igdv3B1TVmnok' : 'price_1RZaD7FLRwufXqZCEtDiMO02',
     },
     annual: {
       price: '$99',
@@ -71,7 +75,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17.4%',
-      priceId: 'price_1RZaFiFLRwufXqZCNc7JterI',
+      priceId: isProduction ? 'price_1RWVpJLdqw2Igdv3tJJLzCE0' : 'price_1RZaFiFLRwufXqZCNc7JterI',
     },
   },
   professional: {
@@ -83,8 +87,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      priceId: 'price_1RZaELFLRwufXqZCRDIWybT1',
-
+      priceId: isProduction ? 'price_1RWVo9Ldqw2Igdv3ktkXFNKo' : 'price_1RZaELFLRwufXqZCRDIWybT1',
     },
     annual: {
       price: '$199',
@@ -95,7 +98,7 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17%',
-      priceId: 'price_1RZaGtFLRwufXqZCVUrpvs74',
+      priceId: isProduction ? 'price_1RWVpsLdqw2Igdv3mRd83zkN' : 'price_1RZaGtFLRwufXqZCVUrpvs74',
     },
   },
   enterprise: {
