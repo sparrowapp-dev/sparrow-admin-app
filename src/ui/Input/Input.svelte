@@ -14,6 +14,7 @@
   export let subtitle: string = '';
   export let inputType: 'default' | 'name' | 'email' | 'postal' | 'number' = 'default';
   export let emailErrorMessage: string = 'Please enter a valid email address';
+  export let maxLength;
   let computedHasError: any;
 
   // Event dispatcher to forward events to parent
@@ -179,6 +180,7 @@
         bind:value
         on:input={inputHandler}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {:else if type === 'email'}
       <input
@@ -192,6 +194,7 @@
         bind:value
         on:input={inputHandler}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {:else if type === 'password'}
       <input
@@ -205,6 +208,7 @@
         bind:value
         on:input={handleInput}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {:else if type === 'number'}
       <!-- Use text type but with pattern and numeric validation -->
@@ -221,6 +225,7 @@
         bind:value
         on:input={inputHandler}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {:else if type === 'tel'}
       <input
@@ -234,6 +239,7 @@
         bind:value
         on:input={handleInput}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {:else}
       <input
@@ -247,6 +253,7 @@
         bind:value
         on:input={handleInput}
         on:blur={handleBlur}
+        maxlength={maxLength}
       />
     {/if}
   </div>

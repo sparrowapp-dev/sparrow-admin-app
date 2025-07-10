@@ -22,6 +22,8 @@
   export let formData;
   export let handleInputChange;
   export let customerId = '';
+  export let paymentMethodId = '';
+  export let isCardDetailsAdded = false;
 
   let activeView = 'cardDetails'; // Options: 'cardDetails' or 'billingDetails'
   let isLoading = true;
@@ -50,6 +52,14 @@
   let cardExpiryError = null;
   let cardCvcError = null;
 
+  // Exisitng Details
+  let exisitngCardDetails = {
+    cardholderName: '',
+    cardNumber: '',
+    cardCVC: '',
+    cardExpiry: '',
+  };
+
   // Safety timeout to prevent infinite loading
   const safetyTimeout = setTimeout(() => {
     if (isLoading) {
@@ -63,6 +73,11 @@
   function switchView(view) {
     previousView = activeView;
     activeView = view;
+
+    // Reset validation state when switching views
+    formSubmitted = false;
+    error = null;
+
     dispatch('viewChange', activeView);
 
     // If switching back to card details, we need to remount elements
@@ -77,6 +92,10 @@
   export function setView(view) {
     previousView = activeView;
     activeView = view;
+
+    // Reset validation state when switching views
+    formSubmitted = false;
+    error = null;
 
     // If switching back to card details, we need to remount elements
     if (view === 'cardDetails' && previousView === 'billingDetails') {
@@ -168,7 +187,6 @@
       // Check if elements exist
       if (!cardNumber || !cardExpiry || !cardCvc) {
         console.error('Stripe elements not initialized');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
@@ -180,7 +198,6 @@
 
       if (!cardNumberEl || !cardExpiryEl || !cardCvcEl) {
         console.error('Card element containers not found in DOM');
-        error = 'Failed to initialize payment form elements';
         isLoading = false;
         return;
       }
@@ -206,6 +223,50 @@
       isLoading = false;
     }
   }
+  // For existing data
+  let existingPaymentMethod: any = null;
+  // Fetch existing payment method details when in edit mode
+  async function fetchPaymentMethod() {
+    try {
+      isLoading = true;
+      error = null;
+
+      // Use billing service to fetch payment method
+      const data = await billingService.getPaymentMethod(paymentMethodId);
+      existingPaymentMethod = data.paymentMethod;
+      console.log('Fetched existing payment method:', existingPaymentMethod);
+
+      // Pre-fill card details (read-only in edit mode)
+      if (existingPaymentMethod.card) {
+        formData.cardholderName = existingPaymentMethod.billing_details?.name || '';
+      }
+
+      // Pre-fill billing details
+      if (existingPaymentMethod.billing_details) {
+        formData.billingName = existingPaymentMethod.billing_details.name || '';
+        formData.billingEmail = existingPaymentMethod.billing_details.email || '';
+
+        if (existingPaymentMethod.billing_details.address) {
+          formData.billingAddress = existingPaymentMethod.billing_details.address.line1 || '';
+          formData.billingAddress2 = existingPaymentMethod.billing_details.address.line2 || '';
+          formData.billingCity = existingPaymentMethod.billing_details.address.city || '';
+          formData.billingState = existingPaymentMethod.billing_details.address.state || '';
+          formData.billingZip = existingPaymentMethod.billing_details.address.postal_code || '';
+
+          // Set country for dropdown if available
+          const countryCode = existingPaymentMethod.billing_details.address.country;
+          if (countryCode) {
+            formData.billingCountry = countryOptions.find((c) => c.value === countryCode) || null;
+          }
+        }
+      }
+    } catch (err: any) {
+      error = err.message;
+      console.error('Error fetching payment method:', err);
+    } finally {
+      isLoading = false;
+    }
+  }
 
   onMount(async () => {
     // Initialize Stripe first
@@ -215,7 +276,20 @@
     setTimeout(() => {
       mountStripeElements();
     }, 100);
+    console.log('CardDetails mounted', isCardDetailsAdded);
+    if (isCardDetailsAdded) {
+      fetchPaymentMethod();
+    }
   });
+
+  $: {
+    if (isCardDetailsAdded) {
+      console.log('CardDetails added variable', isCardDetailsAdded);
+      fetchPaymentMethod();
+    } else {
+      console.log('CardDetails not added yet, initializing elements', isCardDetailsAdded);
+    }
+  }
 
   onDestroy(() => {
     // Clean up Stripe elements
@@ -243,32 +317,10 @@
   }
 
   // Validate form fields
-  function validateForm() {
+  function validateFormBillingDetails() {
     formSubmitted = true;
 
-    if (activeView === 'cardDetails') {
-      // Validate card fields
-      if (
-        cardNumberEmpty ||
-        !cardNumberComplete ||
-        cardExpiryEmpty ||
-        !cardExpiryComplete ||
-        cardCvcEmpty ||
-        !cardCvcComplete ||
-        !formData.cardholderName?.trim()
-      ) {
-        error = 'Please fill in all card information correctly';
-        return false;
-      }
-
-      // Check for specific card errors
-      if (cardNumberError || cardExpiryError || cardCvcError) {
-        error = 'Please correct the errors in the card information';
-        return false;
-      }
-
-      return true;
-    } else {
+    if (activeView === 'billingDetails') {
       // Validate billing details
       if (
         !formData.billingName?.trim() ||
@@ -279,7 +331,6 @@
         !formData.billingZip?.trim() ||
         !formData.billingCountry
       ) {
-        error = 'Please fill in all required billing details';
         return false;
       }
 
@@ -293,11 +344,39 @@
     }
   }
 
+  function validateFormCardDetails() {
+    formSubmitted = true;
+
+    if (activeView === 'cardDetails') {
+      // Validate card fields
+      if (
+        cardNumberEmpty ||
+        !cardNumberComplete ||
+        cardExpiryEmpty ||
+        !cardExpiryComplete ||
+        cardCvcEmpty ||
+        !cardCvcComplete ||
+        !formData.billingName?.trim()
+      ) {
+        return false;
+      }
+
+      // Check for specific card errors
+      if (cardNumberError || cardExpiryError || cardCvcError) {
+        return false;
+      }
+
+      return true;
+    }
+  }
+
   // Process payment information (called from parent component)
-  export async function processPayment() {
+  export async function processCardDetailsAdd() {
+    console.log('inside processPayment');
+    // return;
     if (isSaving) return { success: false, error: 'Processing in progress' };
 
-    if (!validateForm()) {
+    if (!validateFormCardDetails()) {
       return { success: false, error };
     }
 
@@ -308,11 +387,11 @@
       // Step 1: Create a customer if we don't have one
       if (!customerId) {
         const customerData = {
-          name: formData.billingName || formData.cardholderName,
+          name: formData?.billingName || formData.cardholderName,
           email: formData.billingEmail,
           metadata: {
             source: 'sparrow-admin-app-trial',
-            name: $userName || formData.billingName,
+            name: $userName || formData.billingName || formData.cardholderName,
             userId: $userId,
           },
         };
@@ -334,14 +413,14 @@
           billing_details: {
             name: formData.billingName || formData.cardholderName,
             email: formData.billingEmail,
-            address: {
-              line1: formData.billingAddress,
-              line2: formData.billingAddress2 || undefined,
-              city: formData.billingCity,
-              state: formData.billingState,
-              postal_code: formData.billingZip,
-              country: formData.billingCountry?.value,
-            },
+            // address: {
+            //   line1: formData.billingAddress,
+            //   line2: formData.billingAddress2 || undefined,
+            //   city: formData.billingCity,
+            //   state: formData.billingState,
+            //   postal_code: formData.billingZip,
+            //   country: formData.billingCountry?.value,
+            // },
           },
         },
       });
@@ -351,15 +430,15 @@
       }
 
       // Step 4: Set as default payment method if selected
-      if (formData.isDefaultPayment && result.setupIntent.payment_method) {
-        await billingService.setUpDefaultPaymentMethod(
-          customerId,
-          result.setupIntent.payment_method,
-        );
-      }
+      // if (formData.isDefaultPayment && result.setupIntent.payment_method) {
+      //   await billingService.setUpDefaultPaymentMethod(
+      //     customerId,
+      //     result.setupIntent.payment_method,
+      //   );
+      // }
 
       // Success!
-      notification.success('Payment method added successfully');
+      notification.success('Card added successfully');
 
       // Return success and the payment method ID
       return {
@@ -379,12 +458,70 @@
       isSaving = false;
     }
   }
+  export async function processBillingDetails() {
+    // Validate billing details fields
+    if (!validateFormBillingDetails()) {
+      return { success: false, error };
+    }
+
+    try {
+      isSaving = true;
+      error = null;
+
+      const billingDetails = {
+        name: formData.billingName || formData.cardholderName,
+        email: formData.billingEmail,
+        address: {
+          line1: formData.billingAddress,
+          line2: formData.billingAddress2 || undefined,
+          city: formData.billingCity,
+          state: formData.billingState,
+          postal_code: formData.billingZip,
+          country: formData.billingCountry?.value,
+        },
+      };
+
+      // Use billing service to update billing details
+      await billingService.updateBillingDetails(paymentMethodId, billingDetails);
+
+      // Set as default payment method if selected or remove default if unselected
+      // Track whether the default status changed for notification
+      // let defaultStatusChanged = false;
+
+      // if (defaultPaymentMethod !== isDefault) {
+      //   defaultStatusChanged = true;
+      //   await billingService.setUpDefaultPaymentMethod(customerId, paymentMethodId);
+      // }
+
+      notification.success('Card details updated successfully.');
+
+      // Dispatch event to notify parent component with updated information
+      dispatch('billingDetailsUpdated', {
+        paymentMethodId,
+        // defaultStatusChanged,
+        // isNowDefault: defaultPaymentMethod,
+      });
+
+      // Close modal
+      // dispatch('close');
+      // Return success and the payment method ID
+      return {
+        success: true,
+      };
+    } catch (err: any) {
+      error = err.message;
+      console.error('Error updating billing details:', err);
+      notification.error('Failed to update card details. Please try again.');
+    } finally {
+      isSaving = false;
+    }
+  }
 </script>
 
-<div class="flex flex-col gap-10">
+<div class="-mt-11 flex flex-col gap-10">
   <div class="flex flex-col gap-5">
     <div class="text-fs-ds-24 font-fw-ds-500 text-center text-neutral-50">
-      Step 2: Add Payment Details
+      Step 2: Add Card Details
     </div>
     <div class="mb-6 text-center">
       <p class="mx-auto max-w-2xl text-gray-300">
@@ -435,94 +572,142 @@
             ends.
           </p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Card Number -->
-          <div class="form-group">
-            <label
-              for="card-number-element"
-              class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-            >
-              Card Number <span class="text-red-400">*</span>
-            </label>
-            <div
-              id="card-number-element"
-              class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                (cardNumberEmpty || !cardNumberComplete)) ||
-              cardNumberError
-                ? 'border-red-300'
-                : 'border-transparent'}"
-            ></div>
-            {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
-              <p class="text-fs-ds-12 mt-1 text-red-300">
-                {cardNumberError || 'Please enter your card number'}
-              </p>
-            {/if}
-          </div>
 
-          <!-- Cardholder Name -->
-          <div class="form-group">
-            <Input
-              label="Cardholder Name"
-              id="cardholder-name"
-              name="cardholderName"
-              inputType="name"
-              bind:value={formData.cardholderName}
-              required={true}
-              placeholder="Enter Cardholder Name"
-              hasError={formSubmitted && !formData.cardholderName?.trim()}
-              errorMessage={formSubmitted && !formData.cardholderName?.trim()
-                ? 'Please enter cardholder name'
-                : ''}
-              disabled={isSaving}
-            />
+        {#if isCardDetailsAdded && existingPaymentMethod}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                >Card Number <span class="text-red-400">*</span></label
+              >
+              <div class="flex items-center gap-2">
+                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500"
+                  >•••• •••• ••••</span
+                >
+                <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-500">
+                  {existingPaymentMethod?.card?.last4 || '****'}
+                </span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="flex flex-col">
+                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                  >Expiration Date <span class="text-red-400">*</span></label
+                >
+                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                  {existingPaymentMethod?.card?.exp_month || 'MM'}/{existingPaymentMethod?.card
+                    ?.exp_year || 'YY'}
+                </span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="flex flex-col">
+                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                  >CVV/Security Code<span class="text-red-400">*</span></label
+                >
+                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="flex flex-col">
+                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                  >Cardholder Name <span class="text-red-400">*</span></label
+                >
+                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                  {existingPaymentMethod?.billing_details?.name || ''}
+                </span>
+              </div>
+            </div>
           </div>
+        {:else}
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Card Number -->
+            <div class="form-group">
+              <label
+                for="card-number-element"
+                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+              >
+                Card Number <span class="text-red-400">*</span>
+              </label>
+              <div
+                id="card-number-element"
+                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                  (cardNumberEmpty || !cardNumberComplete)) ||
+                cardNumberError
+                  ? 'border-red-300'
+                  : 'border-transparent'}"
+              ></div>
+              {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
+                <p class="text-fs-ds-12 mt-1 text-red-300">
+                  {cardNumberError || 'Please enter your card number'}
+                </p>
+              {/if}
+            </div>
 
-          <!-- Expiration Date -->
-          <div class="form-group">
-            <label
-              for="card-expiry-element"
-              class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-            >
-              Expiration Date <span class="text-red-400">*</span>
-            </label>
-            <div
-              id="card-expiry-element"
-              class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                (cardExpiryEmpty || !cardExpiryComplete)) ||
-              cardExpiryError
-                ? 'border-red-300'
-                : 'border-transparent'}"
-            ></div>
-            {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
-              <p class="text-fs-ds-12 mt-1 text-red-300">
-                {cardExpiryError || 'Please enter expiration date'}
-              </p>
-            {/if}
-          </div>
+            <!-- Expiration Date -->
+            <div class="form-group">
+              <label
+                for="card-expiry-element"
+                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+              >
+                Expiration Date <span class="text-red-400">*</span>
+              </label>
+              <div
+                id="card-expiry-element"
+                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                  (cardExpiryEmpty || !cardExpiryComplete)) ||
+                cardExpiryError
+                  ? 'border-red-300'
+                  : 'border-transparent'}"
+              ></div>
+              {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
+                <p class="text-fs-ds-12 mt-1 text-red-300">
+                  {cardExpiryError || 'Please enter expiration date'}
+                </p>
+              {/if}
+            </div>
 
-          <!-- CVC/Security Code -->
-          <div class="form-group">
-            <label
-              for="card-cvc-element"
-              class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-            >
-              CVV/Security Code <span class="text-red-400">*</span>
-            </label>
-            <div
-              id="card-cvc-element"
-              class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                (cardCvcEmpty || !cardCvcComplete)) ||
-              cardCvcError
-                ? 'border-red-300'
-                : 'border-transparent'}"
-            ></div>
-            {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
-              <p class="text-fs-ds-12 mt-1 text-red-300">
-                {cardCvcError || 'Please enter CVV/security code'}
-              </p>
-            {/if}
+            <!-- CVC/Security Code -->
+            <div class="form-group">
+              <label
+                for="card-cvc-element"
+                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+              >
+                CVV/Security Code <span class="text-red-400">*</span>
+              </label>
+              <div
+                id="card-cvc-element"
+                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                  (cardCvcEmpty || !cardCvcComplete)) ||
+                cardCvcError
+                  ? 'border-red-300'
+                  : 'border-transparent'}"
+              ></div>
+              {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
+                <p class="text-fs-ds-12 mt-1 text-red-300">
+                  {cardCvcError || 'Please enter CVV/security code'}
+                </p>
+              {/if}
+            </div>
+
+            <!-- Cardholder Name -->
+            <div class="form-group">
+              <Input
+                label="Cardholder Name"
+                id="cardholder-name"
+                name="cardholderName"
+                inputType="name"
+                bind:value={formData.billingName}
+                required={true}
+                placeholder="Enter Cardholder Name"
+                hasError={formSubmitted && !formData.billingName?.trim()}
+                errorMessage={formSubmitted && !formData.billingName?.trim()
+                  ? 'Please enter cardholder name'
+                  : ''}
+                disabled={isSaving}
+              />
+            </div>
           </div>
-        </div>
+        {/if}
       </section>
     {:else}
       <!-- Billing Address Section -->
@@ -534,7 +719,7 @@
             for verification and invoicing purposes.
           </p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="mb-7 grid grid-cols-2 gap-4">
           <!-- Name -->
           <div class="form-group">
             <Input
@@ -678,7 +863,7 @@
         </div>
 
         <!-- Default payment method checkbox -->
-        <div
+        <!-- <div
           class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex cursor-pointer items-center gap-1 text-neutral-50"
         >
           <span
@@ -698,17 +883,17 @@
           >
             Set this card as default payment method
           </span>
-        </div>
+        </div> -->
       </section>
     {/if}
   </div>
 
-  {#if isSaving}
+  <!-- {#if isSaving}
     <div class="flex justify-center py-4">
-      <CircularLoader size="sm" />
+      <CircularLoader />
       <span class="ml-2 text-white">Processing payment information...</span>
     </div>
-  {/if}
+  {/if} -->
 </div>
 
 <style>

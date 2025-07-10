@@ -3,13 +3,19 @@
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
 
+  type RoleOption = {
+    id: string;
+    name: string;
+    description: string;
+  };
   // Added props for more flexibility
   export let selected = { id: '', name: '' };
   export let placeholder = 'Select the role';
   export let hasError = false;
   export let errorMessage = '';
   export let showDescription = true;
-  export let options = [
+  export let disableValues: string[] = [];
+  export let options: RoleOption[] = [
     {
       id: 'admin',
       name: 'Admin',
@@ -26,26 +32,81 @@
       name: 'Viewer',
       description: 'View resources in a workspace without making changes.',
     },
+    {
+      id: 'member',
+      name: 'Member',
+      description: '',
+    },
   ];
 
   const dispatch = createEventDispatcher();
 
   let isOpen = false;
+  let isPositioned = false; // New flag to prevent flashing
   let dropdownElement; // Reference to the dropdown container
+  let dropdownListElement; // Reference to the actual dropdown list
+  let buttonRect; // To store button dimensions for positioning
+  let position = 'bottom'; // Default position
+  let dropdownHeight = 0; // Height of dropdown content
+
+  // Computed property to filter out disabled options
+  $: filteredOptions = options.filter((option) => !disableValues.includes(option.id));
 
   function toggleDropdown() {
-    isOpen = !isOpen;
+    if (!isOpen) {
+      // First set isOpen but keep dropdown hidden
+      isOpen = true;
+      isPositioned = false;
+
+      // Calculate position before showing
+      setTimeout(() => {
+        if (dropdownElement) {
+          buttonRect = dropdownElement.getBoundingClientRect();
+
+          // Get estimated dropdown height
+          if (dropdownListElement) {
+            dropdownHeight = dropdownListElement.offsetHeight;
+
+            // Check if dropdown would go off the bottom of the screen
+            const viewportHeight = window.innerHeight;
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+
+            // If not enough space below, position above
+            if (spaceBelow < dropdownHeight + 10) {
+              position = 'top';
+            } else {
+              position = 'bottom';
+            }
+          }
+
+          // Now show the positioned dropdown
+          isPositioned = true;
+        }
+      }, 0);
+    } else {
+      // Just close if already open
+      isOpen = false;
+      isPositioned = false;
+    }
   }
 
   function selectRole(role) {
     selected = role;
     dispatch('change', role);
     isOpen = false;
+    isPositioned = false;
   }
 
   function handleClickOutside(event) {
-    if (dropdownElement && !dropdownElement.contains(event.target) && isOpen) {
+    if (
+      dropdownElement &&
+      !dropdownElement.contains(event.target) &&
+      dropdownListElement &&
+      !dropdownListElement.contains(event.target) &&
+      isOpen
+    ) {
       isOpen = false;
+      isPositioned = false;
     }
   }
 
@@ -75,8 +136,17 @@
   </button>
 
   {#if isOpen}
-    <div class="bg-surface-600 absolute z-10 mt-1 w-full rounded-sm shadow-lg">
-      {#each options as role}
+    <div
+      bind:this={dropdownListElement}
+      class="bg-surface-600 fixed z-50 rounded-sm shadow-lg"
+      style="width: {buttonRect ? buttonRect.width + 'px' : '100%'}; 
+             left: {buttonRect ? buttonRect.left + 'px' : '-9999px'}; 
+             {position === 'bottom'
+        ? `top: ${buttonRect ? buttonRect.bottom + 5 + 'px' : '-9999px'}`
+        : `bottom: ${buttonRect ? window.innerHeight - buttonRect.top + 5 + 'px' : '-9999px'}`};
+             visibility: {isPositioned ? 'visible' : 'hidden'};"
+    >
+      {#each filteredOptions as role}
         <button
           type="button"
           class="relative flex w-full flex-col p-3 text-left {role.id === selected.id
@@ -96,8 +166,8 @@
           </div>
           {#if showDescription && role.description}
             <p class="text-fs-ds-12 font-fw-ds-300 mt-1 text-neutral-300">{role.description}</p>
-          {/if}</button
-        >
+          {/if}
+        </button>
       {/each}
     </div>
   {/if}

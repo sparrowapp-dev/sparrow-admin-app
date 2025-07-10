@@ -296,6 +296,26 @@ export class HubsService {
     const res = await makeRequest('GET', `/api/admin/hub-statistics?hubId=${hubId}`);
     return res?.data;
   }
+
+  public async bulkInviteUsers(data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/team/${data.teamId}/bulk-invite`, data);
+    return res?.data;
+  }
+
+  public async sendConfirmationMail(trailId: string, data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/trial-confirmation-mail/${trailId}`, data);
+    return res?.data;
+  }
+
+  /**
+   * Add users to a workspace (Admin only)
+   * @param workspaceId The workspace ID
+   * @param payload The payload matching AddWorkspaceUserDto
+   */
+  public async addUserToWorkspace(workspaceId: string, payload: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/admin/workspace/${workspaceId}/user`, payload);
+    return res?.data;
+  }
 }
 
 export const hubsService = new HubsService();

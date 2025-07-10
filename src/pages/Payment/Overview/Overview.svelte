@@ -2,9 +2,8 @@
   // Svelte
   import { onMount, onDestroy } from 'svelte';
   import { useLocation, navigate } from 'svelte-routing';
-
-  // Constants
-  import { API_BASE_URL } from '@/constants/environment';
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
 
   // Services
   import { createQuery } from '@/services/api.common';
@@ -33,15 +32,11 @@
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
-  import Tooltip from '@/components/Tooltip/Tooltip.svelte';
 
   // ===== CONSTANTS =====
   const location = useLocation();
 
   // ===== STATE VARIABLES =====
-  // Stripe and socket instances
-  let stripe;
-  let socket;
 
   // URL and hub data
   let hubId = null;
@@ -74,6 +69,22 @@
   // Resubscribe state
   let showResubscribeModal = false;
   let resubscribeInProgress = false;
+
+  // Animation stores for cards
+  const cardOpacity = tweened(0, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const cardTranslateY = tweened(20, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const cardBlur = tweened(4, {
+    duration: 600,
+    easing: cubicOut,
+  });
 
   // ===== API QUERIES =====
   // Fetch customer ID
@@ -195,6 +206,15 @@
       // Set subscription status
       subscriptionStatus = subscriptionData?.status || '';
     }
+  }
+
+  // Add animation trigger
+  $: if (!$isFetchingSubscription && !$isFetchingHub && $hubData?.data) {
+    setTimeout(() => {
+      cardOpacity.set(1);
+      cardTranslateY.set(0);
+      cardBlur.set(0);
+    }, 100);
   }
 
   // ===== FUNCTIONS =====
@@ -360,7 +380,10 @@
     <!-- 2x2 Grid Layout -->
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <!-- Current Plan Card -->
-      <div class="bg-surface-600 flex flex-col justify-between rounded-lg p-6">
+      <div
+        class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
+        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+      >
         <div class="flex flex-col gap-1">
           <div class="flex w-full items-center justify-between">
             <div class="flex items-center gap-2">
@@ -480,7 +503,10 @@
       </div>
 
       <!-- Need Help Card -->
-      <div class="bg-surface-600 flex flex-col justify-between rounded-lg p-6">
+      <div
+        class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
+        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+      >
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
             Need help with billing or your plan?
@@ -504,7 +530,10 @@
       </div>
 
       <!-- Quick Links Card -->
-      <div class="bg-surface-600 rounded-lg p-6">
+      <div
+        class="bg-surface-600 rounded-lg p-6"
+        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+      >
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">Quick Links</h2>
           <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
