@@ -222,11 +222,13 @@
         throw new Error(result.error.message);
       }
       if (result?.setupIntent.payment_method && defaultPaymentMethod) {
-        billingService.setUpDefaultPaymentMethod(customerId, result?.setupIntent?.payment_method);
+        await billingService.setUpDefaultPaymentMethod(
+          customerId,
+          result?.setupIntent?.payment_method,
+        );
       }
 
       notification.success('New card added successfully.');
-
       goBack();
     } catch (err: any) {
       error = err?.message;
