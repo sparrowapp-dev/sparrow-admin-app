@@ -128,10 +128,11 @@
 
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
-  let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
+  let priceId: string = '';
   let trialstart = '';
   let trialend = '';
   let isPaymentProcessing = false;
+  let pricingDetails;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -387,6 +388,11 @@
     const trialId = params.get('trialId');
     name = params.get('name');
     const response = await _viewModel.getTrialDetails(trialId);
+    const pricingResponse = await _viewModel.getPricingDetails();
+    if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
+      pricingDetails = pricingResponse.data.data;
+      priceId = pricingDetails?.plans[0]?.billing[0]?.providers?.stripe ?? '';
+    }
     if (response?.isSuccessful) {
       trailData = response.data;
       inviteCount = trailData?.data?.inviteCount ?? 0;
