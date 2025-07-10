@@ -32,6 +32,11 @@
       name: 'Viewer',
       description: 'View resources in a workspace without making changes.',
     },
+    {
+      id: 'member',
+      name: 'Member',
+      description: '',
+    },
   ];
 
   const dispatch = createEventDispatcher();

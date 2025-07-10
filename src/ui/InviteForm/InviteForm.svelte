@@ -15,11 +15,38 @@
     let newErrors = {};
     let hasErrors = false;
 
+    // First pass: Check for duplicate emails
+    const emailMap = new Map(); // Maps email to row ID of first occurrence
+
+    // Identify duplicate emails without setting errors yet
+    rows.forEach((row) => {
+      if (row.email?.trim()) {
+        const normalizedEmail = row.email.trim().toLowerCase();
+        if (!emailMap.has(normalizedEmail)) {
+          // Store first occurrence
+          emailMap.set(normalizedEmail, row.id);
+        }
+      }
+    });
+
+    // Main validation loop
     rows.forEach((row) => {
       // Skip completely empty rows
       if (!row.email && !row.role.id) return;
 
       const rowErrors = {};
+
+      // Check for duplicate email - only mark the later duplicates
+      if (row.email?.trim()) {
+        const normalizedEmail = row.email.trim().toLowerCase();
+        const firstOccurrenceId = emailMap.get(normalizedEmail);
+
+        // If this isn't the first occurrence of this email, mark it as duplicate
+        if (firstOccurrenceId !== row.id) {
+          rowErrors.email = 'Email is already added';
+          hasErrors = true;
+        }
+      }
 
       // If one field is filled but the other isn't, show error
       if (row.email && !row.role.id) {
@@ -32,8 +59,8 @@
         hasErrors = true;
       }
 
-      // Add email format validation
-      if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+      // Add email format validation (only if not already marked as duplicate)
+      if (row.email && !rowErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
         rowErrors.email = 'Please enter a valid email address';
         hasErrors = true;
       }
@@ -133,6 +160,7 @@
           showDescription={false}
           hasError={Boolean(errors[row.id]?.role)}
           errorMessage={errors[row.id]?.role || ''}
+          disableValues={['editor', 'viewer']}
           on:change={(e) => {
             row.role = e.detail;
             handleRoleChange(row.id, e.detail);

@@ -128,10 +128,11 @@
 
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
-  let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
+  let priceId: string = '';
   let trialstart = '';
   let trialend = '';
   let isPaymentProcessing = false;
+  let pricingDetails;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -238,6 +239,7 @@
         const { team } = data;
         console.log('Payment success team:', team);
         let formatTeamData: { email: string; role: string }[] = [];
+        let userCount = 1;
         setTimeout(async () => {
           if (triggerPoint === 'finish') {
             formatTeamData = teamdata
@@ -250,6 +252,9 @@
               teamId: team._id,
               users: formatTeamData,
             });
+            if (inviteResponse?.isSuccessful) {
+              userCount = userCount + formatTeamData?.length;
+            }
           }
           isProcessing = false;
           showProcessingModal = false;
@@ -263,7 +268,7 @@
           };
           await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${team?.users?.length || 1}&trialstart=${trialstart}&trialend=${trialend}`,
+            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}`,
             { replace: true },
           );
         }, 5000);
@@ -383,6 +388,11 @@
     const trialId = params.get('trialId');
     name = params.get('name');
     const response = await _viewModel.getTrialDetails(trialId);
+    const pricingResponse = await _viewModel.getPricingDetails();
+    if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
+      pricingDetails = pricingResponse.data.data;
+      priceId = pricingDetails?.plans[0]?.billing[0]?.providers?.stripe ?? '';
+    }
     if (response?.isSuccessful) {
       trailData = response.data;
       inviteCount = trailData?.data?.inviteCount ?? 0;

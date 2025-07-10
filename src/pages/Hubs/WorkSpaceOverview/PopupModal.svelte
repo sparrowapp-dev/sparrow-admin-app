@@ -511,7 +511,7 @@
           placeholder="Select the role"
           hasError={!!errors.roleError}
           errorMessage={errors.roleError}
-          disableValues={['admin']}
+          disableValues={['admin', 'member']}
         />
       </div>
       <div class="text-fs-ds-12 font-fw-ds-300 text-neutral-400">
