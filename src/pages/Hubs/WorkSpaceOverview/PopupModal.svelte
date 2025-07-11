@@ -98,6 +98,11 @@
   let isOwner = false;
   let user = null;
   let owner = null;
+  let hubDetails = null;
+  let hasInvalidEmails = false;
+
+  // State for tracking new invites (excluding existing users)
+  let newInvitesCount = 0;
 
   // Get hub details to check collaborator limits
   onMount(async () => {
@@ -105,17 +110,20 @@
       try {
         // Use the new getHubStatics API to get collaborator count
         const hubStats = await hubsService.getHubStatics(hubId);
-        const hubDetails = await hubsService.getHubDetails(hubId);
+        const hubDetailsResponse = await hubsService.getHubDetails(hubId);
+
+        // Store hubDetails for reuse in other functions
+        hubDetails = hubDetailsResponse;
 
         if (hubStats?.data) {
           // Get user role information
-          const users = hubDetails.data.users || [];
+          const users = hubDetailsResponse.data.users || [];
           user = users.find((u) => u.id.toString() === $userId?.toString());
           owner = users.find((u) => u.role === 'owner');
           isOwner = user?.role === 'owner';
 
           // Set limits from API data
-          collaboratorLimit = hubDetails.data.plan?.limits?.usersPerHub?.value || 3;
+          collaboratorLimit = hubDetailsResponse.data.plan?.limits?.usersPerHub?.value || 3;
           currentCollaboratorCount =
             hubStats?.data?.collaboratorCount + hubStats?.data?.pendingInvites;
         }
@@ -180,8 +188,16 @@
 
     // Check if collaborator limit would be exceeded for invites
     if (modalVariants.isInviteModal) {
-      const totalInvites = formData.emails.length;
-      if (currentCollaboratorCount + totalInvites > collaboratorLimit) {
+      // Use existing hubDetails data
+      const existingEmails = hubDetails?.data?.users?.map((user) => user.email.toLowerCase()) || [];
+
+      // Filter out emails that already exist in the hub
+      const newInvites = formData.emails.filter(
+        (email) => !existingEmails.includes(email.toLowerCase()),
+      );
+
+      const totalNewInvites = newInvites.length;
+      if (currentCollaboratorCount + totalNewInvites > collaboratorLimit) {
         showUpgradeModal = true;
         return;
       }
@@ -259,10 +275,24 @@
       isLoading = false;
     }
   }
-  let hasInvalidEmails = false;
+
   function handleEmailsChange(event) {
     formData.emails = event.detail;
     errors.emailError = '';
+
+    // Calculate new invites count (excluding existing users)
+    if (modalVariants.isInviteModal && hubDetails?.data?.users) {
+      const existingEmails = hubDetails.data.users.map((user) => user.email.toLowerCase());
+
+      const newInvites = formData.emails.filter(
+        (email) => !existingEmails.includes(email.toLowerCase()),
+      );
+
+      newInvitesCount = newInvites.length;
+    } else {
+      // Fallback if hubDetails is not available yet
+      newInvitesCount = formData.emails.length;
+    }
   }
   function handleEmailsValidity(event) {
     hasInvalidEmails = !event.detail.isValid;
@@ -567,7 +597,7 @@
         }
       }}
       limitText="Collaborators"
-      currentCount={currentCollaboratorCount + formData?.emails?.length}
+      currentCount={currentCollaboratorCount + newInvitesCount}
     />
   </Modal>
 {/if}
