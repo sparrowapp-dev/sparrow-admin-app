@@ -393,8 +393,6 @@
       } else {
         console.error('Failed to fetch hub details:', hubDetails);
       }
-    } else {
-      formData.hubName = trailData?.data?.companyName || '';
     }
     // Initialize Stripe
     stripe = await initializeStripe();
