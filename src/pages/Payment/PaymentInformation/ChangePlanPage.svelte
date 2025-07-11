@@ -1,6 +1,9 @@
 <script lang="ts">
   // Svelte
   import { navigate, useLocation } from 'svelte-routing';
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
 
   // Components
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
@@ -22,6 +25,34 @@
   } from '@/utils/pricing';
 
   const location = useLocation();
+
+  // Animation stores
+  const pageOpacity = tweened(0, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const pageTranslateY = tweened(30, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const toggleScale = tweened(0.95, {
+    duration: 700,
+    easing: cubicOut,
+  });
+
+  const cardsOpacity = tweened(0, {
+    duration: 500,
+    easing: cubicOut,
+  });
+
+  // Animation for individual card hover
+  let hoveredCardIndex = null;
+  const cardScale = tweened(1, {
+    duration: 100,
+    easing: cubicOut,
+  });
 
   // Extract URL parameters
   let hubId: string = '';
@@ -165,9 +196,46 @@
     hasDiscount: planDetails[plan][billingCycle].discount,
     discount: planDetails[plan][billingCycle].discount,
   }));
+
+  onMount(() => {
+    // Trigger page entrance animation
+    setTimeout(() => {
+      pageOpacity.set(1);
+      pageTranslateY.set(0);
+    }, 100);
+
+    setTimeout(() => {
+      toggleScale.set(1);
+    }, 300);
+
+    setTimeout(() => {
+      cardsOpacity.set(1);
+    }, 400);
+  });
+
+  function handleCardHover(index, isHovering) {
+    hoveredCardIndex = isHovering ? index : null;
+    cardScale.set(isHovering ? 1.01 : 1);
+  }
+
+  // Animation stores for toggle
+  const toggleIndicatorX = tweened(0, {
+    duration: 300,
+    easing: cubicOut
+  });
+
+  // Update toggle position when billing cycle changes
+  $: if (billingCycle === 'monthly') {
+    toggleIndicatorX.set(0);
+  } else {
+    toggleIndicatorX.set(100); // Move it fully to the right (100% of its width)
+  }
 </script>
 
-<div class="max-w-[1200px]">
+<div
+  class="max-w-[1200px]"
+  style="opacity: {$pageOpacity}; transform: translateY({$pageTranslateY}px);"
+>
   <Breadcrumbs items={breadcrumbItems} />
 
   <div class="mt-6">
@@ -178,17 +246,27 @@
     </p>
 
     <div class="mt-6">
-      <!-- Billing toggle -->
+      <!-- Billing toggle with smooth sliding animation -->
       <div class="mb-6 flex">
-        <div class="border-surface-100 flex w-[350px] rounded-md border">
+        <div
+          class="border-surface-100 relative flex w-[350px] rounded-md border overflow-hidden"
+          style="transform: scale({$toggleScale});"
+        >
+          <!-- Sliding background indicator -->
+          <div
+            class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-surface-600 rounded-md transition-transform duration-300 ease-out"
+            style="transform: translateX({$toggleIndicatorX}%);"
+          ></div>
+          
+          <!-- Toggle buttons -->
           <button
-            class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${billingCycle === 'monthly' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+            class={`text-fs-ds-12 font-inter font-fw-ds-400 relative z-10 m-1 flex-1 cursor-pointer rounded-md py-1.5 transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-white' : 'text-neutral-300'}`}
             on:click={() => (billingCycle = 'monthly')}
           >
             Monthly billing
           </button>
           <button
-            class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${billingCycle === 'annual' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+            class={`text-fs-ds-12 font-inter font-fw-ds-400 relative z-10 m-1 flex-1 cursor-pointer rounded-md py-1.5 transition-colors duration-200 ${billingCycle === 'annual' ? 'text-white' : 'text-neutral-300'}`}
             on:click={() => (billingCycle = 'annual')}
           >
             Annual billing
@@ -196,11 +274,20 @@
         </div>
       </div>
 
-      <!-- Plan Cards Grid -->
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }}
+      <!-- Plan Cards Grid with staggered animation -->
+      <div
+        class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+        style="opacity: {$cardsOpacity};"
+      >
+        {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }, index}
           <div
-            class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] hover:border-1 ${isCurrentPlan ? 'border-1 border-neutral-50' : 'border-surface-500 border-2'}`}
+            class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] transition-all duration-200 ${isCurrentPlan ? 'border-2 border-neutral-50' : 'border-surface-500 border-2'}`}
+            style="
+              transform: scale({hoveredCardIndex === index ? $cardScale : 1});
+              animation: cardSlideIn 300ms ease-out forwards {index * 100}ms;
+            "
+            on:mouseenter={() => handleCardHover(index, true)}
+            on:mouseleave={() => handleCardHover(index, false)}
           >
             <!-- Plan Header -->
             <div class="p-6">
@@ -339,3 +426,16 @@
     </div>
   </div>
 </div>
+
+<style>
+  @keyframes cardSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

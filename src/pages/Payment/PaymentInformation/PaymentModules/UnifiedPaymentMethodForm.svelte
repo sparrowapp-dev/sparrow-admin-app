@@ -36,7 +36,9 @@
   export let customerId = '';
   export let paymentMethodId = '';
   export let hubId = '';
+  export let hubName = '';
   export let isDefault = false;
+  export let isFirstCard = false;
 
   // State variables
   let isLoading = false;
@@ -78,8 +80,14 @@
   let country: { label: string; value: string } | null = null;
   let defaultPaymentMethod = false;
 
-  // Initialize defaultPaymentMethod from the isDefault prop
-  $: defaultPaymentMethod = isDefault;
+  // Initialize defaultPaymentMethod - force true if it's the first card
+  $: {
+    if (isFirstCard) {
+      defaultPaymentMethod = true;
+    } else {
+      defaultPaymentMethod = isDefault;
+    }
+  }
 
   // Parse the hub ID from the URL path if not provided as prop
   $: {
@@ -248,6 +256,10 @@
 
   // Handle creating a new payment method with billing details
   async function handleNewPaymentMethod() {
+    // Force default to true if it's the first card
+    if (isFirstCard) {
+      defaultPaymentMethod = true;
+    }
     // Validate card fields
     if (
       cardNumberEmpty ||
@@ -407,6 +419,7 @@
           postal_code: postalCode,
           country: country.value,
         },
+        hubId: hubId || undefined,
       };
 
       // Use billing service to update billing details
@@ -642,7 +655,7 @@
                 inputType="name"
                 bind:value={billingName}
                 required={true}
-                placeholder="Enter name"
+                placeholder="Enter Name"
                 disabled={isSaving}
                 hasError={formSubmitted && !billingName.trim()}
                 errorMessage={formSubmitted && !billingName.trim()
@@ -664,7 +677,7 @@
                 disabled={isSaving}
                 hasError={formSubmitted && !billingEmail.trim()}
                 errorMessage={formSubmitted && !billingEmail.trim()
-                  ? 'Please enter valid billing email.'
+                  ? 'Please enter valid billing email'
                   : ''}
                 emailErrorMessage="Please enter valid billing email"
               />
@@ -678,7 +691,7 @@
                 name="line1"
                 bind:value={line1}
                 required={true}
-                placeholder="Enter address line 1"
+                placeholder="Enter Address Line 1"
                 disabled={isSaving}
                 hasError={formSubmitted && !line1.trim()}
                 errorMessage={formSubmitted && !line1.trim() ? 'Please enter your address' : ''}
@@ -692,7 +705,7 @@
                 id="line2"
                 name="line2"
                 bind:value={line2}
-                placeholder="Enter address line 2"
+                placeholder="Enter Address Line 2"
                 disabled={isSaving}
               />
             </div>
@@ -759,7 +772,7 @@
                 inputType="postal"
                 bind:value={postalCode}
                 required={true}
-                placeholder="Enter ZIP code"
+                placeholder="Enter ZIP Code"
                 disabled={isSaving}
                 hasError={formSubmitted && !postalCode.trim()}
                 errorMessage={formSubmitted && !postalCode.trim()
@@ -773,7 +786,7 @@
           <div
             class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex cursor-pointer items-center gap-1 text-neutral-50"
           >
-            <span on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}>
+            <span on:click={() => !isFirstCard && (defaultPaymentMethod = !defaultPaymentMethod)}>
               {#if defaultPaymentMethod}
                 <CheckboxChecked />
               {:else}
@@ -781,7 +794,7 @@
               {/if}
             </span>
             <span
-              on:click={() => (defaultPaymentMethod = !defaultPaymentMethod)}
+              on:click={() => !isFirstCard && (defaultPaymentMethod = !defaultPaymentMethod)}
               class="text-fs-ds-14 font-fw-ds-300 cursor-pointer text-neutral-100"
             >
               Set this card as default payment method

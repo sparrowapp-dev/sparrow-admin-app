@@ -20,9 +20,21 @@
   export let cellClassName = '';
   export let containerClassName = '';
   export let emptyStateComponent = null;
+  export let columnWidths: Record<string, string> = {};
 
   // Get last column ID for width handling
   $: lastColumnId = columns[columns.length - 1]?.id;
+
+  // Helper function to get column width
+  function getColumnWidth(columnId: string): string {
+    // First check if the column definition has a width property
+    const column = columns.find((col) => col.id === columnId);
+    if (column && (column as any).width) {
+      return (column as any).width;
+    }
+    // Fall back to columnWidths prop
+    return columnWidths[columnId] || 'auto';
+  }
 
   // Table instance
   $: table = createSvelteTable({
@@ -62,14 +74,19 @@
           {#each $table.getHeaderGroups() as headerGroup}
             <tr>
               {#each headerGroup.headers as header}
-                <TableHeader {header} dataLength={data.length} className={headerClassName} />
+                <TableHeader
+                  {header}
+                  dataLength={data.length}
+                  className={headerClassName}
+                  columnWidth={getColumnWidth(header.column.id)}
+                />
               {/each}
             </tr>
           {/each}
         </thead>
 
         <tbody>
-          {#each $table.getRowModel().rows as row}
+          {#each $table.getRowModel().rows as row, rowIndex}
             <tr
               class="group/row hover:bg-surface-800 border-surface-600 border-b transition-colors duration-150 {rowClassName}"
               on:click={() => handleRowClick(row)}
@@ -77,9 +94,11 @@
               {#each row.getVisibleCells() as cell}
                 <TableCell
                   {cell}
+                  {rowIndex}
                   className={cellClassName}
                   showOnHover={cell.column.id === 'launch'}
                   isLastColumn={cell.column.id === lastColumnId}
+                  columnWidth={getColumnWidth(cell.column.id)}
                 />
               {/each}
             </tr>

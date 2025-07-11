@@ -507,7 +507,12 @@
   <!-- Processing Payment Modal -->
   {#if showProcessingModal}
     <Modal width="max-w-xl" on:close={() => (showProcessingModal = false)}>
-      <PaymentProcessingModal on:close={() => (showProcessingModal = false)} />
+      <PaymentProcessingModal
+        title="Processing Your Payment"
+        description="Please don't close this window, We're processing your payment. Your hub will be ready as
+        soon as the payment is confirmed."
+        on:close={() => (showProcessingModal = false)}
+      />
     </Modal>
   {/if}
 

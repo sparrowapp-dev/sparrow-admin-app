@@ -1,0 +1,66 @@
+<script>
+  import TrialNav from '@/components/TrialNav/TrialNav.svelte';
+  import WelcomePage from '@/assets/images/WelcomePage.png';
+  import TrialSuccess from '@/components/TrialFlow/TrialSuccess.svelte';
+  import { onMount } from 'svelte';
+  let hub = '';
+  let users = '';
+  let trialstart = '';
+  let trialend = '';
+  let trialStartDate = '';
+  let trialEndDate = '';
+  let amount = 0;
+  onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    hub = params.get('hub');
+    users = params.get('users');
+    trialstart = params.get('trialstart');
+    trialend = params.get('trialend');
+
+    // Convert Unix timestamp (seconds) to Date string
+    if (trialstart) {
+      const date = new Date(Number(trialstart) * 1000);
+      trialStartDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    if (trialend) {
+      const date = new Date(Number(trialend) * 1000);
+      trialEndDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    amount = users ? parseInt(users) * 9.99 : 9.99; // Assuming $9.99 per user
+  });
+</script>
+
+<TrialNav />
+<div
+  class="flex min-h-screen items-start justify-center bg-cover bg-center bg-no-repeat p-4 pt-18"
+  style="background-image: url('{WelcomePage}')"
+>
+  <div class="padding-y-14 mx-auto flex w-full max-w-2xl flex-col gap-7">
+    <div class="text-center text-neutral-50">
+      <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
+        <span class="gradient-text">Standard Trial</span> Unlocked
+      </h1>
+    </div>
+    <div>
+      <TrialSuccess {hub} {users} {trialEndDate} {trialStartDate} {amount} />
+    </div>
+  </div>
+</div>
+
+<style>
+  .gradient-text {
+    background: linear-gradient(180deg, #11adf0 0%, #6147ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+</style>

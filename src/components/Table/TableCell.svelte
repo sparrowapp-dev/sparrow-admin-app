@@ -1,14 +1,41 @@
 <script lang="ts">
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
+
   export let cell: any;
   export let className = '';
   export let showOnHover = false;
   export let maxWidth = '200px';
   export let isLastColumn = false;
+  export let columnWidth = 'auto';
+  export let rowIndex = 0;
+
+  // Only animate opacity for non-hover elements
+  const opacity = tweened(showOnHover ? 0 : 0, {
+    duration: 500,
+    easing: cubicOut,
+  });
 
   // Get cell value as string for title attribute
   $: cellValue = typeof cell.getValue() === 'string' ? cell.getValue() : '';
-  // Set width for last column
-  $: columnWidth = isLastColumn ? '100px' : maxWidth;
+  // Use columnWidth prop if provided, otherwise fall back to existing logic
+  $: finalColumnWidth = columnWidth !== 'auto' ? columnWidth : isLastColumn ? '100px' : maxWidth;
+
+  onMount(() => {
+    // Staggered animation based on row index
+    const delay = rowIndex * 50; // 80ms delay between each row
+
+    setTimeout(() => {
+      // Only animate opacity for elements that aren't hover-only
+      if (!showOnHover) {
+        opacity.set(1);
+      }
+    }, delay);
+  });
+
+  // Calculate final opacity considering both animation and hover state
+  $: finalOpacity = showOnHover ? undefined : $opacity;
 </script>
 
 <td
@@ -27,7 +54,7 @@
       ${showOnHover ? 'opacity-0 transition-opacity duration-150 group-hover/row:opacity-100' : ''}
       ${className}
     `}
-  style={`max-width: ${columnWidth};`}
+  style="width: {finalColumnWidth}; {finalOpacity !== undefined ? `opacity: ${finalOpacity};` : ''}"
   on:click
 >
   <div class="overflow-hidden text-ellipsis whitespace-nowrap" title={cellValue}>

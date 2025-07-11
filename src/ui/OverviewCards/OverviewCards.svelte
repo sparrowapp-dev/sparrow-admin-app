@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
+
   interface Point {
     value: string;
     count: number;
@@ -10,9 +14,36 @@
   export let points: Point[] = [];
   export let history: string;
   export let loading = false;
+
+  // Simple modern animation
+  const opacity = tweened(0, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const translateY = tweened(10, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const contentBlur = tweened(10, {
+    duration: 300,
+    easing: cubicOut,
+  });
+
+  onMount(() => {
+    setTimeout(() => {
+      opacity.set(1);
+      translateY.set(0);
+      contentBlur.set(0);
+    }, 100);
+  });
 </script>
 
-<section class="bg-surface-600 w-[32%] rounded-lg p-6">
+<section
+  class="bg-surface-600 w-[32%] rounded-lg p-6"
+  style="opacity: {$opacity}; transform: translateY({$translateY}px); filter: blur({$contentBlur}px);"
+>
   <div class="flex justify-between">
     <div class="flex flex-col gap-1">
       <div class="flex flex-col gap-2">
