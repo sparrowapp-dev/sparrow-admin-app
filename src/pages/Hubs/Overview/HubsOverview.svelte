@@ -29,11 +29,18 @@
   import NameWithTooltip from '@/components/TableComponents/NameWithTooltip.svelte';
   import Tag from '@/ui/Tag/Tag.svelte';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
+  import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
+  import { AVAILABLE_PLANS } from '@/utils/pricing';
+  import HubsDropdownIcon from '@/assets/icons/HubsDropdownIcon.svelte';
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
   let sorting: SortingState = [{ id: 'createdAt', desc: true }];
   let showModal = false;
+  let selected = {
+    value: 'All',
+    label: 'All Hubs',
+  };
 
   // Queries
   const { data: summaryData, isFetching: isSummaryLoading } = createQuery(async () => {
@@ -49,6 +56,7 @@
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
       search: filters.searchTerm,
+      plan: selected.value,
       sortBy: sorting[0]?.id || 'createdAt',
       sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
     });
@@ -204,6 +212,14 @@
           title: 'Total Hubs',
           value: $summaryData.data.totalHubs,
           icon: Hubsicon,
+          subData: [
+            { value: 'Community', count: $summaryData?.data?.planSegregationCount?.Community },
+            { value: 'Standard', count: $summaryData?.data?.planSegregationCount?.Standard },
+            {
+              value: 'Professional',
+              count: $summaryData?.data?.planSegregationCount?.Professional,
+            },
+          ],
         },
         {
           title: 'Total Workspaces',
@@ -225,7 +241,25 @@
         },
       ]
     : [];
-
+  const options = [
+    {
+      value: 'Community',
+      label: 'Community',
+    },
+    {
+      value: 'Standard',
+      label: 'Standard',
+    },
+    {
+      value: 'Professional',
+      label: 'Professional',
+    },
+    { value: 'All', label: 'All Hubs' },
+  ];
+  function handleSelect(event) {
+    selected = event.detail;
+    refetch();
+  }
   $: totalItems = $hubsData?.data?.totalCount || 0;
 </script>
 
@@ -245,7 +279,7 @@
           Manage and monitor all your Sparrow Hubs
         </h2>
       </div>
-      <div class="flex flex-row justify-between h-[7.5rem]">
+      <div class="flex h-[7.5rem] flex-row justify-between">
         {#each cardsData as card}
           <OverviewCards
             icon={card.icon}
@@ -269,12 +303,21 @@
 
       <div class="bg-surface-900 flex min-h-full flex-col gap-4">
         <div class="flex justify-between">
-          <TableSearch
-            value={filters.searchTerm}
-            on:search={handleSearchChange}
-            isLoading={$isFetching}
-            placeholder={'Search hubs'}
-          />
+          <div class="flex gap-3">
+            <TableSearch
+              value={filters.searchTerm}
+              on:search={handleSearchChange}
+              isLoading={$isFetching}
+              placeholder={'Search hubs'}
+            />
+            <DropdownNoSearch
+              width={'min-w-[151px]'}
+              bind:selected
+              {options}
+              leftIcon={HubsDropdownIcon}
+              on:select={handleSelect}
+            />
+          </div>
           <Button
             variant="filled-primary"
             size="small"
