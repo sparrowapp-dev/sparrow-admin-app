@@ -3,6 +3,7 @@
   import Button from '@/ui/Button/Button.svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import { navigate } from 'svelte-routing';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher<{
     close: void;
@@ -17,10 +18,12 @@
   export let hubId: string = '';
 
   function handleClose() {
+    captureUserPlanDowngradeClick(fromPlan,toPlan);
     dispatch('close');
   }
 
   function handleGoToHub() {
+    captureUserPlanDowngradeClick(fromPlan,toPlan);
     navigate(`/hubs/workspace/${hubId}`);
   }
 
@@ -31,6 +34,14 @@
         day: 'numeric',
       })
     : '';
+
+    const captureUserPlanDowngradeClick = (currentPlan:string, downgradePlan:string) =>{
+      const eventProperties = {
+        current_plan:currentPlan,
+        downgrade_plan:downgradePlan,
+      }
+      captureEvent("plan_downgrade_success",eventProperties);
+    }
 </script>
 
 <div class="bg-surface-600 max-w-xl rounded-lg p-7 text-white">

@@ -3,6 +3,7 @@
   import MemberRolesDropdown from '../MemberRoleDropdown/MemberRolesDropdown.svelte';
   import { hubsService } from '@/services/hubs.service';
   import { notification } from '../Toast';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let onClose: () => void;
   export let data: {
@@ -57,6 +58,7 @@
   async function handleRoleChange(event) {
     let previouslySelectedRole = selected;
     const selectedRole = event.detail.id;
+    captureUserRoleChange(selected.name, selectedRole);
     selected = event?.detail;
     if (selectedRole === 'Remove User') {
       removeUserPopupOpen();
@@ -105,6 +107,13 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  const captureUserRoleChange = (currentRole:string,updatedRole:string) =>{
+    const eventProperties = {
+      role_change: `${currentRole} to ${updatedRole}`
+    }
+    captureEvent("workspace_row_actions_clicked", eventProperties);
   }
 </script>
 
@@ -165,7 +174,10 @@
                       dropdownId={`workspace-role-dropdown-${i}`}
                       selected={workspaceSelected[workspace.workspace._id]}
                       options={workspaceOptions}
-                      on:change={(event) => handleWorkspaceRoleChange(event, workspace)}
+                      on:change={(event) =>{ 
+                        handleWorkspaceRoleChange(event, workspace) 
+                        captureUserRoleChange(workspace.userRole,event?.detail?.id)
+                      }}
                     />
                   </span>
                 </div>{/if}

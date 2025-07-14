@@ -23,6 +23,7 @@
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
   import { navigate } from 'svelte-routing';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   const id = userId;
 
@@ -153,6 +154,7 @@
   function handleSelect(event: CustomEvent<{ value: string; label: string }>) {
     selected = event.detail;
     pagination.pageIndex = 0;
+    captureDropdownSelect(selected.label, "All Hubs");
     hubId = selected?.value !== 'all' ? selected.value : null;
     if (hubId) {
       refetchMembers();
@@ -292,6 +294,21 @@
     const userId = event.detail.id;
     navigate(`/users/users-overview/${userId}`);
   }
+
+  const captureDropdownSelect = (selectName:string,buttonName:string) =>{
+    const eventProperties = {
+      button_name: buttonName,
+      select_type: selectName
+    }
+    captureEvent("hub_filter_applied", eventProperties);
+  }
+
+  const captureInviteCollaborator = (buttonName:string) =>{
+    const eventProperties = {
+      button_name: buttonName,
+    }
+    captureEvent("invite_collaborator_clicked", eventProperties);
+  }
 </script>
 
 <section>
@@ -315,7 +332,10 @@
             variant="filled-primary"
             size="small"
             iconLeft={true}
-            on:click={() => (showModal = true)}
+            on:click={() => {
+              (showModal = true) 
+              captureInviteCollaborator("Invite Collaborators")
+            }}
             disabled={selected.value === 'all'}
           >
             <svelte:fragment slot="iconLeft">

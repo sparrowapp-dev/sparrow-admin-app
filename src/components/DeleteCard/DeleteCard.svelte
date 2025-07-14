@@ -48,7 +48,7 @@
 
       // Use the billing service instead of direct fetch
       await billingService.deletePaymentMethod(paymentMethodId);
-
+      captureUserBillingCardRemoval();
       // Show success toast notification
       notification.success('Card removed successfully.');
 
@@ -68,6 +68,13 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  const captureUserBillingCardRemoval = () =>{
+    const eventProperties ={
+      button_name:"Delete Card"
+    }
+    captureEvent("card_deleted",eventProperties);
   }
 </script>
 

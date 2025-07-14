@@ -8,6 +8,7 @@
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { hubDetailsRefreshTrigger } from '@/store/hubs';
   import { onDestroy } from 'svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   interface Team {
     teamId: string;
@@ -58,6 +59,7 @@
     if (val?.teamId) {
       navigate(`${link}/${options[0].id}/${val.teamId}`);
     }
+    captureUserDropdownHubClick(val.teamName,dropdownOptions);
   }
   $: if (dropdownOptions.length && $location) {
     const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
@@ -88,6 +90,22 @@
       document.removeEventListener('click', handleOutsideClick, true);
     };
   });
+
+  const captureUserDropdownHubClick = (selectOption:string, hubs:any) =>{
+    const allHubs = hubs.map(item => ({ label: item.label }));
+    const eventProperties = {
+      type_filter:selectOption,
+      hub_list:allHubs
+    }
+    captureEvent("user_management_dropdown-clicked", eventProperties);
+  }
+
+  const captureUserViewInvoicesRedirect = () =>{
+    const eventProperties = {
+      source_location:"Billing side panel",
+    }
+    captureEvent("view_invoices_clicked", eventProperties);
+  }
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
@@ -118,6 +136,11 @@
               class="{activeId === option.id
                 ? 'bg-surface-500'
                 : ''} font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
+              on:click={()=>{
+                if(option.id === "billingInvoices"){
+                  captureUserViewInvoicesRedirect()
+                }
+              }}
             >
               {option.label}
             </Link>

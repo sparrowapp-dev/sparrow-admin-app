@@ -13,6 +13,7 @@
   import HostingIcon from '@/assets/icons/HostingIcon.svelte';
   import SettingsIcon from '@/assets/icons/SettingsIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const currentPath = writable(window.location.pathname);
   let hoveredPath: string | null = null;
@@ -79,6 +80,13 @@
   $: securityVariant = getIconVariant('/security');
   $: hostingVariant = getIconVariant('/self-hosting');
   $: settingsVariant = getIconVariant('/settings');
+
+  const captureBillingButtonClick = () => {
+    const eventProperties = {
+      button_name:"biling_Icon"
+    };
+    captureEvent("billing_page_viewed", eventProperties);
+  };
 </script>
 
 <div
@@ -244,7 +252,10 @@
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/billing')}
-        on:click={() => navigate('/billing')}
+        on:click={() =>{ 
+          captureBillingButtonClick() 
+          navigate('/billing')
+        }}
         on:mouseenter={() => (hoveredPath = '/billing')}
         on:mouseleave={() => (hoveredPath = null)}
         on:focus={() => (focusedPath = '/billing')}

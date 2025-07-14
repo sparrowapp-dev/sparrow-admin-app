@@ -6,6 +6,7 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import RemoveUsers from '@/assets/icons/RemoveUsers.svelte';
   import { userId } from '@/store/auth';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let row;
   export let modalVariants;
@@ -68,12 +69,16 @@
 
   function handleChangeRole(event) {
     event.stopPropagation();
+    captureDropdownSelect("Change Role","hub_member_role_changed");
+    captureUserActions("Change Role");
     onClick({ data: row?.original, click: 'changeRole' });
 
     closeDropdown();
   }
   function handleRemoveUser(event) {
     event.stopPropagation();
+    captureDropdownSelect("Remove User","hub_member_removed");
+    captureUserActions("Remove User");
     onClick({ data: row.original, click: 'removeUser' });
 
     closeDropdown();
@@ -103,6 +108,20 @@
     window.removeEventListener('close-all-dropdowns', closeDropdown);
     window.removeEventListener('scroll', closeDropdown, true);
   });
+
+  const captureDropdownSelect = (selectName:string,captureName:string) =>{
+    const eventProperties = {
+      select_type: selectName
+    }
+    captureEvent(captureName, eventProperties);
+  }
+
+  const captureUserActions = (selectOption:string) =>{
+    const eventProperties = {
+      select_option:selectOption
+    }
+    captureEvent("user_management_user_action", eventProperties);
+  }
 </script>
 
 <!-- Dropdown trigger -->

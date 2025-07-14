@@ -23,6 +23,7 @@
     isDowngrade,
     type BillingCycleType,
   } from '@/utils/pricing';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const location = useLocation();
 
@@ -109,6 +110,7 @@
   // Handle plan selection
   function selectPlan(plan) {
     if (plan === 'enterprise') {
+      captureUserPlanUpgradeClick(currentPlan,plan);
       // Open contact form in a new tab
       window.open('mailto:contactus@sparrowapp.dev', '_blank');
     } else {
@@ -130,6 +132,9 @@
           billingCycle,
         );
 
+        if(!isDowngradeChange){
+          captureUserPlanUpgradeClick(currentPlan,plan);
+        }
         // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
@@ -229,6 +234,14 @@
     toggleIndicatorX.set(0);
   } else {
     toggleIndicatorX.set(100); // Move it fully to the right (100% of its width)
+  }
+
+  const captureUserPlanUpgradeClick = (currentPlan:string, upgradePlan:string) =>{
+    const eventProperties = {
+      current_plan:currentPlan,
+      upgrade_plan:upgradePlan,
+    }
+    captureEvent("plan_upgraded",eventProperties);
   }
 </script>
 

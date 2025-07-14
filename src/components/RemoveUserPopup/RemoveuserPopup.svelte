@@ -3,6 +3,7 @@
   import { hubsService } from '@/services/hubs.service';
   import Button from '@/ui/Button/Button.svelte';
   import { notification } from '../Toast';
+  import { captureEvent } from '@/utils/posthogConfig';
   export let onClose;
   export let hubName;
   export let data;
@@ -12,6 +13,7 @@
   async function handleRemoveUser() {
     try {
       isLoading = true;
+      captureRemoveUserClick("Remove");
       const response = await hubsService.deleteUserFromTeam({ userId: data.id, teamId: hubId });
       notification.success(
         `"${data?.name.length > 15 ? `${data.name.slice(0, 15)}...` : data.name}" is removed from "${hubName.length > 15 ? `${hubName.slice(0, 15)}...` : hubName}".`,
@@ -24,6 +26,13 @@
     } finally {
       onClose();
     }
+  }
+
+  const captureRemoveUserClick = (buttonName:string) =>{
+    const eventProperties = {
+      button_name:buttonName
+    }
+    captureEvent("user_remove", eventProperties);
   }
 </script>
 
