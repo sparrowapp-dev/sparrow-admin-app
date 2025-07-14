@@ -15,6 +15,7 @@
     if (path.startsWith('/hubs/workspace/')) return path.split('/')[3];
     if (path.startsWith('/hubs/settings/')) return path.split('/')[3];
     if (path.startsWith('/hubs/members/')) return path.split('/')[3];
+    if (path.startsWith('/hubs/workspace-details/')) return path.split('/')[4]; 
     return null;
   })();
 

@@ -11,6 +11,7 @@ interface BillingDetailsUpdateParams {
     postal_code?: string;
     country: string;
   };
+  hubId?: string; // Optional hub ID
 }
 
 interface CreateSubscriptionParams {

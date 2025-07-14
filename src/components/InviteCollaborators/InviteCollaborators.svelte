@@ -190,6 +190,7 @@
         placeholder="Select the role"
         hasError={!!roleError}
         errorMessage={roleError}
+        disableValues={['member']}
       />
 
       {#if selectedRole.id === 'admin'}
