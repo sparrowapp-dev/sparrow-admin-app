@@ -94,7 +94,7 @@
   let socket;
   // let hubId = '';
   let inviteCount;
-  let trialPeriod;
+  let trialPeriod = 14;
   let name;
   let teamDetailsComponent;
 
@@ -382,9 +382,13 @@
     nextBilling: '',
   };
   let showSubscriptionConfirmModal = false;
+  let flowName = '';
   onMount(async () => {
+    const params = new URLSearchParams(window.location.search);
     createdHubId = localStorage.getItem('createdHubId') ?? '';
     isHubCreated = localStorage.getItem('isHubCreated') === 'true';
+    const userName = params.get('name');
+    flowName = params.get('flow') || '';
     if (isHubCreated) {
       const hubDetails = await _viewModel.getHubDetails(createdHubId);
       if (hubDetails?.isSuccessful) {
@@ -393,6 +397,8 @@
       } else {
         console.error('Failed to fetch hub details:', hubDetails);
       }
+    } else {
+      name = userName || '';
     }
     // Initialize Stripe
     stripe = await initializeStripe();
