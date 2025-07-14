@@ -289,6 +289,7 @@
 
   const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
     const eventProperties = {
+      event_source : "admin_panel",
       button_name:buttonName,
       new_visibility:workspaceType,
       source_Location:location
@@ -298,6 +299,7 @@
 
   const captureWorkspaceDelete = (workspaceId:string)=>{
     const eventProperties = {
+      event_source:"admin_panel",
       button_name:"Delete Workspace",
       workspace_id:workspaceId
     }

@@ -118,9 +118,11 @@
 
   const captureUserActions = (selectOption:string) =>{
     const eventProperties = {
-      select_option:selectOption
+      event_source : "admin_panel",
+      select_option:selectOption,
+      cta_location : "user_management"
     }
-    captureEvent("user_management_user_action", eventProperties);
+    captureEvent("change_role", eventProperties);
   }
 </script>
 

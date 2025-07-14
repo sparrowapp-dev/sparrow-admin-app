@@ -124,6 +124,7 @@
   
   const captureDropdownSelect = (selectName:string) =>{
     const eventProperties = {
+      event_source : "admin_panel",
       select_type: selectName
     }
     captureEvent("hub_row_actions_clicked", eventProperties);

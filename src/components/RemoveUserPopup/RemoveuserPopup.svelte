@@ -13,7 +13,7 @@
   async function handleRemoveUser() {
     try {
       isLoading = true;
-      captureRemoveUserClick("Remove");
+      captureRemoveUserClick();
       const response = await hubsService.deleteUserFromTeam({ userId: data.id, teamId: hubId });
       notification.success(
         `"${data?.name.length > 15 ? `${data.name.slice(0, 15)}...` : data.name}" is removed from "${hubName.length > 15 ? `${hubName.slice(0, 15)}...` : hubName}".`,
@@ -28,9 +28,10 @@
     }
   }
 
-  const captureRemoveUserClick = (buttonName:string) =>{
+  const captureRemoveUserClick = () =>{
     const eventProperties = {
-      button_name:buttonName
+      event_source : "admin_panel",
+      cta_location : "user_management"
     }
     captureEvent("user_remove", eventProperties);
   }

@@ -8,6 +8,7 @@
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
+    import { captureEvent } from '@/utils/posthogConfig';
   const dispatch = createEventDispatcher();
   export let onClose: () => void;
   export let hubId: any;
@@ -122,7 +123,7 @@
 
       // Call the API to invite users
       await hubsService.inviteUsers(payload);
-
+      captureUserSendInvites();
       notification.success('Invite sent successfully.');
       onSuccess();
       onClose();
@@ -140,6 +141,14 @@
     } finally {
       isSubmitting = false;
     }
+  }
+
+  const captureUserSendInvites = () =>{
+    const eventProperties ={
+      event_source:"admin_panel",
+      cta_location:"user_management"
+    }
+    captureEvent("send_invite", eventProperties)
   }
 </script>
 

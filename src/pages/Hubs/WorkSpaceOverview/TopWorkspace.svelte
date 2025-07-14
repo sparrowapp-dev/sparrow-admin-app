@@ -73,6 +73,8 @@
 
   const captureWorkspaceDropdown = (buttonName:string, location:string,captureName:string)=>{
     const eventProperties = {
+      event_source : "admin_panel",
+      resource:"Workspace",
       button_name:buttonName,
       source_location:location
     }

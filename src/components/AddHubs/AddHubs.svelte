@@ -8,6 +8,7 @@
   import { hubsService } from '@/services/hubs.service';
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let onClose: () => void;
   // Form data with TypeScript interface
@@ -97,6 +98,7 @@
 
       const response = await hubsService.createHub(formDataToSend);
       const hubName = response?.data.name ?? formData.hubName.trim();
+      captureUserCreateHub();
       notification.success(`"${hubName}" hub is created successfully.`);
       onClose();
       navigate(`/hubs/workspace/${response.data._id}`);
@@ -105,6 +107,13 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  const captureUserCreateHub = () =>{
+     const eventProperties ={
+      event_source:"admin_panel",
+    }
+    captureEvent("create_hub", eventProperties);
   }
 </script>
 
