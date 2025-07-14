@@ -6,7 +6,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { onMount } from 'svelte';
-  import TrialFlowViewModel from './MarketingTrialFlow.ViewModel';
+  import TrialFlowViewModel from './UserTrialFlow.ViewModel';
   import { billingService } from '@/services/billing.service';
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
@@ -160,12 +160,12 @@
           const formDataToSend = new FormData();
           formDataToSend.append('name', formData.hubName.trim());
           formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
-          formDataToSend.append('isTrialHub', true);
-          formDataToSend.append('trialId', trailData?.data?._id);
           const createdHub = await _viewModel.createTrialHub(formDataToSend);
           if (createdHub?.isSuccessful) {
-            isHubCreated = true;
             createdHubId = createdHub.data.data._id;
+            isHubCreated = true;
+            localStorage.setItem('isHubCreated', 'true');
+            localStorage.setItem('createdHubId', createdHubId);
             currentStep += 1; // Move to next step after processing
           } else {
             console.error('Failed to create hub:', createdHub);
@@ -383,26 +383,15 @@
   };
   let showSubscriptionConfirmModal = false;
   onMount(async () => {
-    const params = new URLSearchParams(window.location.search);
-    const trialId = params.get('trialId');
-    name = params.get('name');
-    const response = await _viewModel.getTrialDetails(trialId);
-    if (response?.isSuccessful) {
-      trailData = response.data;
-      inviteCount = trailData?.data?.inviteCount ?? 0;
-      trialPeriod = Math.round(trailData?.data?.trialPeriod / 30);
-      isHubCreated = trailData?.data?.isHubCreated || false;
-      createdHubId = trailData?.data?.createdHubId || '';
-      if (isHubCreated) {
-        const hubDetails = await _viewModel.getHubDetails(createdHubId);
-        if (hubDetails?.isSuccessful) {
-          formData.hubName = hubDetails.data.data.name || '';
-          formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
-        } else {
-          console.error('Failed to fetch hub details:', hubDetails);
-        }
+    createdHubId = localStorage.getItem('createdHubId') ?? '';
+    isHubCreated = localStorage.getItem('isHubCreated') === 'true';
+    if (isHubCreated) {
+      const hubDetails = await _viewModel.getHubDetails(createdHubId);
+      if (hubDetails?.isSuccessful) {
+        formData.hubName = hubDetails.data.data.name || '';
+        formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
       } else {
-        formData.hubName = trailData?.data?.companyName || '';
+        console.error('Failed to fetch hub details:', hubDetails);
       }
     }
     // Initialize Stripe
@@ -425,8 +414,8 @@
         Welcome to <span class="gradient-text">Sparrow</span>, {name}
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
-        We're excited to have you on board! Let's quickly set up your hub so you can start exploring
-        all the features of your {trialPeriod}-month free trial.
+        We’re excited to have you on board! Let’s quickly set up your hub so you can start exploring
+        all the features of your 14 days free standard trial.
       </p>
     </div>
 
@@ -484,6 +473,7 @@
           bind:this={teamDetailsComponent}
           {teamdata}
           on:change={handleTeamDataChange}
+          type={'secondary'}
           {inviteCount}
           {formData}
         />
