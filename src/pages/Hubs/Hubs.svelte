@@ -12,6 +12,8 @@
   import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
+  import { onMount } from 'svelte';
+  import { initPostHog } from '@/utils/posthogConfig';
 
   interface Team {
     teamId: string;
@@ -133,6 +135,10 @@
   ) {
     hasOpened = false;
   }
+
+  onMount(() => {
+    initPostHog();
+  });
 </script>
 
 <div>
