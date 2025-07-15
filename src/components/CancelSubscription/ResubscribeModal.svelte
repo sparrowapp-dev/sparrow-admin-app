@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import Button from '@/ui/Button/Button.svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher();
 
@@ -16,7 +17,15 @@
   }
 
   function handleConfirmResubscribe() {
+    captureUserPlanResubscribe();
     dispatch('confirmResubscribe');
+  }
+
+  const captureUserPlanResubscribe=()=>{
+    const eventProperties = {
+      resubscribe_plan:currentPlan
+    }
+    captureEvent("admin_resubscription successful", eventProperties);
   }
 </script>
 

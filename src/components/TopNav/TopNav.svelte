@@ -15,15 +15,21 @@
   } from '@/constants/environment';
   import LogOutIcon from '@/assets/icons/LogOutIcon.svelte';
   import { fade } from 'svelte/transition';
+  import { captureEvent } from '@/utils/posthogConfig';
+  import { initPostHog } from '@/utils/posthogConfig';
+  import { identifyUser } from '@/utils/posthogConfig';
+  import { get } from 'svelte/store';
   let focusedPath: string | null = null;
   let hoveredPath: string | null = null;
   let isPressed: string | null = null;
   function launchSparrow() {
+    captureUserClickTopbar("launch_web_app", true);
     window.open(`${SPARROW_LAUNCH_URL}app/collections`, '_blank');
   }
 
   const docsUrl = SPARROW_DOCS_URL;
   function navigateToSparrowDocs() {
+    captureUserClickTopbar("launch_documentation", false);
     window.open(docsUrl, '_blank');
   }
   onMount(() => {
@@ -47,6 +53,7 @@
   async function handleLogout() {
     try {
       isProfileDropdownOpen = false;
+      captureUserSignOutClick();
       navigate(LOGIN_REDIRECT_URL);
       setTimeout(async () => {
         await clearTokens();
@@ -69,6 +76,36 @@
     event.stopPropagation();
     isProfileDropdownOpen = !isProfileDropdownOpen;
   }
+
+  const captureUserClickTopbar = (
+    captureName: string,
+    resourceContent: boolean
+  ) => {
+    const eventProperties = {
+      event_source: "admin_panel",
+      cta: "top_bar",
+      ...(resourceContent ? { resource:"worksapce" } : {}),
+    };
+
+    captureEvent(captureName, eventProperties);
+  };
+
+  const captureUserSignOutClick = () =>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      button_name:"Sign Out"
+    }
+    captureEvent("admin_sign_out",eventProperties);
+  }
+
+  onMount(() => {
+    console.log("---------------we are calling it.------>");
+    initPostHog();
+    const email = get(userEmail);
+    if (email) {
+      identifyUser(email);
+    }
+  });
 </script>
 
 <div

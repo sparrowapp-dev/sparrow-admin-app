@@ -15,6 +15,7 @@
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -213,10 +214,12 @@
           params: { workspaceId: params, hubId: hubId },
           data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
         });
+        captureWorkspaceUpdatedDetails("Save",formData.workspaceName.trim(),formData.summary.trim());
         const updatedName = response?.data?.name ?? formData.workspaceName.trim();
         notification.success(`"${updatedName}" Workspace updated successfully.`);
       } else if (modalVariants.isMakeItPublicModalOpen) {
         // Handle making workspace public
+        captureWorkspacePublish("Publish",data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE', `${baseUrl}/hubs/workspace-details/${hubId}/${params}`);
         const response = await hubsService.makeitpublic({
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
@@ -227,6 +230,7 @@
         const response = await hubsService.deleteWorkspace({
           params: { workspaceId: params, hubId: hubId },
         });
+        captureWorkspaceDelete(params);
         notification.success(
           `Workspace "${formData.workspaceName}" has been deleted successfully.`,
         );
@@ -313,6 +317,34 @@
     formData.selectedRole = event.detail;
     errors.roleError = '';
   }
+
+  const captureWorkspaceUpdatedDetails = (buttonName:string, updatedName:string, updatedSummary:string) =>{
+    const eventProperties = {
+      button_name:buttonName,
+      name:updatedName,
+      summary:updatedSummary
+    }
+    captureEvent("admin_workspace_edit_saved", eventProperties);
+  }
+
+  const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      button_name:buttonName,
+      new_visibility:workspaceType,
+      source_Location:location
+    }
+    captureEvent("admin_workspace_edit_saved", eventProperties);
+  }
+
+  const captureWorkspaceDelete = (workspaceId:string)=>{
+    const eventProperties = {
+      event_source:"admin_panel",
+      button_name:"Delete Workspace",
+      workspace_id:workspaceId
+    }
+    captureEvent("admin_workspace_deleted", eventProperties);
+  } 
 </script>
 
 <div class="bg-surface-600 rounded-md p-6">

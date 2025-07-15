@@ -5,6 +5,7 @@
   import { navigate } from 'svelte-routing';
   import { onMount, onDestroy, tick } from 'svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let row;
 
@@ -64,12 +65,14 @@
 
   function handleManageHub(event, hub) {
     event.stopPropagation();
+    captureDropdownSelect("Manage Hub");
     navigate(`/hubs/settings/${hub._id || hub.id}`);
     closeDropdown();
   }
 
   function handleManageMembers(event, hub) {
     event.stopPropagation();
+    captureDropdownSelect("Manage Members");
     navigate(`/hubs/members/${hub._id || hub.id}`);
     closeDropdown();
   }
@@ -117,6 +120,15 @@
   }
 
   $: nextTier = getNextTier(row.original.plan?.name || 'Community');
+
+  
+  const captureDropdownSelect = (selectName:string) =>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      select_type: selectName
+    }
+    captureEvent("admin_hub_row_actions_clicked", eventProperties);
+  }
 </script>
 
 <div class="relative flex items-center justify-end gap-4">
@@ -166,7 +178,10 @@
 
       <button
         class="hover:bg-surface-300 flex w-full items-center gap-2 px-2 py-2 text-neutral-50 hover:rounded"
-        on:click={(e) => handleUpgrade(e, row.original)}
+        on:click={(e) =>{
+          handleUpgrade(e, row.original) 
+          captureDropdownSelect(`Upgrade to ${nextTier}`);}
+        }
         ><span> <UpgradeStandardIcon /></span>
 
         <h2 class="text-fs-ds-12 font-regular cursor-pointer">

@@ -25,6 +25,7 @@
   import { createQuery } from '@/services/api.common';
   import { userService } from '@/services/users.service';
   import { triggerHubDetailsRefresh } from '@/store/hubs';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const location = useLocation();
 
@@ -222,6 +223,7 @@
     // First validate
     if (validateHubName(hubData.name)) {
       // Only save if validation passes
+      captureSettingHubNameChange(hubData.name);
       saveChanges('name', hubData.name);
     }
   }
@@ -248,6 +250,13 @@
     { label: hubData.name, path: `/hubs/workspace/${params}` },
     { label: 'Settings', path: `/hubs/settings/${params}` },
   ];
+
+  const captureSettingHubNameChange = (updatedName:string) =>{
+    const eventProperties = {
+      hub_name: updatedName
+    }
+    captureEvent("admin_settings_hub_name_update", eventProperties);
+  }
 </script>
 
 <section class="w-full">

@@ -190,6 +190,7 @@
         props: {
           hubId: row.original._id,
           showOnHover: true,
+          ctaLocation: "hubs_table"
         },
       }),
     },

@@ -3,6 +3,7 @@
   import ManageMembersIcon from '@/assets/icons/ManageMembersIcon.svelte';
   import { navigate } from 'svelte-routing';
   import { onMount, onDestroy } from 'svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let row;
 
@@ -36,11 +37,13 @@
   }
 
   function handleManageHub(hub) {
+    captureDropdownSelect("Manage Workspace");
     navigate(`/hubs/workspace-details/${hub.id}`);
     closeDropdown();
   }
 
   function handleManageMembers(hub) {
+    captureDropdownSelect("Manage Members");
     navigate(`/hubs/members/${hub._id}`);
     closeDropdown();
   }
@@ -55,6 +58,13 @@
   const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   function handleLaunch() {
     window.open(`${launchUrl}`, '_blank');
+  }
+
+  const captureDropdownSelect = (selectName:string) =>{
+    const eventProperties = {
+      select_type: selectName
+    }
+    captureEvent("admin_workspace_row_actions_clicked", eventProperties);
   }
 </script>
 

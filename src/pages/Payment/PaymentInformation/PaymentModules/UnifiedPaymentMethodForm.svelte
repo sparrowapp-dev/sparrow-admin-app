@@ -28,6 +28,7 @@
 
   // App Utilities
   import { notification } from '@/components/Toast';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher();
   const location = useLocation();
@@ -257,6 +258,7 @@
   // Handle creating a new payment method with billing details
   async function handleNewPaymentMethod() {
     // Force default to true if it's the first card
+    captureUserNewBillingCard();
     if (isFirstCard) {
       defaultPaymentMethod = true;
     }
@@ -433,7 +435,7 @@
         defaultStatusChanged = true;
         await billingService.setUpDefaultPaymentMethod(customerId, paymentMethodId);
       }
-
+      captureUpdateBillingCardDetails();
       notification.success('Card details updated successfully.');
 
       // Dispatch event to notify parent component with updated information
@@ -456,6 +458,20 @@
 
   function goBack() {
     dispatch('close');
+  }
+
+  const captureUpdateBillingCardDetails = () =>{
+    const eventProperties = {
+      button_name:"save"
+    }
+    captureEvent("admin_billing_address_updated",eventProperties)
+  }
+
+  const captureUserNewBillingCard = () =>{
+    const eventProperties = {
+      button_name:"Add"
+    }
+    captureEvent("admin_card_details_added",eventProperties);
   }
 </script>
 

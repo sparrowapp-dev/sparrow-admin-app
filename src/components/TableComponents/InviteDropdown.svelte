@@ -5,6 +5,7 @@
   import ResendInvite from '@/assets/icons/ResendInvite.svelte';
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let row;
   export let refetchInvites;
@@ -60,7 +61,7 @@
   // Withdraw invite handler
   async function handleWithdrawInvite(event) {
     event.stopPropagation();
-
+    captureInviteDropdownSelect("Withdraw Invite")
     try {
       isLoading.withdraw = true;
       const email = row.original.email;
@@ -82,7 +83,7 @@
   // Resend invite handler
   async function handleResendInvite(event) {
     event.stopPropagation();
-
+    captureInviteDropdownSelect("Resend Invite")
     try {
       isLoading.resend = true;
       const email = row.original.email;
@@ -124,6 +125,13 @@
     window.removeEventListener('close-all-dropdowns', closeDropdown);
     window.removeEventListener('scroll', closeDropdown, true);
   });
+
+  const captureInviteDropdownSelect = (selectName:string) =>{
+    const eventProperties = {
+      select_type: selectName
+    }
+    captureEvent("admin_hub_invite_action", eventProperties);
+  }
 </script>
 
 <!-- Dropdown trigger -->

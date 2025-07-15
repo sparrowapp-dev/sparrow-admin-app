@@ -16,6 +16,7 @@
   import GreenCheckicon from '@/assets/icons/GreenCheckicon.svelte';
   import { SPARROW_LAUNCH_URL } from '@/constants/environment';
   import StatCard from '@/components/StatCard/StatCard.svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
   export let topData;
   export let openModal;
   export let isLoading;
@@ -70,11 +71,22 @@
     closeDropdown();
   }
 
+  const captureWorkspaceDropdown = (buttonName:string, location:string,captureName:string)=>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      resource:"workspace",
+      button_name:buttonName,
+      source_location:location
+    }
+    captureEvent(captureName, eventProperties);
+  }
+
   function launchInSparrow(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
     if (workspaceId) {
+      captureWorkspaceDropdown("Lanuch in Sparrow",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"admin_launch_web_app");
       // Build URL with required query parameters
       const baseUrl = `${SPARROW_LAUNCH_URL}/app/collections`;
       const params = new URLSearchParams();
@@ -90,6 +102,7 @@
     closeDropdown();
   }
   function handleMakeItPublic() {
+    captureWorkspaceDropdown("Share Workspace",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"workspace_share_clicked");
     openModal('makeItPublic');
     closeDropdown();
   }
