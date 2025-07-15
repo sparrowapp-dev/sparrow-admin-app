@@ -15,7 +15,10 @@
   } from '@/constants/environment';
   import LogOutIcon from '@/assets/icons/LogOutIcon.svelte';
   import { fade } from 'svelte/transition';
-    import { captureEvent } from '@/utils/posthogConfig';
+  import { captureEvent } from '@/utils/posthogConfig';
+  import { initPostHog } from '@/utils/posthogConfig';
+  import { identifyUser } from '@/utils/posthogConfig';
+  import { get } from 'svelte/store';
   let focusedPath: string | null = null;
   let hoveredPath: string | null = null;
   let isPressed: string | null = null;
@@ -92,9 +95,17 @@
       event_source : "admin_panel",
       button_name:"Sign Out"
     }
-    captureEvent("sign_out",eventProperties);
+    captureEvent("admin_sign_out",eventProperties);
   }
 
+  onMount(() => {
+    console.log("---------------we are calling it.------>");
+    initPostHog();
+    const email = get(userEmail);
+    if (email) {
+      identifyUser(email);
+    }
+  });
 </script>
 
 <div

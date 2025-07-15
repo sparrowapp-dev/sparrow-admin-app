@@ -74,7 +74,7 @@
     const eventProperties ={
       button_name:"Delete Card"
     }
-    captureEvent("card_deleted",eventProperties);
+    captureEvent("admin_card_deleted",eventProperties);
   }
 </script>
 

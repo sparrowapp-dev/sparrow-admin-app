@@ -74,7 +74,7 @@
     const eventProperties = {
       button_name:"Download Invoice"
     }
-    captureEvent("invoice_downloaded",eventProperties);
+    captureEvent("admin_invoice_downloaded",eventProperties);
   }
 </script>
 

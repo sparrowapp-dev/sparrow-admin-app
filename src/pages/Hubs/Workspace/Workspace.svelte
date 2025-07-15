@@ -115,6 +115,7 @@
         props: {
           workspaceId: row.original.id,
           showOnHover: true,
+          ctaLocation: "workspace_table"
         },
       }),
     },

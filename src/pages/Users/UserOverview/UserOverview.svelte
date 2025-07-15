@@ -300,14 +300,14 @@
       button_name: buttonName,
       select_type: selectName
     }
-    captureEvent("hub_filter_applied", eventProperties);
+    captureEvent("admin_hub_filter_applied", eventProperties);
   }
 
   const captureInviteCollaborator = (buttonName:string) =>{
     const eventProperties = {
       button_name: buttonName,
     }
-    captureEvent("invite_collaborator_clicked", eventProperties);
+    captureEvent("admin_invite_collaborator_clicked", eventProperties);
   }
 </script>
 

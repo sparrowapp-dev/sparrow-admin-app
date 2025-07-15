@@ -113,7 +113,7 @@
      const eventProperties ={
       event_source:"admin_panel",
     }
-    captureEvent("create_hub", eventProperties);
+    captureEvent("admin_create_hub", eventProperties);
   }
 </script>
 

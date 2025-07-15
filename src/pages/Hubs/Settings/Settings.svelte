@@ -255,7 +255,7 @@
     const eventProperties = {
       hub_name: updatedName
     }
-    captureEvent("settings_hub_name_update", eventProperties);
+    captureEvent("admin_settings_hub_name_update", eventProperties);
   }
 </script>
 

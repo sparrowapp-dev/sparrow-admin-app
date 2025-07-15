@@ -79,7 +79,7 @@
      const eventProperties ={
       event_source:"admin_panel",
     }
-    captureEvent("create_workspace", eventProperties);
+    captureEvent("admin_create_workspace", eventProperties);
   }
 </script>
 

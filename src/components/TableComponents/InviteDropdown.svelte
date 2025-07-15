@@ -130,7 +130,7 @@
     const eventProperties = {
       select_type: selectName
     }
-    captureEvent("hub_invite_action", eventProperties);
+    captureEvent("admin_hub_invite_action", eventProperties);
   }
 </script>
 

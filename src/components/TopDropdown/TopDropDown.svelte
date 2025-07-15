@@ -64,7 +64,7 @@
     const eventProperties = {
       select_type: selectName
     }
-    captureEvent("workspace_row_actions_clicked", eventProperties);
+    captureEvent("admin_workspace_row_actions_clicked", eventProperties);
   }
 </script>
 

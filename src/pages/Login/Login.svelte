@@ -3,6 +3,9 @@
   import { LOGIN_REDIRECT_URL } from '@/constants/environment';
   import { navigate } from 'svelte-routing';
   import { initPostHog } from '@/utils/posthogConfig';
+  import { get } from 'svelte/store';
+  import { userEmail } from '@/store/auth';
+  import { identifyUser } from '@/utils/posthogConfig';
 
   onMount(() => {
     const accessToken = localStorage.getItem('accessToken');
@@ -11,6 +14,10 @@
     if (accessToken && refreshToken) {
       // User is already authenticated, redirect to main app
       initPostHog();
+      const email = get(userEmail);
+      if (email) {
+        identifyUser(email);
+      }
       navigate('/hubs');
     } else {
       // Not logged in, proceed to login flow

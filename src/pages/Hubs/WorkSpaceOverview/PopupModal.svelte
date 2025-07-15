@@ -284,7 +284,7 @@
       name:updatedName,
       summary:updatedSummary
     }
-    captureEvent("workspace_edit_saved", eventProperties);
+    captureEvent("admin_workspace_edit_saved", eventProperties);
   }
 
   const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
@@ -294,7 +294,7 @@
       new_visibility:workspaceType,
       source_Location:location
     }
-    captureEvent("workspace_edit_saved", eventProperties);
+    captureEvent("admin_workspace_edit_saved", eventProperties);
   }
 
   const captureWorkspaceDelete = (workspaceId:string)=>{
@@ -303,7 +303,7 @@
       button_name:"Delete Workspace",
       workspace_id:workspaceId
     }
-    captureEvent("workspace_deleted", eventProperties);
+    captureEvent("admin_workspace_deleted", eventProperties);
   } 
 </script>
 

@@ -85,7 +85,7 @@
     const eventProperties = {
       button_name:"biling_Icon"
     };
-    captureEvent("billing_page_viewed", eventProperties);
+    captureEvent("admin_billing_page_viewed", eventProperties);
   };
 </script>
 

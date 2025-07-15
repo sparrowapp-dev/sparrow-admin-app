@@ -241,7 +241,7 @@
       current_plan:currentPlan,
       upgrade_plan:upgradePlan,
     }
-    captureEvent("plan_upgraded",eventProperties);
+    captureEvent("admin_plan_upgraded",eventProperties);
   }
 </script>
 

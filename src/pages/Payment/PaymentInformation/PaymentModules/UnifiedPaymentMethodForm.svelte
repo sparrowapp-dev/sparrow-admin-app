@@ -462,14 +462,14 @@
     const eventProperties = {
       button_name:"save"
     }
-    captureEvent("billing_address_updated",eventProperties)
+    captureEvent("admin_billing_address_updated",eventProperties)
   }
 
   const captureUserNewBillingCard = () =>{
     const eventProperties = {
       button_name:"Add"
     }
-    captureEvent("card_details_added",eventProperties);
+    captureEvent("admin_card_details_added",eventProperties);
   }
 </script>
 

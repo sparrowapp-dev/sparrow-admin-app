@@ -33,7 +33,7 @@
       event_source : "admin_panel",
       cta_location : "user_management"
     }
-    captureEvent("user_remove", eventProperties);
+    captureEvent("admin_remove_user", eventProperties);
   }
 </script>
 

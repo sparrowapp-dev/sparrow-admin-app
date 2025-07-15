@@ -40,7 +40,7 @@
         current_plan:currentPlan,
         downgrade_plan:downgradePlan,
       }
-      captureEvent("plan_downgrade_success",eventProperties);
+      captureEvent("admin_plan_downgrade_success",eventProperties);
     }
 </script>
 

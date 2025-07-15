@@ -127,7 +127,7 @@
       event_source : "admin_panel",
       select_type: selectName
     }
-    captureEvent("hub_row_actions_clicked", eventProperties);
+    captureEvent("admin_hub_row_actions_clicked", eventProperties);
   }
 </script>
 

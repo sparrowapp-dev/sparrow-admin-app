@@ -97,14 +97,14 @@
       type_filter:selectOption,
       hub_list:allHubs
     }
-    captureEvent("user_management_dropdown-clicked", eventProperties);
+    captureEvent("admin_user_management_dropdown-clicked", eventProperties);
   }
 
   const captureUserViewInvoicesRedirect = () =>{
     const eventProperties = {
       source_location:"Billing side panel",
     }
-    captureEvent("view_invoices_clicked", eventProperties);
+    captureEvent("admin_view_invoices_clicked", eventProperties);
   }
 </script>
 

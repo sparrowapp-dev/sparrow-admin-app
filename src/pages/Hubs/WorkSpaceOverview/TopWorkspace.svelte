@@ -74,7 +74,7 @@
   const captureWorkspaceDropdown = (buttonName:string, location:string,captureName:string)=>{
     const eventProperties = {
       event_source : "admin_panel",
-      resource:"Workspace",
+      resource:"workspace",
       button_name:buttonName,
       source_location:location
     }
@@ -86,7 +86,7 @@
     event.stopPropagation();
 
     if (workspaceId) {
-      captureWorkspaceDropdown("Lanuch in Sparrow",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"workspace_launch_in_sparrow");
+      captureWorkspaceDropdown("Lanuch in Sparrow",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"admin_launch_web_app");
       // Build URL with required query parameters
       const baseUrl = `${SPARROW_LAUNCH_URL}/app/collections`;
       const params = new URLSearchParams();

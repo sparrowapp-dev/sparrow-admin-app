@@ -122,7 +122,7 @@
       select_option:selectOption,
       cta_location : "user_management"
     }
-    captureEvent("change_role", eventProperties);
+    captureEvent("admin_change_role", eventProperties);
   }
 </script>
 

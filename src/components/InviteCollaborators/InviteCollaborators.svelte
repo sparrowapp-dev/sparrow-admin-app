@@ -148,7 +148,7 @@
       event_source:"admin_panel",
       cta_location:"user_management"
     }
-    captureEvent("send_invite", eventProperties)
+    captureEvent("admin_send_invite", eventProperties)
   }
 </script>
 
