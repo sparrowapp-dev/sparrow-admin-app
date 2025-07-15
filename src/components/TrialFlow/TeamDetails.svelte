@@ -53,7 +53,7 @@
     <div
       class="scrollbar-thin scrollbar-thumb-surface-400 scrollbar-track-surface-600 max-h-[170px] overflow-y-auto pr-1"
     >
-      {#if (type = 'primary')}
+      {#if type === 'primary'}
         <InviteForm
           bind:this={inviteFormComponent}
           bind:rows={teamdata}
