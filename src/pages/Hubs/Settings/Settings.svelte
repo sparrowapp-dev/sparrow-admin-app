@@ -402,13 +402,13 @@
         </div>
       </div>
     </div>
-    {#if showModal}
+    <!-- {#if showModal}
       <Modal on:close={() => (showModal = false)}>
         <AddWorkspace onClose={() => (showModal = false)} hubId={params} onSuccess={() => {}} />
       </Modal>
-    {/if}
+    {/if} -->
     <!-- Invite Modal -->
-    {#if showInviteModal}
+    <!-- {#if showInviteModal}
       <Modal on:close={() => (showInviteModal = false)}>
         <InviteCollaborators
           onClose={() => (showInviteModal = false)}
@@ -417,6 +417,6 @@
           onSuccess={() => {}}
         />
       </Modal>
-    {/if}
+    {/if} -->
   {/if}
 </section>

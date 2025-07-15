@@ -1,7 +1,7 @@
 <script lang="ts">
   import SideNav from '@/components/SideNav/SideNav.svelte';
   import TopNav from '@/components/TopNav/TopNav.svelte';
-  import { TopUpgradeBanner, TopFailedBanner } from '@/components/TopBanners/index.ts';
+  import { TopUpgradeBanner, TopFailedBanner } from '@/components/TopBanners/index';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import { navigate, useLocation } from 'svelte-routing';
@@ -43,14 +43,7 @@
   $: topBannerShow = isCommunityPlan || isBillingFailed;
 
   const handleRedirect = () => {
-    const status = $hubData?.data?.billing?.status;
-    const failedUrl = $hubData?.data?.billing?.failed_invoice_url;
-
-    if (['action_required', 'payment_failed'].includes(status) && failedUrl) {
-      window.open(failedUrl, '_blank');
-    } else {
-      navigate(`/billing/billingOverview/${hubId}`);
-    }
+    navigate(`/billing/billingOverview/${hubId}`);
   };
 </script>
 

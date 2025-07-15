@@ -267,6 +267,13 @@
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
           notification.error('User already in hub.');
+        } else if (
+          error.message ===
+            'Invite failed. Please complete payment authentication to send invites.' ||
+          error.message === 'Invite failed. Please resolve your payment issue to send invites.' ||
+          error.message === 'Invite blocked due to your scheduled downgrade.'
+        ) {
+          notification.error(error.message);
         } else {
           notification.error('Failed to send invite. Please try again.');
         }
@@ -545,15 +552,18 @@
         />
       </div>
 
-      <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
-        Note: Inviting a user reserves a license and may trigger a charge, unless an unused license
-        is available.
-      </div>
       <div class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
         You can invite hub members or external collaborators to this workspace. Invited people will
         have access to only the <span class="w-[10rem] truncate text-neutral-50">{data?.title}</span
         > workspace.
       </div>
+
+      {#if hubDetails?.data?.plan?.name !== 'Community'}
+        <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
+          Note: Inviting a user reserves a license and may trigger a charge, unless an unused
+          license is available.
+        </div>
+      {/if}
 
       <!-- Workspace Selection (only for editor and viewer roles) -->
 

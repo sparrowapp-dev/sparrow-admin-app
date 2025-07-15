@@ -14,7 +14,7 @@
   export let subtitle: string = '';
   export let inputType: 'default' | 'name' | 'email' | 'postal' | 'number' = 'default';
   export let emailErrorMessage: string = 'Please enter a valid email address';
-  export let maxLength;
+  export let maxLength: number | undefined = undefined;
   let computedHasError: any;
 
   // Event dispatcher to forward events to parent
