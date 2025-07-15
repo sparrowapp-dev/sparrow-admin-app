@@ -435,6 +435,7 @@
             onClose={() => (showModal = false)}
             {hubId}
             hubName={currentHubName}
+            hubPlan={$hubDetailsData?.data?.plan?.name}
             on:emailsChange={handleLiveEmailsCount}
             onSuccess={() => {}}
             on:openUpgradePlan={handleInviteButtonClick}
