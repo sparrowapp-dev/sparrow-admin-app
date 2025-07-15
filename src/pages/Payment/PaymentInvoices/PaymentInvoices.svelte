@@ -239,7 +239,7 @@
       <CircularLoader />
     </div>
   {:else}
-    {#if planStatus === 'payment_failed'}
+    {#if planStatus === 'payment_failed' || planStatus === 'action_required'}
       <div class="">
         <Alert
           variant="error"

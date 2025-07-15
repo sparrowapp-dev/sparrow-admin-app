@@ -30,6 +30,8 @@
   } from '@/components/PlanUpdateStatus';
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
   import Alert from '@/components/Alert/Alert.svelte';
+  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
+  import MinusIcon from '@/assets/icons/MinusIcon.svelte';
 
   const location = useLocation();
 
@@ -44,6 +46,7 @@
   let customerId: string = '';
   let currentPlan: string = 'Community';
   let isDowngrade: boolean = false;
+  let minUserCount: number = 1;
 
   // URL parsing
   $: {
@@ -60,6 +63,7 @@
     priceId = searchParams.get('priceId') || '';
     billingCycle = searchParams.get('billingCycle') || 'monthly';
     userCount = parseInt(searchParams.get('userCount') || '1', 10);
+    minUserCount = parseInt(searchParams.get('userCount') || '1', 10);
     subscriptionId = searchParams.get('subscriptionId') || '';
     currentPlan = searchParams.get('currentPlan') || 'Community';
     subscriptionStatus = searchParams.get('status') || '';
@@ -309,7 +313,6 @@
 
       // Determine if we need to create or update a subscription
       if (subscriptionId && subscriptionStatus !== 'canceled') {
-        console.log('Updating existing subscription:', subscriptionId);
         // Update existing subscription
         result = await billingService.updateSubscription({
           subscriptionId,
@@ -317,9 +320,10 @@
           paymentMethodId: selectedPaymentMethodId,
           metadata,
           isDowngrade,
+          seats: userCount || 1,
+          paymentBehavior: 'default_incomplete', // Use default_incomplete to handle 3D Secure
         });
       } else if (customerId) {
-        console.log('Creating new subscription for customer:', customerId);
         // Create new subscription
         result = await billingService.createSubscription({
           customerId,
@@ -373,6 +377,43 @@
           ? 'downgrade'
           : 'upgrade'}.
       </p>
+
+      {#if billingCycle === 'annual'}
+        <!-- Number of seats selector -->
+        <div class="mt-6 mr-28 mb-6 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50"
+              >Number of seats</span
+            >
+          </div>
+          <div
+            class="flex min-w-[120px] items-center justify-between rounded-md border border-neutral-700 px-2 py-1"
+          >
+            <button
+              class="text-fs-ds-18 font-inter font-fw-ds-300 flex h-6 w-8 cursor-pointer items-center justify-center text-neutral-200 disabled:opacity-50"
+              on:click={() => {
+                if (userCount > minUserCount) userCount = userCount - 1;
+              }}
+              aria-label="Decrease seats"
+              disabled={userCount <= minUserCount}
+            >
+              <MinusIcon />
+            </button>
+            <span class="text-fs-ds-12 font-inter font-fw-ds-300 w-8 text-center text-neutral-50"
+              >{userCount}</span
+            >
+            <button
+              class="text-fs-ds-18 font-inter font-fw-ds-300 flex h-6 w-8 cursor-pointer items-center justify-center text-neutral-200"
+              on:click={() => {
+                userCount = userCount + 1;
+              }}
+              aria-label="Increase seats"
+            >
+              <PlusIcon />
+            </button>
+          </div>
+        </div>
+      {/if}
 
       <!-- Downgrade Notice -->
       {#if isDowngrade}

@@ -99,6 +99,11 @@
   let isOwner = false;
   let user = null;
   let owner = null;
+  let hubDetails = null;
+  let hasInvalidEmails = false;
+
+  // State for tracking new invites (excluding existing users)
+  let newInvitesCount = 0;
 
   // Get hub details to check collaborator limits
   onMount(async () => {
@@ -106,17 +111,20 @@
       try {
         // Use the new getHubStatics API to get collaborator count
         const hubStats = await hubsService.getHubStatics(hubId);
-        const hubDetails = await hubsService.getHubDetails(hubId);
+        const hubDetailsResponse = await hubsService.getHubDetails(hubId);
+
+        // Store hubDetails for reuse in other functions
+        hubDetails = hubDetailsResponse;
 
         if (hubStats?.data) {
           // Get user role information
-          const users = hubDetails.data.users || [];
+          const users = hubDetailsResponse.data.users || [];
           user = users.find((u) => u.id.toString() === $userId?.toString());
           owner = users.find((u) => u.role === 'owner');
           isOwner = user?.role === 'owner';
 
           // Set limits from API data
-          collaboratorLimit = hubDetails.data.plan?.limits?.usersPerHub?.value || 3;
+          collaboratorLimit = hubDetailsResponse.data.plan?.limits?.usersPerHub?.value || 3;
           currentCollaboratorCount =
             hubStats?.data?.collaboratorCount + hubStats?.data?.pendingInvites;
         }
@@ -181,8 +189,16 @@
 
     // Check if collaborator limit would be exceeded for invites
     if (modalVariants.isInviteModal) {
-      const totalInvites = formData.emails.length;
-      if (currentCollaboratorCount + totalInvites > collaboratorLimit) {
+      // Use existing hubDetails data
+      const existingEmails = hubDetails?.data?.users?.map((user) => user.email.toLowerCase()) || [];
+
+      // Filter out emails that already exist in the hub
+      const newInvites = formData.emails.filter(
+        (email) => !existingEmails.includes(email.toLowerCase()),
+      );
+
+      const totalNewInvites = newInvites.length;
+      if (currentCollaboratorCount + totalNewInvites > collaboratorLimit) {
         showUpgradeModal = true;
         return;
       }
@@ -229,8 +245,11 @@
           payload['workspaces'] = [{ id: workspaceId, name: data?.title }];
         }
 
-        // Call the API to invite users
-        await hubsService.inviteUsers(payload);
+        // Call the new API to add users to workspace
+        await hubsService.addUserToWorkspace(workspaceId, {
+          users: formData.emails,
+          role: formData.selectedRole.id,
+        });
 
         notification.success('Invite sent successfully.');
       }
@@ -252,6 +271,13 @@
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
           notification.error('User already in hub.');
+        } else if (
+          error.message ===
+            'Invite failed. Please complete payment authentication to send invites.' ||
+          error.message === 'Invite failed. Please resolve your payment issue to send invites.' ||
+          error.message === 'Invite blocked due to your scheduled downgrade.'
+        ) {
+          notification.error(error.message);
         } else {
           notification.error('Failed to send invite. Please try again.');
         }
@@ -260,10 +286,24 @@
       isLoading = false;
     }
   }
-  let hasInvalidEmails = false;
+
   function handleEmailsChange(event) {
     formData.emails = event.detail;
     errors.emailError = '';
+
+    // Calculate new invites count (excluding existing users)
+    if (modalVariants.isInviteModal && hubDetails?.data?.users) {
+      const existingEmails = hubDetails.data.users.map((user) => user.email.toLowerCase());
+
+      const newInvites = formData.emails.filter(
+        (email) => !existingEmails.includes(email.toLowerCase()),
+      );
+
+      newInvitesCount = newInvites.length;
+    } else {
+      // Fallback if hubDetails is not available yet
+      newInvitesCount = formData.emails.length;
+    }
   }
   function handleEmailsValidity(event) {
     hasInvalidEmails = !event.detail.isValid;
@@ -498,9 +538,7 @@
     <!-- Default Modal (Invite Members) -->
   {:else}
     <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">
-        Add People to Workspace
-      </h2>
+      <h2 class="text-fs-ds-20 font-fw-ds-500 font-inter text-neutral-50">Invite to Workspace</h2>
       <button type="button" on:click={onClose} class="cursor-pointer">
         <CloseIcon />
       </button>
@@ -542,29 +580,47 @@
           placeholder="Select the role"
           hasError={!!errors.roleError}
           errorMessage={errors.roleError}
+          disableValues={['admin', 'member']}
         />
       </div>
+
+      <div class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
+        You can invite hub members or external collaborators to this workspace. Invited people will
+        have access to only the <span class="w-[10rem] truncate text-neutral-50">{data?.title}</span
+        > workspace.
+      </div>
+
+      {#if hubDetails?.data?.plan?.name !== 'Community'}
+        <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
+          Note: Inviting a user reserves a license and may trigger a charge, unless an unused
+          license is available.
+        </div>
+      {/if}
 
       <!-- Workspace Selection (only for editor and viewer roles) -->
 
       <!-- Hub display -->
-      <div class="border-surface-500 mt-6 flex items-center border-t pt-4">
-        <ProfileIcon />
-        <div class="ml-3">
+
+      <!-- Action buttons -->
+      <div class="mt-6 flex justify-between gap-3">
+        <div>
           <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">
+            <span class="text-neutral-400">Workspace:</span>
+            {data?.title}
+          </p>
+          <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">
+            <span class="text-neutral-400">Hub:</span>
             {data?.hubName}
           </p>
         </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div class="mt-6 flex justify-end gap-3">
-        <Button variant="filled-secondary" size="medium" on:click={onClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Send Invite'}
-        </Button>
+        <div class="flex items-center justify-end gap-3">
+          <Button variant="filled-secondary" size="medium" on:click={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button variant="filled-primary" size="medium" type="submit" disabled={isLoading}>
+            {isLoading ? 'Sending...' : 'Send Invite'}
+          </Button>
+        </div>
       </div>
     </form>
   {/if}
@@ -588,7 +644,7 @@
         }
       }}
       limitText="Collaborators"
-      currentCount={currentCollaboratorCount + formData?.emails?.length}
+      currentCount={currentCollaboratorCount + newInvitesCount}
     />
   </Modal>
 {/if}

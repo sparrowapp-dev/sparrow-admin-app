@@ -37,6 +37,7 @@
   export let customerId = '';
   export let paymentMethodId = '';
   export let hubId = '';
+  export let hubName = '';
   export let isDefault = false;
   export let isFirstCard = false;
 
@@ -420,6 +421,7 @@
           postal_code: postalCode,
           country: country.value,
         },
+        hubId: hubId || undefined,
       };
 
       // Use billing service to update billing details

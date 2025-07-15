@@ -10,6 +10,7 @@
   import Payment from '@/pages/Payment/Payment.svelte';
   import TrialFlow from '@/pages/TrialFlow/TrialFlow.svelte';
   import TrialSuccess from '@/pages/TrialSuccess/TrialSuccess.svelte';
+  import UserTrialFlow from '@/pages/UserTrialFlow/UserTrialFlow.svelte';
 
   // URL passed from parent component
   export let url: string = '';
@@ -28,6 +29,9 @@
 
   <!-- Trail Flow -->
   <Route path="/trial" component={TrialFlow} />
+
+  <!--Markteing Trial Flow -->
+  <Route path="/usertrial" component={UserTrialFlow} />
 
   <!-- Trail Flow Success -->
   <Route path="/trialsuccess" component={TrialSuccess} />

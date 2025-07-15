@@ -11,6 +11,9 @@
     const token = params.get('accessToken');
     const trialId = params.get('trialId');
     const name = params.get('name');
+    const flow = params.get('flow');
+    const trialPeriod = params.get('trialPeriod');
+    const email = params.get('email');
 
     if (!token) {
       window.location.href = '/login';
@@ -28,6 +31,9 @@
       // Redirect to the app
       if (trialId) {
         window.location.href = `/trial?trialId=${trialId}&name=${name}`;
+        return;
+      } else if (flow === 'signup_standard_trial' || flow === 'signup_professional_trial') {
+        window.location.href = `/usertrial?name=${name}&flow=${flow}&trialPeriod=${trialPeriod}&email=${email}`;
         return;
       }
       window.location.href = '/hubs';
