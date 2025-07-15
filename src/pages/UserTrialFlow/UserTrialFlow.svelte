@@ -128,10 +128,11 @@
 
   let cardDetailsView = 'cardDetails';
   let cardDetailsComponent = null;
-  let priceId: string = 'price_1RZaD7FLRwufXqZCEtDiMO02';
+  let priceId: string = '';
   let trialstart = '';
   let trialend = '';
   let isPaymentProcessing = false;
+  let pricingDetails;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -265,9 +266,11 @@
             hubName: team?.name || '',
             nextBilling: team?.billing?.current_period_end,
           };
-          await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
+          await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+          localStorage.removeItem('createdHubId');
+          localStorage.removeItem('isHubCreated');
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}`,
+            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}`,
             { replace: true },
           );
         }, 5000);
@@ -315,7 +318,7 @@
       priceId,
       paymentMethodId: paymentMethodId,
       metadata,
-      trialPeriodDays: trailData?.data?.trialPeriod || 0,
+      trialPeriodDays: trialPeriod || 0,
       seats: teamdata.length || 1,
     });
     console.log('Subscription result:', result);
@@ -383,12 +386,38 @@
   };
   let showSubscriptionConfirmModal = false;
   let flowName = '';
+  let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
+  let planTier = '';
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     createdHubId = localStorage.getItem('createdHubId') ?? '';
     isHubCreated = localStorage.getItem('isHubCreated') === 'true';
     const userName = params.get('name');
+    trialFrequency = params.get('trialPeriod');
     flowName = params.get('flow') || '';
+    const pricingResponse = await _viewModel.getPricingDetails();
+    if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
+      pricingDetails = pricingResponse.data.data;
+      // Normalize flowName to extract the plan/tier
+      let normalizedFlow = flowName?.toLowerCase() || '';
+      planTier = '';
+      if (normalizedFlow.includes('professional')) {
+        planTier = 'professional';
+      } else {
+        planTier = 'standard';
+      }
+
+      // Find the plan by tier
+      const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
+
+      // Find billing interval by trialFrequency (monthly/annual)
+      const billing = selectedPlan?.billing.find(
+        (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
+      );
+
+      // Assign priceId if found, else fallback to first available
+      priceId = billing?.providers?.stripe ?? selectedPlan?.billing[0]?.providers?.stripe ?? '';
+    }
     if (isHubCreated) {
       const hubDetails = await _viewModel.getHubDetails(createdHubId);
       if (hubDetails?.isSuccessful) {
@@ -405,6 +434,7 @@
 
     // Set up socket connection for payment events
   });
+  $: capitalizedFlow = planTier ? planTier.charAt(0).toUpperCase() + planTier.slice(1) : '';
 </script>
 
 <TrialNav />
@@ -421,7 +451,7 @@
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
         We’re excited to have you on board! Let’s quickly set up your hub so you can start exploring
-        all the features of your 14 days free standard trial.
+        all the features of your 14 days free {capitalizedFlow} trial.
       </p>
     </div>
 

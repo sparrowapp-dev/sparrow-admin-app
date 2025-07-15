@@ -309,6 +309,11 @@ export class HubsService {
     return res?.data;
   }
 
+  public async sendUserConfirmationMail(hubId: string, data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/user-trial-confirmation-mail/${hubId}`, data);
+    return res?.data;
+  }
+
   /**
    * Add users to a workspace (Admin only)
    * @param workspaceId The workspace ID

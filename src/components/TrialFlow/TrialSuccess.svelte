@@ -3,16 +3,27 @@
   import CheckmarkStarburst from '@/assets/icons/CheckmarkStarburst.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import { navigate } from 'svelte-routing';
+  import { onMount } from 'svelte';
   export let hub = '';
   export let users = '';
 
   export let trialStartDate = '';
   export let trialEndDate = '';
   export let amount = 0;
+  export let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
+  export let flow = 'standard'; // Default flow, can be overridden by query params
   const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   function handleLaunch() {
     window.open(`${launchUrl}`, '_blank');
   }
+  let billingCycle = 'month';
+  onMount(() => {
+    if (trialFrequency) {
+      billingCycle = trialFrequency.toLowerCase() === 'monthly' ? 'month' : 'year';
+    }
+  });
+  // Capitalize first letter of flow
+  $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
 </script>
 
 <div class="flex items-center justify-center">
@@ -21,10 +32,10 @@
       <div class="flex flex-col gap-8">
         <div class="font-fw-ds-400 flex flex-col items-center gap-2 text-center text-neutral-50">
           <CheckmarkStarburst />
-          <div class="text-fs-ds-16">Congratulations! Your Standard Trial is Unlocked</div>
+          <div class="text-fs-ds-16">Congratulations! Your {capitalizedFlow} Trial is Unlocked</div>
           <div class="text-fs-ds-14">
-            You’ve successfully activated the Standard Trial for ‘{hub} Hub’. All premium features are
-            now available, start exploring, collaborating, and building with your team.
+            You’ve successfully activated the {capitalizedFlow} Trial for ‘{hub} Hub’. All premium features
+            are now available, start exploring, collaborating, and building with your team.
           </div>
         </div>
         <div class="mr-5 ml-15 w-full max-w-md">
@@ -38,7 +49,9 @@
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Amount After Trial</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">${amount}/month</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50"
+                >${amount}/{billingCycle}</span
+              >
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Trial Start Date</span>
