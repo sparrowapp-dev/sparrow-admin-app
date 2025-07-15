@@ -6,6 +6,8 @@
   export let inviteCount;
   export let formData;
 
+  export let type: 'primary' | 'secondary' = 'primary';
+
   const dispatch = createEventDispatcher();
   let inviteFormComponent;
 
@@ -25,9 +27,14 @@
     </div>
     <div class="mb-6 text-center">
       <p class="mx-auto max-w-2xl text-gray-300">
-        Invite teammates or collaborators to join your hub and start working together. You can add
-        people now or skip this step and do it anytime later from your dashboard. The Standard Trial
-        supports up to {inviteCount} members, excluding you.
+        {#if type === 'primary'}
+          Invite teammates or collaborators to join your hub and start working together. You can add
+          people now or skip this step and do it anytime later from your dashboard. The Standard
+          Trial supports up to {inviteCount} members, excluding you.
+        {:else}
+          Invite teammates or collaborators to join your hub and start working together. You can add
+          people now or skip this step and do it anytime later from your dashboard.
+        {/if}
       </p>
     </div>
   </div>
@@ -46,12 +53,20 @@
     <div
       class="scrollbar-thin scrollbar-thumb-surface-400 scrollbar-track-surface-600 max-h-[170px] overflow-y-auto pr-1"
     >
-      <InviteForm
-        bind:this={inviteFormComponent}
-        bind:rows={teamdata}
-        maxRows={inviteCount}
-        on:change={handleFormChange}
-      />
+      {#if type === 'primary'}
+        <InviteForm
+          bind:this={inviteFormComponent}
+          bind:rows={teamdata}
+          maxRows={inviteCount}
+          on:change={handleFormChange}
+        />
+      {:else}
+        <InviteForm
+          bind:this={inviteFormComponent}
+          bind:rows={teamdata}
+          on:change={handleFormChange}
+        />
+      {/if}
     </div>
   </div>
 </div>
