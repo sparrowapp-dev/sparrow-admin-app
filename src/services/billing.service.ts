@@ -29,6 +29,8 @@ interface UpdateSubscriptionParams {
   paymentMethodId: string;
   metadata?: Record<string, string>;
   isDowngrade?: boolean;
+  seats?: number;
+  paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -211,6 +213,8 @@ export class BillingService {
       priceId: params.priceId,
       paymentMethodId: params.paymentMethodId,
       metadata: params.metadata,
+      seats: params.seats,
+      paymentBehavior: params.paymentBehavior,
     };
 
     // If this is a downgrade, set it to happen at the end of the billing cycle

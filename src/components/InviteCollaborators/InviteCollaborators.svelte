@@ -223,8 +223,12 @@
       </div>
     {/if}
 
+    <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
+      Note: Inviting a user reserves a license and may trigger a charge, unless an unused license is
+      available.
+    </div>
     <!-- Hub display -->
-    <div class="border-surface-500 mt-6 flex items-center border-t pt-4">
+    <div class="border-surface-500 mt-6 flex items-center">
       <ProfileIcon />
       <div class="ml-3">
         <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">{hubName}</p>

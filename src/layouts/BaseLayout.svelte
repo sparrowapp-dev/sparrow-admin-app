@@ -1,7 +1,7 @@
 <script lang="ts">
   import SideNav from '@/components/SideNav/SideNav.svelte';
   import TopNav from '@/components/TopNav/TopNav.svelte';
-  import TopUpgradeBanner from '@/components/TopUpgradeBanner/TopUpgradeBanner.svelte';
+  import { TopUpgradeBanner, TopFailedBanner } from '@/components/TopBanners/index.ts';
   import { createQuery } from '@/services/api.common';
   import { hubsService } from '@/services/hubs.service';
   import { navigate, useLocation } from 'svelte-routing';
@@ -15,7 +15,7 @@
     if (path.startsWith('/hubs/workspace/')) return path.split('/')[3];
     if (path.startsWith('/hubs/settings/')) return path.split('/')[3];
     if (path.startsWith('/hubs/members/')) return path.split('/')[3];
-    if (path.startsWith('/hubs/workspace-details/')) return path.split('/')[4]; 
+    if (path.startsWith('/hubs/workspace-details/')) return path.split('/')[4];
     return null;
   })();
 
@@ -30,14 +30,27 @@
   $: if (hubId) {
     hubsDataRefetch();
   }
-  $: topBannerShow =
+  $: isCommunityPlan =
     ($location.pathname.startsWith('/hubs/workspace') ||
       $location.pathname.startsWith('/hubs/settings') ||
       $location.pathname.startsWith('/hubs/members')) &&
     $hubData?.data?.plan?.name === 'Community';
 
+  $: isBillingFailed = ['action_required', 'payment_failed'].includes(
+    $hubData?.data?.billing?.status || '',
+  );
+
+  $: topBannerShow = isCommunityPlan || isBillingFailed;
+
   const handleRedirect = () => {
-    navigate(`/billing/billingOverview/${hubId}`);
+    const status = $hubData?.data?.billing?.status;
+    const failedUrl = $hubData?.data?.billing?.failed_invoice_url;
+
+    if (['action_required', 'payment_failed'].includes(status) && failedUrl) {
+      window.open(failedUrl, '_blank');
+    } else {
+      navigate(`/billing/billingOverview/${hubId}`);
+    }
   };
 </script>
 
@@ -47,10 +60,16 @@
     <TopNav />
   </div>
   {#if topBannerShow}
-    <div class="absolute z-1 flex w-full top-[48px]">
-      <TopUpgradeBanner reDirect={handleRedirect} />
+    <div class="absolute top-[48px] z-1 flex w-full flex-col gap-1">
+      {#if isCommunityPlan}
+        <TopUpgradeBanner reDirect={handleRedirect} />
+      {/if}
+      {#if isBillingFailed}
+        <TopFailedBanner reDirect={handleRedirect} />
+      {/if}
     </div>
   {/if}
+
   <div class={`flex h-full  ${topBannerShow ? 'pt-[68px]' : 'pt-[48px]'}`}>
     <!-- Permanent Side Navigation -->
     <SideNav />
