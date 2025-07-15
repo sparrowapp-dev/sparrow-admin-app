@@ -309,7 +309,6 @@
 
       // Determine if we need to create or update a subscription
       if (subscriptionId && subscriptionStatus !== 'canceled') {
-        console.log('Updating existing subscription:', subscriptionId);
         // Update existing subscription
         result = await billingService.updateSubscription({
           subscriptionId,
@@ -317,9 +316,10 @@
           paymentMethodId: selectedPaymentMethodId,
           metadata,
           isDowngrade,
+          seats: userCount || 1,
+          paymentBehavior: 'default_incomplete', // Use default_incomplete to handle 3D Secure
         });
       } else if (customerId) {
-        console.log('Creating new subscription for customer:', customerId);
         // Create new subscription
         result = await billingService.createSubscription({
           customerId,
