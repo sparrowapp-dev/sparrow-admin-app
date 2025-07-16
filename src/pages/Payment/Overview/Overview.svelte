@@ -170,13 +170,12 @@
       // Update all subscription-related variables
       subscriptionId = processedData.subscriptionId;
       // Don't override currentPlan from the database
-      // currentPlan = processedData.currentPlan;
       currentPrice = processedData.currentPrice;
       currentBillingCycle = processedData.currentBillingCycle;
       nextBillingDate = processedData.nextBillingDate;
       lastInvoiceAmount = processedData.lastInvoiceAmount;
       totalPaidAmount = processedData.totalPaidAmount;
-      userCount = userCount,
+      userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
     } else {
       // If subscription is canceled or inactive, use default values
@@ -456,9 +455,6 @@
                 Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
                   : '/user/year'}
-              </p>
-              <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Total paid amount: {totalPaidAmount}
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">

@@ -60,6 +60,15 @@ export class BillingService {
    * Create a new customer
    * @param customerData Customer information
    */
+  /**
+   * Fetch all pricing details
+   */
+  public async getAllPricingDetails(): Promise<any> {
+    const url = `/api/pricing`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+
   public async createCustomer(customerData: any): Promise<any> {
     const url = `/api/stripe/customers`;
     const res = await makeRequest('POST', url, customerData);
@@ -256,17 +265,6 @@ export class BillingService {
   public async getCustomerInvoices(customerId: string): Promise<any> {
     const url = `/api/stripe/invoices/customer/${customerId}`;
     const res = await makeRequest('GET', url);
-    return res?.data;
-  }
-
-  /**
-   * Simulate a payment for a subscription
-   * @param customerId The customer ID
-   * @param priceId The price ID to simulate payment for
-   */
-  public async simulatePayment(customerId: string, priceId: string): Promise<any> {
-    const url = `/api/stripe/subscriptions/simulate-invoice`;
-    const res = await makeRequest('POST', url, { customerId, priceId });
     return res?.data;
   }
 
