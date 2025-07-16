@@ -12,9 +12,19 @@
   export let amount = 0;
   export let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
   export let flow = 'standard'; // Default flow, can be overridden by query params
+  export let source;
+  export let accessToken;
+  export let refreshToken;
+  export let response;
   const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   function handleLaunch() {
-    window.open(`${launchUrl}`, '_blank');
+    const sparrowWebRedirect = `${launchUrl}?accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&event=register&method=email`;
+    const sparrowRedirect = `sparrow://?accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&event=register&method=email`;
+    if (source === 'desktop') {
+      window.location.href = sparrowRedirect;
+    } else {
+      window.location.href = sparrowWebRedirect;
+    }
   }
   let billingCycle = 'month';
   onMount(() => {
@@ -81,7 +91,7 @@
               size="medium"
               on:click={() => {
                 handleLaunch();
-              }}>Open Web App</Button
+              }}>Launch Sparrow</Button
             >
           </div>
         </div>
