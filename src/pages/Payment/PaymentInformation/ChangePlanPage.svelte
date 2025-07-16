@@ -110,7 +110,7 @@
   // Handle plan selection
   function selectPlan(plan) {
     if (plan === 'enterprise') {
-      captureUserPlanUpgradeClick(currentPlan,plan);
+      captureUserPlanUpgradeClick(currentPlan, plan);
       // Open contact form in a new tab
       window.open('mailto:contactus@sparrowapp.dev', '_blank');
     } else {
@@ -132,9 +132,16 @@
           billingCycle,
         );
 
-        if(!isDowngradeChange){
-          captureUserPlanUpgradeClick(currentPlan,plan);
+        if (!isDowngradeChange) {
+          captureUserPlanUpgradeClick(currentPlan, plan);
         }
+
+        // Store current Change Plan page URL in session storage
+        const url = new URL(window.location.href);
+        const searchParamsChangePlan = new URLSearchParams(url.search);
+        const updatedUrl = url.pathname + '?' + searchParamsChangePlan.toString();
+        sessionStorage.setItem('changePlanPageUrl', updatedUrl);
+
         // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
@@ -226,7 +233,7 @@
   // Animation stores for toggle
   const toggleIndicatorX = tweened(0, {
     duration: 300,
-    easing: cubicOut
+    easing: cubicOut,
   });
 
   // Update toggle position when billing cycle changes
@@ -236,13 +243,13 @@
     toggleIndicatorX.set(100); // Move it fully to the right (100% of its width)
   }
 
-  const captureUserPlanUpgradeClick = (currentPlan:string, upgradePlan:string) =>{
+  const captureUserPlanUpgradeClick = (currentPlan: string, upgradePlan: string) => {
     const eventProperties = {
-      current_plan:currentPlan,
-      upgrade_plan:upgradePlan,
-    }
-    captureEvent("admin_plan_upgraded",eventProperties);
-  }
+      current_plan: currentPlan,
+      upgrade_plan: upgradePlan,
+    };
+    captureEvent('admin_plan_upgraded', eventProperties);
+  };
 </script>
 
 <div
@@ -262,15 +269,15 @@
       <!-- Billing toggle with smooth sliding animation -->
       <div class="mb-6 flex">
         <div
-          class="border-surface-100 relative flex w-[350px] rounded-md border overflow-hidden"
+          class="border-surface-100 relative flex w-[350px] overflow-hidden rounded-md border"
           style="transform: scale({$toggleScale});"
         >
           <!-- Sliding background indicator -->
           <div
-            class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-surface-600 rounded-md transition-transform duration-300 ease-out"
+            class="bg-surface-600 absolute top-1 left-1 h-[calc(100%-8px)] w-[calc(50%-4px)] rounded-md transition-transform duration-300 ease-out"
             style="transform: translateX({$toggleIndicatorX}%);"
           ></div>
-          
+
           <!-- Toggle buttons -->
           <button
             class={`text-fs-ds-12 font-inter font-fw-ds-400 relative z-10 m-1 flex-1 cursor-pointer rounded-md py-1.5 transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-white' : 'text-neutral-300'}`}

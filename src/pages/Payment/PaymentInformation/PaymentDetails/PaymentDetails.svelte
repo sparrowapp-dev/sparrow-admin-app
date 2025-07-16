@@ -310,8 +310,17 @@
 
   $: breadcrumbItems = [
     { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
-    { label: 'Change Plan', path: `/billing/billingInformation/changePlan/${hubId}` },
-    { label: 'Payment Method', path: '' },
+    {
+      label: 'Change Plan',
+      path: '',
+      action: () => {
+        const referrer = sessionStorage.getItem('changePlanPageUrl');
+        if (referrer) {
+          navigate(referrer);
+        }
+      },
+    },
+    { label: 'Payment Method', path: '', action: goBack },
     { label: 'Add Card', path: `/billing/billingInformation/addPaymentDetails/${hubId}` },
   ];
 </script>
