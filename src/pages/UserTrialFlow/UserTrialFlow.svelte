@@ -133,6 +133,10 @@
   let trialend = '';
   let isPaymentProcessing = false;
   let pricingDetails;
+  let source;
+  let accessToken;
+  let refreshToken;
+  let response;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -270,7 +274,7 @@
           isProcessing = false;
           showProcessingModal = false;
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}`,
+            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
             { replace: true },
           );
         }, 5000);
@@ -394,6 +398,10 @@
     isHubCreated = localStorage.getItem('isHubCreated') === 'true';
     const userName = params.get('name');
     trialFrequency = params.get('trialPeriod');
+    source = params.get('source');
+    accessToken = params.get('accessToken');
+    refreshToken = params.get('refreshToken');
+    response = params.get('response');
     flowName = params.get('flow') || '';
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {

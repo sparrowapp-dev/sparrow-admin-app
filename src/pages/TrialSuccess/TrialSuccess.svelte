@@ -16,6 +16,10 @@
   let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
   let billing;
   let pricingDetails;
+  let source;
+  let accessToken;
+  let refreshToken;
+  let response;
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     hub = params.get('hub');
@@ -23,6 +27,10 @@
     trialstart = params.get('trialstart');
     trialend = params.get('trialend');
     flow = params.get('flow');
+    source = params.get('source');
+    accessToken = params.get('accessToken');
+    refreshToken = params.get('refreshToken');
+    response = params.get('response');
     trialFrequency = params.get('trialFrequency') || 'monthly'; // Use query param or default to monthly
 
     // Convert Unix timestamp (seconds) to Date string
@@ -78,6 +86,10 @@
         {amount}
         {trialFrequency}
         flow={capitalizedFlow}
+        {source}
+        {accessToken}
+        {refreshToken}
+        {response}
       />
     </div>
   </div>
