@@ -77,9 +77,6 @@
   // State variables
   let selectedPaymentMethodId: string = '';
   let error: any = '';
-  let showProratedInfo: boolean = false;
-  let proratedAmount: string = '';
-  let proratedDate: string = '';
   let totalAmount: string = '';
   let isProcessing: boolean = false;
 
@@ -177,6 +174,8 @@
   const { data: customerData, refetch: refetchCustomer } = createQuery(() =>
     billingService.fetchCustomerId(hubId),
   );
+  // fetch pricing details
+  const { data: pricingData } = createQuery(() => billingService.getAllPricingDetails());
 
   // Set customerId when customerData changes
   $: if ($customerData !== undefined) {
@@ -187,9 +186,6 @@
   $: if (hubId) {
     refetchCustomer();
   }
-
-  // Fetch hub details for breadcrumbs
-  const { data: hubDetails } = createQuery(() => hubsService.getHubDetails(hubId));
 
   // Re-fetch when customerId changes
   $: if (customerId) {
@@ -206,40 +202,6 @@
     return billingService.getPaymentMethods(customerId);
   });
 
-  // Fetch proration details if updating subscription
-  const { data: prorationData, isFetching: isLoadingProration } = createQuery(async () => {
-    if (!customerId || !priceId) return null;
-
-    try {
-      const response = await billingService.simulatePayment(customerId, priceId);
-
-      if (response?.lines?.data) {
-        const invoiceLine = response.lines.data[0];
-
-        // Extract prorated amount and next billing date
-        const proratedAmountValue = invoiceLine.amount / 100; // Convert cents to dollars
-        const nextBillingDate = new Date(response.period_end * 1000); // Convert to milliseconds
-
-        const formattedDate = nextBillingDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-
-        showProratedInfo = true;
-
-        return {
-          proratedAmount: `$${proratedAmountValue.toFixed(2)}`,
-          proratedDate: formattedDate,
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error fetching proration details:', err);
-      return null;
-    }
-  });
-
   // Reactive derived values
   $: paymentMethods = $paymentMethodsData?.paymentMethods || [];
   $: defaultCard = paymentMethods.find((pm) => pm.isDefault);
@@ -247,31 +209,24 @@
     selectedPaymentMethodId = defaultCard.id;
   }
 
-  // Set total amount based on plan details and/or proration
   $: {
-    // Set a default based on plan & cycle
-    let baseAmount = billingCycle === 'monthly' ? '$9.99' : '$99.99';
+    let baseAmount = 0;
 
-    // Try to determine amount from proration data
-    if ($prorationData && $prorationData.proratedAmount) {
-      proratedAmount = $prorationData.proratedAmount;
-      proratedDate = $prorationData.proratedDate;
-      totalAmount = proratedAmount;
-    } else {
-      // Use standard pricing if no proration
-      if (planName === 'Standard') {
-        baseAmount = billingCycle === 'monthly' ? '$9.99' : '$99.99';
-      } else if (planName === 'Professional') {
-        baseAmount = billingCycle === 'monthly' ? '$19.99' : '$199.99';
+    // Ensure data exists
+    if ($pricingData?.data?.plans?.length) {
+      const selectedPlan = $pricingData.data.plans.find((p) => p.plan_name === planName);
+
+      if (selectedPlan) {
+        const billing = selectedPlan.billing.find((b) => b.interval === billingCycle);
+
+        if (billing) {
+          baseAmount = billing.price * userCount;
+        }
       }
-      totalAmount = baseAmount;
     }
-  }
 
-  // Update proration details when available
-  $: if ($prorationData) {
-    proratedAmount = $prorationData.proratedAmount;
-    proratedDate = $prorationData.proratedDate;
+    // Format for display (e.g. "$29.97")
+    totalAmount = `$${baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function handleRadioChange(event) {
@@ -421,7 +376,7 @@
           <Alert
             variant="info"
             showButton={false}
-            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, or cancel your plan until the change takes effect.`}
+            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
           />
         </div>
       {/if}
@@ -442,7 +397,7 @@
           <p class="text-fs-ds-12 font-inter font-fw-ds-300 text-neutral-400">Total Amount</p>
           <p class="text-fs-ds-16 font-inter font-fw-ds-400 mt-1 text-neutral-50">
             {totalAmount}<span class="text-fs-ds-12 text-neutral-400">
-              /{billingCycle === 'monthly' ? 'user/month' : 'user/year'}</span
+              /{billingCycle === 'monthly' ? 'month' : 'year'}</span
             >
           </p>
         </div>
@@ -451,7 +406,7 @@
 
     <!-- Payment method selection -->
     <div class=" mb-6 rounded-lg px-4 pt-0">
-      {#if $isLoadingPaymentMethods || $isLoadingProration}
+      {#if $isLoadingPaymentMethods}
         <div class="flex justify-center py-8">
           <CircularLoader />
         </div>
@@ -512,6 +467,11 @@
           {/each}
         </div>
       {/if}
+      {#if isDowngrade}
+        <div class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
+          Note: Payment will be deducted at the start of your next billing cycle.
+        </div>
+      {/if}
     </div>
 
     {#if paymentMethods.length !== 0}
@@ -530,12 +490,13 @@
             disabled={!selectedPaymentMethodId ||
               paymentMethods.length === 0 ||
               $isLoadingPaymentMethods ||
-              $isLoadingProration ||
               isProcessing}
             on:click={handlePaymentConfirm}
           >
             {#if isProcessing}
               Processing...
+            {:else if isDowngrade}
+              Confirm
             {:else}
               Confirm & Pay
             {/if}
