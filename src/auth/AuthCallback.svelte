@@ -32,7 +32,12 @@
       if (trialId) {
         window.location.href = `/trial?trialId=${trialId}&name=${name}`;
         return;
-      } else if (flow === 'signup_standard_trial' || flow === 'signup_professional_trial') {
+      } else if (
+        flow === 'signup_standard_trial' ||
+        flow === 'signup_professional_trial' ||
+        flow === 'marketing_standard_trial' ||
+        flow === 'marketing_professional_trial'
+      ) {
         window.location.href = `/usertrial?name=${name}&flow=${flow}&trialPeriod=${trialPeriod}&email=${email}`;
         return;
       }
