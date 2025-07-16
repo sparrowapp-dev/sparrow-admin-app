@@ -62,7 +62,10 @@
     planName = searchParams.get('plan') || '';
     priceId = searchParams.get('priceId') || '';
     billingCycle = searchParams.get('billingCycle') || 'monthly';
-    userCount = parseInt(searchParams.get('userCount') || '1', 10);
+    userCount = parseInt(
+      searchParams.get('minUserCount') || searchParams.get('userCount') || '1',
+      10,
+    );
     minUserCount = parseInt(searchParams.get('userCount') || '1', 10);
     subscriptionId = searchParams.get('subscriptionId') || '';
     currentPlan = searchParams.get('currentPlan') || 'Community';
@@ -239,11 +242,15 @@
   }
 
   function goToAddCard() {
-    // Save the current URL in sessionStorage so we can navigate back here after adding a card
-    const currentUrl = window.location.pathname + window.location.search;
-    sessionStorage.setItem('paymentMethodPageUrl', currentUrl);
+    const url = new URL(window.location.href);
+    const searchParams = new URLSearchParams(url.search);
 
-    // Navigate to add payment details page
+    // Add or update minUserCount
+    searchParams.set('minUserCount', String(userCount));
+    // Construct updated URL
+    const updatedUrl = url.pathname + '?' + searchParams.toString();
+
+    sessionStorage.setItem('paymentMethodPageUrl', updatedUrl);
     navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
   }
 
@@ -313,7 +320,18 @@
     {
       label: 'Change Plan',
       path: '',
-      action: () => window.history.back(),
+      action: () => {
+        // Get the referrer URL from sessionStorage if available
+        const changePlanUrl = sessionStorage.getItem('changePlanPageUrl');
+
+        if (changePlanUrl) {
+          // If we have a stored change plan URL, navigate back to it
+          navigate(changePlanUrl);
+        } else {
+          // Default fallback to browser history
+          window.history.back();
+        }
+      },
     },
     {
       label: 'Payment Method',
