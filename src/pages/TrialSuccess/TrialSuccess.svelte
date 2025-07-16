@@ -44,6 +44,7 @@
     }
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
+      pricingDetails = pricingResponse.data.data;
       // Find the plan by tier
       const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === flow);
 

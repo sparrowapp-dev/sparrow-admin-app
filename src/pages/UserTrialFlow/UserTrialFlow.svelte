@@ -256,8 +256,6 @@
               userCount = userCount + formatTeamData?.length;
             }
           }
-          isProcessing = false;
-          showProcessingModal = false;
 
           // Set data for success modal
           selectedPlanDetails = {
@@ -269,6 +267,8 @@
           await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
           localStorage.removeItem('createdHubId');
           localStorage.removeItem('isHubCreated');
+          isProcessing = false;
+          showProcessingModal = false;
           navigate(
             `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}`,
             { replace: true },
