@@ -584,14 +584,14 @@
         />
       </div>
 
-      <div class="text-fs-ds-14 font-fw-ds-300 text-neutral-400">
+      <div class="text-fs-ds-12 font-fw-ds-300 text-neutral-400">
         You can invite hub members or external collaborators to this workspace. Invited people will
         have access to only the <span class="w-[10rem] truncate text-neutral-50">{data?.title}</span
         > workspace.
       </div>
 
       {#if hubDetails?.data?.plan?.name !== 'Community'}
-        <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
+        <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
           Note: Inviting a user reserves a license and may trigger a charge, unless an unused
           license is available.
         </div>

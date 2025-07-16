@@ -240,7 +240,7 @@
       </div>
     {/if}
     {#if hubPlan !== 'Community'}
-      <div class="text-fs-ds-14 font-fw-ds-300 mt-2 text-neutral-400">
+      <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
         Note: Inviting a user reserves a license and may trigger a charge, unless an unused license
         is available.
       </div>
