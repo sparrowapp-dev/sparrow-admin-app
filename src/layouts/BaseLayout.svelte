@@ -10,40 +10,54 @@
   const showOptionalSideNav = writable(false);
   const location = useLocation();
 
-  $: hubId = (() => {
-    const path = $location.pathname;
-    if (path.startsWith('/hubs/workspace/')) return path.split('/')[3];
-    if (path.startsWith('/hubs/settings/')) return path.split('/')[3];
-    if (path.startsWith('/hubs/members/')) return path.split('/')[3];
-    if (path.startsWith('/hubs/workspace-details/')) return path.split('/')[4];
+  // Helper: Extract hubId from pathname
+  function extractHubId(path: string): string | null {
+    const segments = path.split('/');
+    if (
+      path.startsWith('/hubs/workspace/') ||
+      path.startsWith('/hubs/settings/') ||
+      path.startsWith('/hubs/members/')
+    ) {
+      return segments[3] || null;
+    }
+    if (path.startsWith('/hubs/workspace-details/')) {
+      return segments[4] || null;
+    }
     return null;
-  })();
+  }
 
-  const {
-    data: hubData,
-    refetch: hubsDataRefetch,
-    isFetching: HubsDataFetching,
-  } = createQuery(async () => {
-    return hubsService.getHubDetails(hubId);
-  });
+  // Reactive hubId
+  $: hubId = extractHubId($location.pathname);
 
+  // Fetch hub data
+  const { data: hubData, refetch: hubsDataRefetch } = createQuery(() =>
+    hubsService.getHubDetails(hubId),
+  );
+
+  // Refetch when hubId changes
   $: if (hubId) {
     hubsDataRefetch();
   }
-  $: isCommunityPlan =
-    ($location.pathname.startsWith('/hubs/workspace') ||
-      $location.pathname.startsWith('/hubs/settings') ||
-      $location.pathname.startsWith('/hubs/members')) &&
-    $hubData?.data?.plan?.name === 'Community';
 
-  $: isBillingFailed = ['action_required', 'payment_failed'].includes(
-    $hubData?.data?.billing?.status || '',
-  );
+  // Helpers for route match
+  const isHubRoute = (path: string) =>
+    path.startsWith('/hubs/workspace') ||
+    path.startsWith('/hubs/settings') ||
+    path.startsWith('/hubs/members');
+
+  // Banner states
+  $: isCommunityPlan = isHubRoute($location.pathname) && $hubData?.data?.plan?.name === 'Community';
+
+  $: isBillingFailed =
+    isHubRoute($location.pathname) &&
+    ['action_required', 'payment_failed'].includes($hubData?.data?.billing?.status || '');
 
   $: topBannerShow = isCommunityPlan || isBillingFailed;
 
+  $: paddingTop = topBannerShow ? 'pt-[68px]' : 'pt-[48px]';
+
   const handleRedirect = () => {
-    navigate(`/billing/billingOverview/${hubId}`);
+    if (hubId) navigate(`/billing/billingOverview/${hubId}`);
   };
 </script>
 
@@ -52,9 +66,11 @@
   <div class="absolute top-0 left-0 z-10 w-full">
     <TopNav />
   </div>
+
+  <!-- Top Banner -->
   {#if topBannerShow}
     <div class="absolute top-[48px] z-1 flex w-full flex-col gap-1">
-      {#if isCommunityPlan}
+      {#if isCommunityPlan && !isBillingFailed}
         <TopUpgradeBanner reDirect={handleRedirect} />
       {/if}
       {#if isBillingFailed}
@@ -63,15 +79,13 @@
     </div>
   {/if}
 
-  <div class={`flex h-full  ${topBannerShow ? 'pt-[68px]' : 'pt-[48px]'}`}>
-    <!-- Permanent Side Navigation -->
+  <div class={`flex h-full ${paddingTop}`}>
     <SideNav />
 
-    <!--  Main Content -->
+    <!-- Main Content -->
     <div
       class="bg-surface-900 relative flex flex-1 overflow-auto transition-all duration-300 ease-in-out"
     >
-      <!-- Main Content Area -->
       <div
         class={`flex-1 transition-all duration-300 ease-in-out ${$showOptionalSideNav ? 'ml-0' : ''}`}
       >
