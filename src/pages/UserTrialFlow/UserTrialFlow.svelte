@@ -493,7 +493,7 @@
     <!-- Dynamic Content Area -->
     <div class="mb-8 w-full">
       {#if currentStep === 1}
-        <HubDetails {formData} {handleInputChange} {hubFormError} />
+        <HubDetails {formData} {handleInputChange} {hubFormError} type={'secondary'} />
       {:else if currentStep === 2}
         <CardDetails
           bind:this={cardDetailsComponent}

@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
   import CheckIcon from '@/assets/icons/Check.svelte';
   import Input from '@/ui/Input/Input.svelte';
 
   export let formData;
   export let handleInputChange;
   export let hubFormError;
+  export let type: 'primary' | 'secondary' = 'primary';
   let isUrlInputFocused = false;
 </script>
 
@@ -33,12 +34,14 @@
           >You can invite team members and manage all your work here.</span
         >
       </div>
-      <div class="flex items-center gap-1">
-        <CheckIcon width="17" height="13" color="#33CC7A" />
-        <span class="text-fs-ds-16 font-fw-ds-300 text-neutral-200"
-          >We've created one for you using your company name.</span
-        >
-      </div>
+      {#if type === 'primary'}
+        <div class="flex items-center gap-1">
+          <CheckIcon width="17" height="13" color="#33CC7A" />
+          <span class="text-fs-ds-16 font-fw-ds-300 text-neutral-200"
+            >We've created one for you using your company name.</span
+          >
+        </div>
+      {/if}
       <div class="flex items-center gap-1">
         <CheckIcon width="17" height="13" color="#33CC7A" />
         <span class="text-fs-ds-16 font-fw-ds-300 text-neutral-200"
