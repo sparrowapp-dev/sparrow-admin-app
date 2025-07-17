@@ -164,7 +164,9 @@
     // Otherwise, use default values from the database
     if (
       subscriptionData &&
-      (subscriptionData.status === 'active' || subscriptionData.status === 'past_due')
+      (subscriptionData.status === 'active' ||
+        subscriptionData.status === 'past_due' ||
+        subscriptionData.status === 'trialing')
     ) {
       // Process subscription data using the utility function
       const processedData = processSubscriptionData(subscriptionData, currentPlan);
@@ -315,13 +317,13 @@
     }
   }
 
-  const captureUserClickUpgradePlan=()=>{
+  const captureUserClickUpgradePlan = () => {
     const eventProperties = {
-      event_source : "admin_panel",
-      cta_location : "billing_overview"
-    }
-    captureEvent("admin_upgrade_intent", eventProperties);
-  }
+      event_source: 'admin_panel',
+      cta_location: 'billing_overview',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 </script>
 
 {#if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}
