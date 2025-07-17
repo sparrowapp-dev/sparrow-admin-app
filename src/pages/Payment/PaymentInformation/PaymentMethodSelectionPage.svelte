@@ -139,7 +139,7 @@
             nextBilling: team?.billing?.current_period_end,
           };
 
-          invoiceUrl = team?.billing?.failed_invoice_url || '';
+          invoiceUrl = team?.billing?.failed_invoice_url || team?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
         }, 5000);
 
         // Show failed modal

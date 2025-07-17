@@ -152,7 +152,8 @@
     planStatus = currentHubData?.billing?.status;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
-    invoiceUrl = currentHubData?.billing?.failed_invoice_url || '';
+    invoiceUrl =
+      currentHubData?.billing?.failed_invoice_url || currentHubData?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
     isScheduledDowngrade = currentHubData?.billing?.scheduledDowngrade || false;
   }
 
