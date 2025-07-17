@@ -240,44 +240,46 @@
     socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
-        const { team } = data;
+        const { team, invoice } = data;
         console.log('Payment success team:', team);
         let formatTeamData: { email: string; role: string }[] = [];
         let userCount = 1;
-        setTimeout(async () => {
-          if (triggerPoint === 'finish') {
-            formatTeamData = teamdata
-              .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
-              .map((user) => ({
-                email: user.email.trim(),
-                role: user.role.id === 'admin' ? 'admin' : 'member',
-              }));
-            const inviteResponse = await _viewModel.bulkInviteUsers({
-              teamId: team._id,
-              users: formatTeamData,
-            });
-            if (inviteResponse?.isSuccessful) {
-              userCount = userCount + formatTeamData?.length;
+        if (invoice?.amount_paid === 0) {
+          setTimeout(async () => {
+            if (triggerPoint === 'finish') {
+              formatTeamData = teamdata
+                .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
+                .map((user) => ({
+                  email: user.email.trim(),
+                  role: user.role.id === 'admin' ? 'admin' : 'member',
+                }));
+              const inviteResponse = await _viewModel.bulkInviteUsers({
+                teamId: team._id,
+                users: formatTeamData,
+              });
+              if (inviteResponse?.isSuccessful) {
+                userCount = userCount + formatTeamData?.length;
+              }
             }
-          }
 
-          // Set data for success modal
-          selectedPlanDetails = {
-            fromPlan: 'Community',
-            toPlan: 'Standard',
-            hubName: team?.name || '',
-            nextBilling: team?.billing?.current_period_end,
-          };
-          await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
-          localStorage.removeItem('createdHubId');
-          localStorage.removeItem('isHubCreated');
-          isProcessing = false;
-          showProcessingModal = false;
-          navigate(
-            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
-            { replace: true },
-          );
-        }, 5000);
+            // Set data for success modal
+            selectedPlanDetails = {
+              fromPlan: 'Community',
+              toPlan: 'Standard',
+              hubName: team?.name || '',
+              nextBilling: team?.billing?.current_period_end,
+            };
+            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            localStorage.removeItem('createdHubId');
+            localStorage.removeItem('isHubCreated');
+            isProcessing = false;
+            showProcessingModal = false;
+            navigate(
+              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
+              { replace: true },
+            );
+          }, 5000);
+        }
 
         // Show success modal
         setTimeout(() => {
@@ -315,7 +317,7 @@
     const metadata = {
       hubId: createdHubId,
       userCount: teamdata.length.toString(),
-      planName: 'Standard',
+      planName: capitalizedFlow,
     };
     const result = await billingService.createSubscription({
       customerId,
@@ -435,7 +437,7 @@
         console.error('Failed to fetch hub details:', hubDetails);
       }
     } else {
-      name = userName || '';
+      name = userName ?? '';
     }
     // Initialize Stripe
     stripe = await initializeStripe();
@@ -455,7 +457,7 @@
     <!-- Fixed Header Section -->
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        Welcome to <span class="gradient-text">Sparrow</span>, {name}
+        Welcome to <span class="gradient-text">Sparrow</span>, {name ?? ''}
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
         We’re excited to have you on board! Let’s quickly set up your hub so you can start exploring
