@@ -13,6 +13,7 @@
   // Utils
   import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // UI Components
   import Button from '@/ui/Button/Button.svelte';
