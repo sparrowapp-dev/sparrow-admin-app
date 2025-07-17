@@ -21,7 +21,8 @@
   import PaymentMethodSelectionPage from './PaymentInformation/PaymentMethodSelectionPage.svelte';
   import ChangePlanPage from './PaymentInformation/ChangePlanPage.svelte';
   import BillingAccessDenied from './BillingAccessDenied.svelte';
-  import { userId } from '@/store/auth';
+  import { clearTokens, userId } from '@/store/auth';
+  import { LOGIN_REDIRECT_URL } from '@/constants/environment';
 
   interface Team {
     teamId: string;
@@ -120,6 +121,9 @@
 
           // Store current team ID to check user role
           currentTeamId = actualTeamId;
+        } else {
+          clearTokens();
+          navigate(LOGIN_REDIRECT_URL);
         }
       }
       // Handle root sections
