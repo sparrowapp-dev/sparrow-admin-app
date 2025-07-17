@@ -27,11 +27,11 @@
     }
   }
   let billingCycle = 'month';
-  onMount(() => {
+  $: {
     if (trialFrequency) {
       billingCycle = trialFrequency.toLowerCase() === 'monthly' ? 'month' : 'year';
     }
-  });
+  }
   // Capitalize first letter of flow
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
 </script>
