@@ -160,10 +160,12 @@
     isLoadingSubscription = false;
     // Get the most recent subscription (first in the array)
     subscriptionData = $subscriptionApiData?.subscriptions?.[0] || null;
-
     // Only use subscription data if it's in an active state
     // Otherwise, use default values from the database
-    if (subscriptionData && subscriptionData.status === 'active') {
+    if (
+      subscriptionData &&
+      (subscriptionData.status === 'active' || subscriptionData.status === 'past_due')
+    ) {
       // Process subscription data using the utility function
       const processedData = processSubscriptionData(subscriptionData, currentPlan);
 
