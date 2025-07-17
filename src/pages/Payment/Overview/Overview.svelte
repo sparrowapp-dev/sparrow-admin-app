@@ -220,6 +220,7 @@
   // ===== FUNCTIONS =====
   // Handle upgrade button click
   function handleUpgradeClick() {
+    captureUserClickUpgradePlan();
     if (planStatus === 'payment_failed' || planStatus === 'action_required') {
       notification.error('Please resolve the payment issue before changing your plan.');
       return;
@@ -311,6 +312,14 @@
     } finally {
       resubscribeInProgress = false;
     }
+  }
+
+  const captureUserClickUpgradePlan=()=>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      cta_location : "billing_overview"
+    }
+    captureEvent("admin_upgrade_intent", eventProperties);
   }
 </script>
 
