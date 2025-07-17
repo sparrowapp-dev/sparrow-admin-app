@@ -19,6 +19,7 @@
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
   import { API_BASE_URL } from '@/constants/environment';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // Import modal components
   import Modal from '@/components/Modal/Modal.svelte';
@@ -272,7 +273,7 @@
       };
 
       let result;
-
+      captureConfirmPaymentClick(planName,billingCycle);
       // Determine if we need to create or update a subscription
       if (subscriptionId && subscriptionStatus !== 'canceled') {
         // Update existing subscription
@@ -338,6 +339,15 @@
       path: '',
     },
   ];
+
+  const captureConfirmPaymentClick = (planType: string, planOption: string) => {
+    const isMonthly = planOption === "monthly";
+    const eventProperties = {
+      event_source: "admin_panel",
+      current_plan: `${planType}_${isMonthly ? "monthly" : "annual"}`,
+    };
+   captureEvent("admin_upgrade_intent", eventProperties);
+  };
 </script>
 
 <div class="max-w-[724px]">

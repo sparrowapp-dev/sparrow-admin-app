@@ -25,7 +25,7 @@
     const eventProperties = {
       resubscribe_plan:currentPlan
     }
-    captureEvent("admin_resubscription successful", eventProperties);
+    captureEvent("admin_resubscribe", eventProperties);
   }
 </script>
 

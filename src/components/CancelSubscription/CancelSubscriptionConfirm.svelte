@@ -42,7 +42,7 @@
       event_source:"admin_panel",
       plan_type:currentPlan
     }
-    captureEvent("admin_subscription_cancelled", eventProperties);
+    captureEvent("admin_cancel_subscription", eventProperties);
   }
 </script>
 
