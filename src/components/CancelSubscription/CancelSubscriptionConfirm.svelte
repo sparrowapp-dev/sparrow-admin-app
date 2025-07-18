@@ -40,7 +40,7 @@
   const captureCancelSubcription = () =>{
     const eventProperties = {
       event_source:"admin_panel",
-      plan_type:currentPlan
+      plan:`${currentPlan}_${currentBillingCycle}`
     }
     captureEvent("admin_cancel_subscription", eventProperties);
   }
