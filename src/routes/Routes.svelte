@@ -11,6 +11,7 @@
   import TrialFlow from '@/pages/TrialFlow/TrialFlow.svelte';
   import TrialSuccess from '@/pages/TrialSuccess/TrialSuccess.svelte';
   import UserTrialFlow from '@/pages/UserTrialFlow/UserTrialFlow.svelte';
+  import Plans from '@/pages/Plans/Plans.svelte';
 
   // URL passed from parent component
   export let url: string = '';
@@ -35,6 +36,10 @@
 
   <!-- Trail Flow Success -->
   <Route path="/trialsuccess" component={TrialSuccess} />
+
+  <!-- Plans Page -->
+  <Route path="/plans" component={Plans} />
+
   <!-- Fallback for unmatched routes -->
   <Route path="*" component={NotFound} />
 </Router>

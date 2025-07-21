@@ -12,6 +12,8 @@
   import ReusableSideNav from '@/components/ReuseableSideNav/ReusableSideNav.svelte';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
+  import HubsViewModel from './Hubs.viewModel';
+  import { onMount } from 'svelte';
 
   interface Team {
     teamId: string;
@@ -133,7 +135,14 @@
   ) {
     hasOpened = false;
   }
+  let _viewModel = new HubsViewModel();
+  const handleStartTrial = () => _viewModel.handleStartTrial();
+  let isTrialExhausted: boolean = false;
 
+  onMount(async () => {
+    const response = await _viewModel.getUserTrialExhaustedStatus();
+    isTrialExhausted = response?.data;
+  });
 </script>
 
 <div>
@@ -159,6 +168,8 @@
           ]}
           placeholder={'Select your Hub'}
           pathMatcher={hubsPathMatcher}
+          startTrial={handleStartTrial}
+          {isTrialExhausted}
         />
       </div>
 
