@@ -308,7 +308,7 @@
     showProcessingModal = true;
     const metadata = {
       hubId: createdHubId,
-      userCount: teamdata.length.toString(),
+      userCount: triggerPoint === 'finish' ? teamdata.length.toString() : '1',
       planName: 'Standard',
     };
     const result = await billingService.createSubscription({
