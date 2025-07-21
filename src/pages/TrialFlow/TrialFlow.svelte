@@ -317,7 +317,7 @@
       paymentMethodId: paymentMethodId,
       metadata,
       trialPeriodDays: trailData?.data?.trialPeriod || 0,
-      seats: teamdata.length || 1,
+      seats: triggerPoint === 'finish' ? teamdata.length : 1,
     });
     console.log('Subscription result:', result);
     trialstart = result?.subscription?.trial_start;
