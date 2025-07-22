@@ -48,7 +48,7 @@
         <div class="mb-1 flex-shrink-0">
           <Check width="17" height="13" color="#33CC7A" />
         </div>
-        <span class="text-fs-ds-14 text-neutral-200">{feature}</span>
+        <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-200">{feature}</span>
       </div>
     {/each}
   </div>

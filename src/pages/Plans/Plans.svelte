@@ -102,8 +102,10 @@
     class="max-h-[90vh] w-full max-w-2xl gap-3 overflow-y-auto rounded bg-[#181C26] p-4 shadow-lg"
   >
     <div class="mb-3 text-white">
-      <h5 class="text-lg font-semibold">Welcome to Sparrow! Let’s find the right plan for you</h5>
-      <p class="mb-0 text-sm text-[#D8D8D9]">
+      <h5 class="text-fs-ds-20 font-fw-ds-600">
+        Welcome to Sparrow! Let’s find the right plan for you
+      </h5>
+      <p class="text-fs-ds-14 mb-0 text-[#D8D8D9]">
         Before you dive in, take a moment to explore the plans we offer, from free to fully loaded.
         You can switch plans at any time.
       </p>
@@ -112,7 +114,7 @@
     <!-- Billing toggle -->
     <div class="mb-4 flex h-9 w-[310px] items-center gap-2 rounded border border-[#222630] p-2">
       <button
-        class="m-0 flex-1 rounded border-0 py-1 text-xs font-normal"
+        class="text-fs-ds-12 font-fw-ds-500 m-0 flex-1 rounded border-0 py-1 font-normal"
         style="background-color: {billingPeriod === 'monthly'
           ? '#222630'
           : 'transparent'}; color: {billingPeriod === 'monthly' ? '#fff' : '#D8D8D9'};"
