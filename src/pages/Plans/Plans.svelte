@@ -100,7 +100,7 @@
     const response = await _viewModel.getUserTrialExhaustedStatus();
     isTrialExhausted = response?.data;
     if (response?.isSuccessful) {
-      notification.success('You have already used your free trial.');
+      notification.error('You have already used your free trial.');
     }
   });
 </script>
