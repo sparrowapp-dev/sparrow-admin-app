@@ -13,6 +13,7 @@
   export let compareText = '';
   export let onCompareClick = () => {};
   export let onButtonClick = () => {};
+  export let buttonDisabled = false;
 </script>
 
 <div class="border-surface-50 relative mb-4 rounded-[10px] border bg-[#0B0C0F] px-5 pt-5 pb-10">
@@ -37,7 +38,12 @@
     </div>
   </div>
   <div class="mb-4">
-    <Button variant="filled-primary" size="small" on:click={onButtonClick}>
+    <Button
+      variant="filled-primary"
+      size="small"
+      on:click={onButtonClick}
+      disabled={buttonDisabled}
+    >
       {buttonText}
     </Button>
   </div>

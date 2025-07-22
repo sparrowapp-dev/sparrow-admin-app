@@ -2,13 +2,17 @@
   import PricingCard from '@/components/PricingCard/PricingCard.svelte';
   import SparrowBackgroundV2 from '@/assets/images/SparrowBackgroundV2.svg';
   import { useLocation, navigate } from 'svelte-routing';
-
+  import { onMount } from 'svelte';
+  import PlansViewModel from './Plans.ViewModel';
+  import { notification } from '@/components/Toast';
   const location = useLocation();
   $: params = new URLSearchParams($location.search);
   $: accessToken = params.get('accessToken');
   $: refreshToken = params.get('refreshToken');
   $: email = params.get('email');
   $: source = params.get('source');
+  let isTrialExhausted;
+  let _viewModel = new PlansViewModel();
 
   let billingPeriod = 'monthly';
 
@@ -92,6 +96,13 @@
   function handleCompareClick() {
     window.open(marketingUrl + '/pricing/#pricing-comparison', '_blank');
   }
+  onMount(async () => {
+    const response = await _viewModel.getUserTrialExhaustedStatus();
+    isTrialExhausted = response?.data;
+    if (response?.isSuccessful) {
+      notification.success('You have already used your free trial.');
+    }
+  });
 </script>
 
 <div
@@ -147,6 +158,7 @@
             onButtonClick={() => handlePlanSelect(plan)}
             onCompareClick={handleCompareClick}
             compareText={'Compare Plans'}
+            buttonDisabled={isTrialExhausted}
           />
         </div>
       {/each}
