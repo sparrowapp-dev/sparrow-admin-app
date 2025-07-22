@@ -542,7 +542,12 @@
     </button>
     <button
       class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${activeView === 'billingDetails' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
-      on:click={() => switchView('billingDetails')}
+      on:click={() => {
+        formSubmitted = true;
+        if (validateFormCardDetails()) {
+          switchView('billingDetails');
+        }
+      }}
       disabled={isLoading || isSaving}
     >
       Billing Address Details
