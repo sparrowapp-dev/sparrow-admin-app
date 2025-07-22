@@ -12,6 +12,7 @@
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
   import { API_BASE_URL } from '@/constants/environment';
   import { notification } from '@/components/Toast';
+  import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import { navigate } from 'svelte-routing';
   let _viewModel = new TrialFlowViewModel();
 
@@ -43,6 +44,34 @@
       role: { id: '', name: '' },
     },
   ];
+
+  const options = [
+    {
+      value: 'standard-monthly',
+      label: 'Standard - Monthly',
+      description: '$9.99 per user/month',
+    },
+    {
+      value: 'professional-monthly',
+      label: 'Professional - Monthly',
+      description: '$19.99 per user/month',
+    },
+    {
+      value: 'standard-annual',
+      label: 'Standard - Annual',
+      description: '$99 per user/year',
+    },
+    {
+      value: 'professional-annual',
+      label: 'Professional - Annual',
+      description: '$199 per user/year',
+    },
+  ];
+
+  let selected = options[0];
+  function handleSelect(event) {
+    selected = event.detail;
+  }
 
   // function saveTeamData() {
   //   try {
@@ -498,6 +527,17 @@
           {/if}
         </div>
       {/each}
+    </div>
+
+    <div class="mb-8 flex items-center justify-center gap-2">
+      <div class="text-white">Your Plan:</div>
+      <DropdownNoSearch
+        width="min-w-[200px]"
+        {options}
+        bind:selected
+        on:select={handleSelect}
+        placeholder="Select Plan"
+      />
     </div>
 
     <!-- Dynamic Content Area -->

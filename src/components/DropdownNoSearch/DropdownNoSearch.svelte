@@ -6,6 +6,7 @@
   interface DropdownOption {
     value: any;
     label: string;
+    description?: string; // Added description property
     leftIcon?: any;
   }
 
@@ -99,9 +100,9 @@
       {#if leftIcon}
         <svelte:component this={leftIcon} />
       {/if}
-      <span class="">
+      <span class="truncate">
         {#if selected}
-          {selected.label.length > 15 ? `${selected.label.slice(0, 15)}...` : selected.label}
+          {selected.label}
         {:else}
           {placeholder}
         {/if}
@@ -130,12 +131,26 @@
                 : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
               on:click={() => selectOption(option)}
             >
-              {#if option.leftIcon}
-                <svelte:component this={option.leftIcon} />
-              {/if}
-              {option.label.length > 15 ? `${option.label.slice(0, 15)}...` : option.label}
+              <div class="flex min-w-0 flex-1 flex-col">
+                <div class="flex items-center gap-2">
+                  {#if option.leftIcon}
+                    <svelte:component this={option.leftIcon} />
+                  {/if}
+                  <span class="truncate">
+                    {option.label}
+                  </span>
+                </div>
+                {#if option.description}
+                  <span
+                    class="mt-1 text-xs opacity-75
+                    {variant === 'primary' ? 'text-neutral-300' : 'text-gray-600'}"
+                  >
+                    {option.description}
+                  </span>
+                {/if}
+              </div>
               {#if selected?.value === option.value}
-                <div class="ml-auto">
+                <div class="ml-auto flex-shrink-0">
                   <BlueCheckIcon />
                 </div>
               {/if}
@@ -153,14 +168,26 @@
               : `hover:bg-gray-50 ${selected?.value === pinnedOption.value ? 'text-blue-600' : 'text-gray-900'}`}"
             on:click={() => selectOption(pinnedOption)}
           >
-            {#if pinnedOption.leftIcon}
-              <svelte:component this={pinnedOption.leftIcon} />
-            {/if}
-            {pinnedOption.label.length > 15
-              ? `${pinnedOption.label.slice(0, 15)}...`
-              : pinnedOption.label}
+            <div class="flex min-w-0 flex-1 flex-col">
+              <div class="flex items-center gap-2">
+                {#if pinnedOption.leftIcon}
+                  <svelte:component this={pinnedOption.leftIcon} />
+                {/if}
+                <span class="truncate">
+                  {pinnedOption.label}
+                </span>
+              </div>
+              {#if pinnedOption.description}
+                <span
+                  class="mt-1 text-xs opacity-75
+                  {variant === 'primary' ? 'text-neutral-300' : 'text-gray-600'}"
+                >
+                  {pinnedOption.description}
+                </span>
+              {/if}
+            </div>
             {#if selected?.value === pinnedOption.value}
-              <div class="ml-auto">
+              <div class="ml-auto flex-shrink-0">
                 <BlueCheckIcon />
               </div>
             {/if}
