@@ -28,7 +28,7 @@
 
   // App Utilities
   import { notification } from '@/components/Toast';
-    import { captureEvent } from '@/utils/posthogConfig';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher();
   const location = useLocation();
@@ -460,19 +460,19 @@
     dispatch('close');
   }
 
-  const captureUpdateBillingCardDetails = () =>{
+  const captureUpdateBillingCardDetails = () => {
     const eventProperties = {
-      button_name:"save"
-    }
-    captureEvent("admin_billing_address_updated",eventProperties)
-  }
+      button_name: 'save',
+    };
+    captureEvent('admin_billing_address_updated', eventProperties);
+  };
 
-  const captureUserNewBillingCard = () =>{
+  const captureUserNewBillingCard = () => {
     const eventProperties = {
-      button_name:"Add"
-    }
-    captureEvent("admin_card_details_added",eventProperties);
-  }
+      button_name: 'Add',
+    };
+    captureEvent('admin_card_details_added', eventProperties);
+  };
 </script>
 
 <div class="bg-surface-600 w-[650px] rounded-lg p-7">
@@ -648,7 +648,9 @@
                   <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
                     >Cardholder Name <span class="text-red-400">*</span></label
                   >
-                  <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                  <span
+                    class="text-fs-ds-14 font-fw-ds-400 ml-2 inline-block max-w-xs truncate align-middle text-neutral-500"
+                  >
                     {existingPaymentMethod?.billing_details?.name || ''}
                   </span>
                 </div>

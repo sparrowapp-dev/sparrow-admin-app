@@ -18,7 +18,7 @@ interface CreateSubscriptionParams {
   customerId: string;
   priceId: string;
   paymentMethodId: string;
-  metadata?: Record<string, string>;
+  metadata?: any;
   trialPeriodDays?: number;
   seats?: number;
 }
@@ -27,7 +27,7 @@ interface UpdateSubscriptionParams {
   subscriptionId: string;
   priceId: string;
   paymentMethodId: string;
-  metadata?: Record<string, string>;
+  metadata?: any;
   isDowngrade?: boolean;
   seats?: number;
   paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
