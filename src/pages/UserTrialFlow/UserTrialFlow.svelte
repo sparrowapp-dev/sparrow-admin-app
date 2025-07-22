@@ -316,7 +316,7 @@
     showProcessingModal = true;
     const metadata = {
       hubId: createdHubId,
-      userCount: teamdata.length.toString(),
+      userCount: triggerPoint === 'finish' ? teamdata.length.toString() : '1',
       planName: capitalizedFlow,
     };
     const result = await billingService.createSubscription({
@@ -325,7 +325,7 @@
       paymentMethodId: paymentMethodId,
       metadata,
       trialPeriodDays: trialPeriod || 0,
-      seats: teamdata.length || 1,
+      seats: triggerPoint === 'finish' ? teamdata.length : 1,
     });
     console.log('Subscription result:', result);
     trialstart = result?.subscription?.trial_start;
