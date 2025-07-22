@@ -40,12 +40,14 @@
   <div class="relative w-full">
     <div class="bg-surface-600 rounded-lg p-8 shadow-xl">
       <div class="flex flex-col gap-8">
-        <div class="font-fw-ds-400 flex flex-col items-center gap-2 text-center text-neutral-50">
+        <div
+          class="font-fw-ds-400 flex flex-col items-center gap-2 text-center break-words text-neutral-50"
+        >
           <CheckmarkStarburst />
           <div class="text-fs-ds-16">Congratulations! Your {capitalizedFlow} Trial is Unlocked</div>
-          <div class="text-fs-ds-14">
-            You’ve successfully activated the {capitalizedFlow} Trial for ‘{hub} Hub’. All premium features
-            are now available, start exploring, collaborating, and building with your team.
+          <div class="text-fs-ds-14 mx-auto max-w-xl break-words">
+            You’ve successfully activated the {capitalizedFlow} Trial for ‘{hub}’ Hub. All premium
+            features are now available, start exploring, collaborating, and building with your team.
           </div>
         </div>
         <div class="mr-5 ml-15 w-full max-w-md">
