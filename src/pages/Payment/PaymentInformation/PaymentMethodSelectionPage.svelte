@@ -270,10 +270,12 @@
         hubId,
         userCount: userCount.toString(),
         planName,
+        trial_period_days: 0,
+        trial_end_date: null,
       };
 
       let result;
-      captureConfirmPaymentClick(planName,billingCycle);
+      captureConfirmPaymentClick(planName, billingCycle);
       // Determine if we need to create or update a subscription
       if (subscriptionId && subscriptionStatus !== 'canceled') {
         // Update existing subscription
@@ -341,12 +343,12 @@
   ];
 
   const captureConfirmPaymentClick = (planType: string, planOption: string) => {
-    const isMonthly = planOption === "monthly";
+    const isMonthly = planOption === 'monthly';
     const eventProperties = {
-      event_source: "admin_panel",
-      current_plan: `${planType}_${isMonthly ? "monthly" : "annual"}`,
+      event_source: 'admin_panel',
+      current_plan: `${planType}_${isMonthly ? 'monthly' : 'annual'}`,
     };
-   captureEvent("admin_upgrade_intent", eventProperties);
+    captureEvent('admin_upgrade_intent', eventProperties);
   };
 </script>
 
