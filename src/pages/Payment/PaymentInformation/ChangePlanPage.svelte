@@ -62,6 +62,7 @@
   let subscriptionId: string = '';
   let subscriptionStatus: string = '';
   let userCount: number = 1;
+  let inTrial: boolean = false;
 
   // URL parsing
   $: {
@@ -83,6 +84,7 @@
     subscriptionId = searchParams.get('subscriptionId') || '';
     subscriptionStatus = searchParams.get('status') || '';
     userCount = parseInt(searchParams.get('userCount') || '1', 10);
+    inTrial = searchParams.get('inTrial') === 'true';
   }
 
   // Plan details for comparison
@@ -359,7 +361,7 @@
                     <Button
                       variant="filled-primary"
                       on:click={() => selectPlan(plan)}
-                      disabled={plan === 'community'}
+                      disabled={plan === 'community' || (inTrial && buttonText === 'Downgrade')}
                     >
                       {buttonText}
                     </Button>

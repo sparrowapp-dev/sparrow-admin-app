@@ -237,6 +237,7 @@
       subscriptionId: subscriptionId || '',
       status: subscriptionStatus,
       userCount: userCount.toString(),
+      inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
