@@ -8,11 +8,13 @@
   import { notification } from '@/components/Toast';
   import { hubsService } from '@/services/hubs.service';
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
   const dispatch = createEventDispatcher();
   export let onClose: () => void;
   export let hubId: any;
   export let hubName: string;
   export let onSuccess: () => void;
+  export let hubPlan: string;
 
   let emails: string[] = [];
   let selectedRole: { id: string; name: string } = { id: '', name: '' };
@@ -122,7 +124,7 @@
 
       // Call the API to invite users
       await hubsService.inviteUsers(payload);
-
+      captureUserSendInvites();
       notification.success('Invite sent successfully.');
       onSuccess();
       onClose();
@@ -134,12 +136,27 @@
         notification.error('User already in hub.');
       } else if (error?.message === 'Plan limit reached') {
         dispatch('openUpgradePlan');
+      } else if (
+        error.message ===
+          'Invite failed. Please complete payment authentication to send invites.' ||
+        error.message === 'Invite failed. Please resolve your payment issue to send invites.' ||
+        error.message === 'Invite blocked due to your scheduled downgrade.'
+      ) {
+        notification.error(error.message);
       } else {
         notification.error('Failed to send invite. Please try again.');
       }
     } finally {
       isSubmitting = false;
     }
+  }
+
+  const captureUserSendInvites = () =>{
+    const eventProperties ={
+      event_source:"admin_panel",
+      cta_location:"user_management"
+    }
+    captureEvent("admin_send_invite", eventProperties)
   }
 </script>
 
@@ -222,9 +239,14 @@
         />
       </div>
     {/if}
-
+    {#if hubPlan !== 'Community'}
+      <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
+        Note: Inviting a user reserves a license and may trigger a charge, unless an unused license
+        is available.
+      </div>
+    {/if}
     <!-- Hub display -->
-    <div class="border-surface-500 mt-6 flex items-center border-t pt-4">
+    <div class="border-surface-500 mt-6 flex items-center">
       <ProfileIcon />
       <div class="ml-3">
         <p class="text-fs-ds-12 font-fw-ds-400 w-[10rem] truncate text-neutral-50">{hubName}</p>

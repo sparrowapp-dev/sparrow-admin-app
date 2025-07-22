@@ -13,6 +13,7 @@
   // Utils
   import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // UI Components
   import Button from '@/ui/Button/Button.svelte';
@@ -57,6 +58,7 @@
   let planStatus = '';
   let subscriptionStatus = '';
   let invoiceUrl = '';
+  let isScheduledDowngrade = false;
 
   // UI state
   let isLoadingSubscription = false;
@@ -146,12 +148,13 @@
   $: if ($hubData !== undefined) {
     currentHubData = $hubData?.data || null;
     hubName = currentHubData?.name || '';
-    // userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
-    userCount = 1;
+    userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
     planStatus = currentHubData?.billing?.status;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
-    invoiceUrl = currentHubData?.billing?.failed_invoice_url || '';
+    invoiceUrl =
+      currentHubData?.billing?.failed_invoice_url || currentHubData?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
+    isScheduledDowngrade = currentHubData?.billing?.scheduledDowngrade || false;
   }
 
   // Process subscription data when it changes
@@ -159,24 +162,26 @@
     isLoadingSubscription = false;
     // Get the most recent subscription (first in the array)
     subscriptionData = $subscriptionApiData?.subscriptions?.[0] || null;
-
     // Only use subscription data if it's in an active state
     // Otherwise, use default values from the database
-    if (subscriptionData && subscriptionData.status === 'active') {
+    if (
+      subscriptionData &&
+      (subscriptionData.status === 'active' ||
+        subscriptionData.status === 'past_due' ||
+        subscriptionData.status === 'trialing')
+    ) {
       // Process subscription data using the utility function
       const processedData = processSubscriptionData(subscriptionData, currentPlan);
 
       // Update all subscription-related variables
       subscriptionId = processedData.subscriptionId;
       // Don't override currentPlan from the database
-      // currentPlan = processedData.currentPlan;
       currentPrice = processedData.currentPrice;
       currentBillingCycle = processedData.currentBillingCycle;
       nextBillingDate = processedData.nextBillingDate;
       lastInvoiceAmount = processedData.lastInvoiceAmount;
       totalPaidAmount = processedData.totalPaidAmount;
-      // userCount = userCount enable later;
-      userCount = 1;
+      userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
     } else {
       // If subscription is canceled or inactive, use default values
@@ -220,7 +225,8 @@
   // ===== FUNCTIONS =====
   // Handle upgrade button click
   function handleUpgradeClick() {
-    if (planStatus === 'payment_failed') {
+    captureUserClickUpgradePlan();
+    if (planStatus === 'payment_failed' || planStatus === 'action_required') {
       notification.error('Please resolve the payment issue before changing your plan.');
       return;
     }
@@ -231,6 +237,7 @@
       subscriptionId: subscriptionId || '',
       status: subscriptionStatus,
       userCount: userCount.toString(),
+      inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -312,6 +319,14 @@
       resubscribeInProgress = false;
     }
   }
+
+  const captureUserClickUpgradePlan = () => {
+    const eventProperties = {
+      event_source: 'admin_panel',
+      cta_location: 'billing_overview',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 </script>
 
 {#if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}
@@ -349,7 +364,7 @@
         >
       </div>
     </div>
-    {#if planStatus === 'payment_failed'}
+    {#if planStatus === 'payment_failed' || planStatus === 'action_required'}
       <div class="mt-2 mb-8">
         <Alert
           variant="error"
@@ -365,7 +380,7 @@
     {/if}
 
     <!-- Schedule Alert -->
-    {#if subscriptionData?.schedule}
+    {#if isScheduledDowngrade}
       <div class="mt-2 mb-8">
         <Alert
           variant="warning"
@@ -411,7 +426,7 @@
               {/if}
             </div>
 
-            {#if !subscriptionData?.schedule}
+            {#if !isScheduledDowngrade}
               {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
@@ -457,12 +472,9 @@
                   ? '/user/month'
                   : '/user/year'}
               </p>
-              <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Total paid amount: {totalPaidAmount}
-              </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !subscriptionData?.schedule && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
+              {#if !isScheduledDowngrade && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
                 <button
                   class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
                   on:click={handleUpgradeClick}
@@ -489,9 +501,9 @@
             variant="outline-primary"
             size="medium"
             on:click={handleUpgradeClick}
-            disabled={subscriptionData?.schedule ||
+            disabled={isScheduledDowngrade ||
               (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
-            tooltipText={subscriptionData?.schedule
+            tooltipText={isScheduledDowngrade
               ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
               : ''}
             tooltipPosition="bottom"

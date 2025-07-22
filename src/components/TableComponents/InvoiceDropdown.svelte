@@ -3,6 +3,7 @@
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import Eye from '@/assets/icons/Eye.svelte';
   import ArrowDownload from '@/assets/icons/ArrowDownload.svelte';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let invoice;
   export let openInvoiceDetails: (invoice: any) => void;
@@ -54,11 +55,19 @@
 
   function handleDownloadInvoice(event) {
     event.stopPropagation();
+    captureUserDownloadPaymentInvoice();
     const url = invoice.invoicePdf;
     if (url) {
       window.open(url, '_blank');
     }
     closeDropdown();
+  }
+
+  const captureUserDownloadPaymentInvoice = () =>{
+    const eventProperties = {
+      button_name:"Download Invoice"
+    }
+    captureEvent("admin_invoice_downloaded",eventProperties);
   }
 
   function handleClickOutside(event) {

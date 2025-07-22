@@ -21,7 +21,9 @@
   import PaymentMethodSelectionPage from './PaymentInformation/PaymentMethodSelectionPage.svelte';
   import ChangePlanPage from './PaymentInformation/ChangePlanPage.svelte';
   import BillingAccessDenied from './BillingAccessDenied.svelte';
-  import { userId } from '@/store/auth';
+  import { clearTokens, userId } from '@/store/auth';
+  import { LOGIN_REDIRECT_URL } from '@/constants/environment';
+  import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   interface Team {
     teamId: string;
@@ -120,6 +122,8 @@
 
           // Store current team ID to check user role
           currentTeamId = actualTeamId;
+        } else {
+
         }
       }
       // Handle root sections
@@ -171,42 +175,49 @@
 </script>
 
 <div class="bg-surface-900 flex" style="height: calc(100vh - 48px);">
-  <!-- Sidebar with slide-in animation -->
-  <div
-    class="max-w-[266px] min-w-[266px]"
-    style="
+  <!-- Loading Spinner -->
+  {#if $isFetching}
+    <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
+      <CircularLoader />
+    </div>
+  {:else}
+    <!-- Sidebar with slide-in animation -->
+    <div
+      class="max-w-[266px] min-w-[266px]"
+      style="
       transform: translateX({$sidebarTranslateX}px);
       opacity: {$sidebarOpacity};
     "
-  >
-    <ReusableSideNav
-      link={'/billing'}
-      options={[
-        { label: 'Overview', id: 'billingOverview' },
-        { label: 'Payment Information', id: 'billingInformation' },
-        { label: 'Invoices', id: 'billingInvoices' },
-      ]}
-      pathMatcher={paymentPathMatcher}
-      placeholder="Search your Hub"
-    />
-  </div>
+    >
+      <ReusableSideNav
+        link={'/billing'}
+        options={[
+          { label: 'Overview', id: 'billingOverview' },
+          { label: 'Payment Information', id: 'billingInformation' },
+          { label: 'Invoices', id: 'billingInvoices' },
+        ]}
+        pathMatcher={paymentPathMatcher}
+        placeholder="Search your Hub"
+      />
+    </div>
 
-  <!-- Nested Route Content -->
-  <div class="w-[100%] overflow-auto p-4">
-    {#if hasAccess}
-      <Router>
-        <Route path="billingOverview/:id" component={Overview} />
-        <Route path="billingInformation/:id" component={PaymentInformation} />
-        <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
-        <Route
-          path="billingInformation/selectPaymentMethod/:id"
-          component={PaymentMethodSelectionPage}
-        />
-        <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
-        <Route path="billingInvoices/:id" component={PaymentInvoices} />
-      </Router>
-    {:else}
-      <BillingAccessDenied />
-    {/if}
-  </div>
+    <!-- Nested Route Content -->
+    <div class="w-[100%] overflow-auto p-4">
+      {#if hasAccess}
+        <Router>
+          <Route path="billingOverview/:id" component={Overview} />
+          <Route path="billingInformation/:id" component={PaymentInformation} />
+          <Route path="billingInformation/addPaymentDetails/:id" component={PaymentDetails} />
+          <Route
+            path="billingInformation/selectPaymentMethod/:id"
+            component={PaymentMethodSelectionPage}
+          />
+          <Route path="billingInformation/changePlan/:id" component={ChangePlanPage} />
+          <Route path="billingInvoices/:id" component={PaymentInvoices} />
+        </Router>
+      {:else}
+        <BillingAccessDenied />
+      {/if}
+    </div>
+  {/if}
 </div>

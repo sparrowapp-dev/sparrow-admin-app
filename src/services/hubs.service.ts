@@ -4,6 +4,7 @@ interface HubQueryParams {
   page?: number;
   limit?: number;
   search?: string;
+  plan?: string;
   sortBy?: 'createdAt' | 'updatedAt' | 'name';
   sortOrder?: 'asc' | 'desc';
 }
@@ -48,6 +49,7 @@ export class HubsService {
     const queryParams = new URLSearchParams();
 
     if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.plan) queryParams.append('plan', params.plan.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
@@ -304,6 +306,11 @@ export class HubsService {
 
   public async sendConfirmationMail(trailId: string, data: any): Promise<any> {
     const res = await makeRequest('POST', `/api/trial-confirmation-mail/${trailId}`, data);
+    return res?.data;
+  }
+
+  public async sendUserConfirmationMail(hubId: string, data: any): Promise<any> {
+    const res = await makeRequest('POST', `/api/user-trial-confirmation-mail/${hubId}`, data);
     return res?.data;
   }
 

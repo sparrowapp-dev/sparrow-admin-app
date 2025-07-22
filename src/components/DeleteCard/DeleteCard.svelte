@@ -5,6 +5,7 @@
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
   import { notification } from '@/components/Toast';
   import { billingService } from '@/services/billing.service';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher();
 
@@ -48,7 +49,7 @@
 
       // Use the billing service instead of direct fetch
       await billingService.deletePaymentMethod(paymentMethodId);
-
+      captureUserBillingCardRemoval();
       // Show success toast notification
       notification.success('Card removed successfully.');
 
@@ -69,6 +70,13 @@
       isLoading = false;
     }
   }
+
+  const captureUserBillingCardRemoval = () => {
+    const eventProperties = {
+      button_name: 'Delete Card',
+    };
+    captureEvent('admin_card_deleted', eventProperties);
+  };
 </script>
 
 <div class="bg-surface-600 rounded-lg p-7">

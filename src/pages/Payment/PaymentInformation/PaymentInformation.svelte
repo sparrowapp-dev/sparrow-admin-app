@@ -307,7 +307,9 @@
                       .join(', ')}
                   </div>
                   {#if selectedPaymentMethod.billing_details?.name}
-                    <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                    <div
+                      class="text-fs-ds-16 font-inter font-fw-ds-400 w-full truncate text-neutral-200 uppercase"
+                    >
                       {selectedPaymentMethod.billing_details.name}
                     </div>
                   {/if}

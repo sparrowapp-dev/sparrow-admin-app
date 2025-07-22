@@ -133,6 +133,7 @@
   ) {
     hasOpened = false;
   }
+
 </script>
 
 <div>

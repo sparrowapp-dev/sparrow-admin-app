@@ -3,6 +3,7 @@
   import Button from '@/ui/Button/Button.svelte';
   import Alert from '@/components/Alert/Alert.svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   const dispatch = createEventDispatcher();
 
@@ -20,6 +21,7 @@
   }
 
   function handleConfirmCancellation() {
+    captureCancelSubcription();
     dispatch('confirmCancel', { feedback });
   }
 
@@ -33,6 +35,15 @@
   }
 
   $: daysLeft = getDaysLeft(nextBillingDate);
+
+  
+  const captureCancelSubcription = () =>{
+    const eventProperties = {
+      event_source:"admin_panel",
+      plan:`${currentPlan}_${currentBillingCycle}`
+    }
+    captureEvent("admin_cancel_subscription", eventProperties);
+  }
 </script>
 
 <div class="bg-surface-600 w-full rounded-lg p-6">

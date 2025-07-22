@@ -3,6 +3,8 @@
   import WelcomePage from '@/assets/images/WelcomePage.png';
   import TrialSuccess from '@/components/TrialFlow/TrialSuccess.svelte';
   import { onMount } from 'svelte';
+  import TrialSuccessFlowViewModel from './TrialSuccess.ViewModel';
+  let _viewModel = new TrialSuccessFlowViewModel();
   let hub = '';
   let users = '';
   let trialstart = '';
@@ -10,12 +12,26 @@
   let trialStartDate = '';
   let trialEndDate = '';
   let amount = 0;
-  onMount(() => {
+  let flow = 'standard';
+  let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
+  let billing;
+  let pricingDetails;
+  let source;
+  let accessToken;
+  let refreshToken;
+  let response;
+  onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     hub = params.get('hub');
     users = params.get('users');
     trialstart = params.get('trialstart');
     trialend = params.get('trialend');
+    flow = params.get('flow');
+    source = params.get('source');
+    accessToken = params.get('accessToken');
+    refreshToken = params.get('refreshToken');
+    response = params.get('response');
+    trialFrequency = params.get('trialFrequency') || 'monthly'; // Use query param or default to monthly
 
     // Convert Unix timestamp (seconds) to Date string
     if (trialstart) {
@@ -34,8 +50,20 @@
         day: 'numeric',
       });
     }
-    amount = users ? parseInt(users) * 9.99 : 9.99; // Assuming $9.99 per user
+    const pricingResponse = await _viewModel.getPricingDetails();
+    if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
+      pricingDetails = pricingResponse.data.data;
+      // Find the plan by tier
+      const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === flow);
+
+      // Find billing interval by trialFrequency (monthly/annual)
+      billing = selectedPlan?.billing.find(
+        (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
+      );
+    }
+    amount = users ? parseInt(users) * billing?.price : 9.99; // Assuming $9.99 per user
   });
+  $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
 </script>
 
 <TrialNav />
@@ -46,11 +74,23 @@
   <div class="padding-y-14 mx-auto flex w-full max-w-2xl flex-col gap-7">
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        <span class="gradient-text">Standard Trial</span> Unlocked
+        <span class="gradient-text">{capitalizedFlow} Trial</span> Unlocked
       </h1>
     </div>
     <div>
-      <TrialSuccess {hub} {users} {trialEndDate} {trialStartDate} {amount} />
+      <TrialSuccess
+        {hub}
+        {users}
+        {trialEndDate}
+        {trialStartDate}
+        {amount}
+        {trialFrequency}
+        flow={capitalizedFlow}
+        {source}
+        {accessToken}
+        {refreshToken}
+        {response}
+      />
     </div>
   </div>
 </div>

@@ -19,6 +19,7 @@
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
   import { API_BASE_URL } from '@/constants/environment';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // Import modal components
   import Modal from '@/components/Modal/Modal.svelte';
@@ -30,6 +31,8 @@
   } from '@/components/PlanUpdateStatus';
   import PlusIconV2 from '@/assets/icons/PlusIconV2.svelte';
   import Alert from '@/components/Alert/Alert.svelte';
+  import PlusIcon from '@/assets/icons/PlusIcon.svelte';
+  import MinusIcon from '@/assets/icons/MinusIcon.svelte';
 
   const location = useLocation();
 
@@ -44,6 +47,7 @@
   let customerId: string = '';
   let currentPlan: string = 'Community';
   let isDowngrade: boolean = false;
+  let minUserCount: number = 1;
 
   // URL parsing
   $: {
@@ -59,7 +63,11 @@
     planName = searchParams.get('plan') || '';
     priceId = searchParams.get('priceId') || '';
     billingCycle = searchParams.get('billingCycle') || 'monthly';
-    userCount = parseInt(searchParams.get('userCount') || '1', 10);
+    userCount = parseInt(
+      searchParams.get('minUserCount') || searchParams.get('userCount') || '1',
+      10,
+    );
+    minUserCount = parseInt(searchParams.get('userCount') || '1', 10);
     subscriptionId = searchParams.get('subscriptionId') || '';
     currentPlan = searchParams.get('currentPlan') || 'Community';
     subscriptionStatus = searchParams.get('status') || '';
@@ -73,9 +81,6 @@
   // State variables
   let selectedPaymentMethodId: string = '';
   let error: any = '';
-  let showProratedInfo: boolean = false;
-  let proratedAmount: string = '';
-  let proratedDate: string = '';
   let totalAmount: string = '';
   let isProcessing: boolean = false;
 
@@ -134,7 +139,7 @@
             nextBilling: team?.billing?.current_period_end,
           };
 
-          invoiceUrl = team?.billing?.failed_invoice_url || '';
+          invoiceUrl = team?.billing?.failed_invoice_url || team?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
         }, 5000);
 
         // Show failed modal
@@ -173,6 +178,8 @@
   const { data: customerData, refetch: refetchCustomer } = createQuery(() =>
     billingService.fetchCustomerId(hubId),
   );
+  // fetch pricing details
+  const { data: pricingData } = createQuery(() => billingService.getAllPricingDetails());
 
   // Set customerId when customerData changes
   $: if ($customerData !== undefined) {
@@ -183,9 +190,6 @@
   $: if (hubId) {
     refetchCustomer();
   }
-
-  // Fetch hub details for breadcrumbs
-  const { data: hubDetails } = createQuery(() => hubsService.getHubDetails(hubId));
 
   // Re-fetch when customerId changes
   $: if (customerId) {
@@ -202,40 +206,6 @@
     return billingService.getPaymentMethods(customerId);
   });
 
-  // Fetch proration details if updating subscription
-  const { data: prorationData, isFetching: isLoadingProration } = createQuery(async () => {
-    if (!customerId || !priceId) return null;
-
-    try {
-      const response = await billingService.simulatePayment(customerId, priceId);
-
-      if (response?.lines?.data) {
-        const invoiceLine = response.lines.data[0];
-
-        // Extract prorated amount and next billing date
-        const proratedAmountValue = invoiceLine.amount / 100; // Convert cents to dollars
-        const nextBillingDate = new Date(response.period_end * 1000); // Convert to milliseconds
-
-        const formattedDate = nextBillingDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-
-        showProratedInfo = true;
-
-        return {
-          proratedAmount: `$${proratedAmountValue.toFixed(2)}`,
-          proratedDate: formattedDate,
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error fetching proration details:', err);
-      return null;
-    }
-  });
-
   // Reactive derived values
   $: paymentMethods = $paymentMethodsData?.paymentMethods || [];
   $: defaultCard = paymentMethods.find((pm) => pm.isDefault);
@@ -243,31 +213,24 @@
     selectedPaymentMethodId = defaultCard.id;
   }
 
-  // Set total amount based on plan details and/or proration
   $: {
-    // Set a default based on plan & cycle
-    let baseAmount = billingCycle === 'monthly' ? '$9.99' : '$99.99';
+    let baseAmount = 0;
 
-    // Try to determine amount from proration data
-    if ($prorationData && $prorationData.proratedAmount) {
-      proratedAmount = $prorationData.proratedAmount;
-      proratedDate = $prorationData.proratedDate;
-      totalAmount = proratedAmount;
-    } else {
-      // Use standard pricing if no proration
-      if (planName === 'Standard') {
-        baseAmount = billingCycle === 'monthly' ? '$9.99' : '$99.99';
-      } else if (planName === 'Professional') {
-        baseAmount = billingCycle === 'monthly' ? '$19.99' : '$199.99';
+    // Ensure data exists
+    if ($pricingData?.data?.plans?.length) {
+      const selectedPlan = $pricingData.data.plans.find((p) => p.plan_name === planName);
+
+      if (selectedPlan) {
+        const billing = selectedPlan.billing.find((b) => b.interval === billingCycle);
+
+        if (billing) {
+          baseAmount = billing.price * userCount;
+        }
       }
-      totalAmount = baseAmount;
     }
-  }
 
-  // Update proration details when available
-  $: if ($prorationData) {
-    proratedAmount = $prorationData.proratedAmount;
-    proratedDate = $prorationData.proratedDate;
+    // Format for display (e.g. "$29.97")
+    totalAmount = `$${baseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function handleRadioChange(event) {
@@ -280,11 +243,15 @@
   }
 
   function goToAddCard() {
-    // Save the current URL in sessionStorage so we can navigate back here after adding a card
-    const currentUrl = window.location.pathname + window.location.search;
-    sessionStorage.setItem('paymentMethodPageUrl', currentUrl);
+    const url = new URL(window.location.href);
+    const searchParams = new URLSearchParams(url.search);
 
-    // Navigate to add payment details page
+    // Add or update minUserCount
+    searchParams.set('minUserCount', String(userCount));
+    // Construct updated URL
+    const updatedUrl = url.pathname + '?' + searchParams.toString();
+
+    sessionStorage.setItem('paymentMethodPageUrl', updatedUrl);
     navigate(`/billing/billingInformation/addPaymentDetails/${hubId}`);
   }
 
@@ -303,13 +270,14 @@
         hubId,
         userCount: userCount.toString(),
         planName,
+        trial_period_days: 0,
+        trial_end_date: null,
       };
 
       let result;
-
+      captureConfirmPaymentClick(planName, billingCycle);
       // Determine if we need to create or update a subscription
       if (subscriptionId && subscriptionStatus !== 'canceled') {
-        console.log('Updating existing subscription:', subscriptionId);
         // Update existing subscription
         result = await billingService.updateSubscription({
           subscriptionId,
@@ -317,9 +285,10 @@
           paymentMethodId: selectedPaymentMethodId,
           metadata,
           isDowngrade,
+          seats: userCount || 1,
+          paymentBehavior: 'default_incomplete', // Use default_incomplete to handle 3D Secure
         });
       } else if (customerId) {
-        console.log('Creating new subscription for customer:', customerId);
         // Create new subscription
         result = await billingService.createSubscription({
           customerId,
@@ -354,13 +323,33 @@
     {
       label: 'Change Plan',
       path: '',
-      action: () => window.history.back(),
+      action: () => {
+        // Get the referrer URL from sessionStorage if available
+        const changePlanUrl = sessionStorage.getItem('changePlanPageUrl');
+
+        if (changePlanUrl) {
+          // If we have a stored change plan URL, navigate back to it
+          navigate(changePlanUrl);
+        } else {
+          // Default fallback to browser history
+          window.history.back();
+        }
+      },
     },
     {
       label: 'Payment Method',
       path: '',
     },
   ];
+
+  const captureConfirmPaymentClick = (planType: string, planOption: string) => {
+    const isMonthly = planOption === 'monthly';
+    const eventProperties = {
+      event_source: 'admin_panel',
+      current_plan: `${planType}_${isMonthly ? 'monthly' : 'annual'}`,
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 </script>
 
 <div class="max-w-[724px]">
@@ -374,13 +363,50 @@
           : 'upgrade'}.
       </p>
 
+      {#if billingCycle === 'annual'}
+        <!-- Number of seats selector -->
+        <div class="mt-6 mr-28 mb-6 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50"
+              >Number of seats</span
+            >
+          </div>
+          <div
+            class="flex min-w-[120px] items-center justify-between rounded-md border border-neutral-700 px-2 py-1"
+          >
+            <button
+              class="text-fs-ds-18 font-inter font-fw-ds-300 flex h-6 w-8 cursor-pointer items-center justify-center text-neutral-200 disabled:opacity-50"
+              on:click={() => {
+                if (userCount > minUserCount) userCount = userCount - 1;
+              }}
+              aria-label="Decrease seats"
+              disabled={userCount <= minUserCount}
+            >
+              <MinusIcon />
+            </button>
+            <span class="text-fs-ds-12 font-inter font-fw-ds-300 w-8 text-center text-neutral-50"
+              >{userCount}</span
+            >
+            <button
+              class="text-fs-ds-18 font-inter font-fw-ds-300 flex h-6 w-8 cursor-pointer items-center justify-center text-neutral-200"
+              on:click={() => {
+                userCount = userCount + 1;
+              }}
+              aria-label="Increase seats"
+            >
+              <PlusIcon />
+            </button>
+          </div>
+        </div>
+      {/if}
+
       <!-- Downgrade Notice -->
       {#if isDowngrade}
         <div class="mb-6 shadow-lg">
           <Alert
             variant="info"
             showButton={false}
-            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, or cancel your plan until the change takes effect.`}
+            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
           />
         </div>
       {/if}
@@ -401,7 +427,7 @@
           <p class="text-fs-ds-12 font-inter font-fw-ds-300 text-neutral-400">Total Amount</p>
           <p class="text-fs-ds-16 font-inter font-fw-ds-400 mt-1 text-neutral-50">
             {totalAmount}<span class="text-fs-ds-12 text-neutral-400">
-              /{billingCycle === 'monthly' ? 'user/month' : 'user/year'}</span
+              /{billingCycle === 'monthly' ? 'month' : 'year'}</span
             >
           </p>
         </div>
@@ -410,7 +436,7 @@
 
     <!-- Payment method selection -->
     <div class=" mb-6 rounded-lg px-4 pt-0">
-      {#if $isLoadingPaymentMethods || $isLoadingProration}
+      {#if $isLoadingPaymentMethods}
         <div class="flex justify-center py-8">
           <CircularLoader />
         </div>
@@ -471,6 +497,11 @@
           {/each}
         </div>
       {/if}
+      {#if isDowngrade}
+        <div class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
+          Note: Payment will be deducted at the start of your next billing cycle.
+        </div>
+      {/if}
     </div>
 
     {#if paymentMethods.length !== 0}
@@ -489,12 +520,13 @@
             disabled={!selectedPaymentMethodId ||
               paymentMethods.length === 0 ||
               $isLoadingPaymentMethods ||
-              $isLoadingProration ||
               isProcessing}
             on:click={handlePaymentConfirm}
           >
             {#if isProcessing}
               Processing...
+            {:else if isDowngrade}
+              Confirm
             {:else}
               Confirm & Pay
             {/if}

@@ -15,6 +15,7 @@
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -213,10 +214,12 @@
           params: { workspaceId: params, hubId: hubId },
           data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
         });
+        captureWorkspaceUpdatedDetails("Save",formData.workspaceName.trim(),formData.summary.trim());
         const updatedName = response?.data?.name ?? formData.workspaceName.trim();
         notification.success(`"${updatedName}" Workspace updated successfully.`);
       } else if (modalVariants.isMakeItPublicModalOpen) {
         // Handle making workspace public
+        captureWorkspacePublish("Publish",data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE', `${baseUrl}/hubs/workspace-details/${hubId}/${params}`);
         const response = await hubsService.makeitpublic({
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
@@ -227,6 +230,7 @@
         const response = await hubsService.deleteWorkspace({
           params: { workspaceId: params, hubId: hubId },
         });
+        captureWorkspaceDelete(params);
         notification.success(
           `Workspace "${formData.workspaceName}" has been deleted successfully.`,
         );
@@ -267,6 +271,13 @@
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
           notification.error('User already in hub.');
+        } else if (
+          error.message ===
+            'Invite failed. Please complete payment authentication to send invites.' ||
+          error.message === 'Invite failed. Please resolve your payment issue to send invites.' ||
+          error.message === 'Invite blocked due to your scheduled downgrade.'
+        ) {
+          notification.error(error.message);
         } else {
           notification.error('Failed to send invite. Please try again.');
         }
@@ -306,6 +317,34 @@
     formData.selectedRole = event.detail;
     errors.roleError = '';
   }
+
+  const captureWorkspaceUpdatedDetails = (buttonName:string, updatedName:string, updatedSummary:string) =>{
+    const eventProperties = {
+      button_name:buttonName,
+      name:updatedName,
+      summary:updatedSummary
+    }
+    captureEvent("admin_workspace_edit_saved", eventProperties);
+  }
+
+  const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      button_name:buttonName,
+      new_visibility:workspaceType,
+      source_Location:location
+    }
+    captureEvent("admin_workspace_edit_saved", eventProperties);
+  }
+
+  const captureWorkspaceDelete = (workspaceId:string)=>{
+    const eventProperties = {
+      event_source:"admin_panel",
+      button_name:"Delete Workspace",
+      workspace_id:workspaceId
+    }
+    captureEvent("admin_workspace_deleted", eventProperties);
+  } 
 </script>
 
 <div class="bg-surface-600 rounded-md p-6">
@@ -544,11 +583,19 @@
           disableValues={['admin', 'member']}
         />
       </div>
+
       <div class="text-fs-ds-12 font-fw-ds-300 text-neutral-400">
         You can invite hub members or external collaborators to this workspace. Invited people will
         have access to only the <span class="w-[10rem] truncate text-neutral-50">{data?.title}</span
         > workspace.
       </div>
+
+      {#if hubDetails?.data?.plan?.name !== 'Community'}
+        <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
+          Note: Inviting a user reserves a license and may trigger a charge, unless an unused
+          license is available.
+        </div>
+      {/if}
 
       <!-- Workspace Selection (only for editor and viewer roles) -->
 

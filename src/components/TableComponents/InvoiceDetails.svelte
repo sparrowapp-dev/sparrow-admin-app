@@ -3,6 +3,7 @@
   import Table from '../Table/Table.svelte';
   import Button from '@/ui/Button/Button.svelte';
   import InvoiceStatus from './InvoiceStatus.svelte';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   export let onClose: () => void;
 
@@ -64,8 +65,16 @@
 
   function handleDownloadInvoice() {
     if (invoice?.invoicePdf) {
+      captureUserDownloadPaymentInvoice();
       window.open(invoice.invoicePdf, '_blank');
     }
+  }
+
+  const captureUserDownloadPaymentInvoice = () =>{
+    const eventProperties = {
+      button_name:"Download Invoice"
+    }
+    captureEvent("admin_invoice_downloaded",eventProperties);
   }
 </script>
 

@@ -229,7 +229,8 @@
   );
   $: isLoading = $isInvoicesLoading;
   $: planStatus = $hubData?.data?.billing?.status || '';
-  $: invoiceUrl = $hubData?.data?.billing?.failed_invoice_url || '';
+  $: invoiceUrl =
+    $hubData?.data?.billing?.failed_invoice_url || $hubData?.data?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
 </script>
 
 <section class="bg-surface-900 flex w-full flex-col gap-4">
@@ -239,7 +240,7 @@
       <CircularLoader />
     </div>
   {:else}
-    {#if planStatus === 'payment_failed'}
+    {#if planStatus === 'payment_failed' || planStatus === 'action_required'}
       <div class="">
         <Alert
           variant="error"

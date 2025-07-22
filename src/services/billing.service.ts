@@ -18,7 +18,7 @@ interface CreateSubscriptionParams {
   customerId: string;
   priceId: string;
   paymentMethodId: string;
-  metadata?: Record<string, string>;
+  metadata?: any;
   trialPeriodDays?: number;
   seats?: number;
 }
@@ -27,8 +27,10 @@ interface UpdateSubscriptionParams {
   subscriptionId: string;
   priceId: string;
   paymentMethodId: string;
-  metadata?: Record<string, string>;
+  metadata?: any;
   isDowngrade?: boolean;
+  seats?: number;
+  paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -58,6 +60,15 @@ export class BillingService {
    * Create a new customer
    * @param customerData Customer information
    */
+  /**
+   * Fetch all pricing details
+   */
+  public async getAllPricingDetails(): Promise<any> {
+    const url = `/api/pricing`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
+
   public async createCustomer(customerData: any): Promise<any> {
     const url = `/api/stripe/customers`;
     const res = await makeRequest('POST', url, customerData);
@@ -211,6 +222,8 @@ export class BillingService {
       priceId: params.priceId,
       paymentMethodId: params.paymentMethodId,
       metadata: params.metadata,
+      seats: params.seats,
+      paymentBehavior: params.paymentBehavior,
     };
 
     // If this is a downgrade, set it to happen at the end of the billing cycle
@@ -252,17 +265,6 @@ export class BillingService {
   public async getCustomerInvoices(customerId: string): Promise<any> {
     const url = `/api/stripe/invoices/customer/${customerId}`;
     const res = await makeRequest('GET', url);
-    return res?.data;
-  }
-
-  /**
-   * Simulate a payment for a subscription
-   * @param customerId The customer ID
-   * @param priceId The price ID to simulate payment for
-   */
-  public async simulatePayment(customerId: string, priceId: string): Promise<any> {
-    const url = `/api/stripe/subscriptions/simulate-invoice`;
-    const res = await makeRequest('POST', url, { customerId, priceId });
     return res?.data;
   }
 

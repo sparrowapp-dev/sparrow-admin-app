@@ -25,6 +25,7 @@ jobs:
               --build-arg VITE_LOGIN_REDIRECT=${{ vars.VITE_LOGIN_REDIRECT }} \
               --build-arg VITE_SPARROW_DOCS_URL=${{ vars.VITE_SPARROW_DOCS_URL }} \
               --build-arg VITE_ENVIRONMENT=${{ vars.VITE_ENVIRONMENT }} \
+              --build-arg VITE_POSTHOG_CONNECTION_API_KEY=${{ vars.VITE_POSTHOG_CONNECTION_API_KEY }} \
               -t sparrowprod.azurecr.io/sparrow-admin-app:${{ github.run_number }} .
               docker push sparrowprod.azurecr.io/sparrow-admin-app:${{ github.run_number }}
 

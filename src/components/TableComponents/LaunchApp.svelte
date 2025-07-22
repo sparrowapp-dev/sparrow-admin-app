@@ -1,8 +1,10 @@
 <script lang="ts">
   import { SPARROW_LAUNCH_URL } from '@/constants/environment';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let workspaceId: string;
   export let hubId: string;
+  export let ctaLocation:string = "Launch Sparrow";
 
   function handleLaunch(event: MouseEvent) {
     event.preventDefault();
@@ -18,6 +20,7 @@
 
       const url = `${baseUrl}?${params.toString()}`;
 
+      captureLaunchSparrowClick("workspace");
       // Open in a new tab
       window.open(url, '_blank');
     } else if (hubId) {
@@ -30,9 +33,19 @@
 
       const url = `${baseUrl}?${params.toString()}`;
 
+      captureLaunchSparrowClick("Hub");
       // Open in a new tab
       window.open(url, '_blank');
     }
+  }
+
+  const captureLaunchSparrowClick = (resourceType:string)=>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      resource:resourceType,
+      cta_location:ctaLocation,
+    }
+    captureEvent("admin_launch_web_app", eventProperties);
   }
 </script>
 

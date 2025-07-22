@@ -11,6 +11,11 @@
     const token = params.get('accessToken');
     const trialId = params.get('trialId');
     const name = params.get('name');
+    const flow = params.get('flow');
+    const trialPeriod = params.get('trialPeriod');
+    const email = params.get('email');
+    const source = params.get('source');
+    const response = params.get('response');
 
     if (!token) {
       window.location.href = '/login';
@@ -19,15 +24,25 @@
 
     try {
       const result = await authService.handleAuthCallback(token);
+      const accessToken = result?.data?.accessToken.token;
+      const refreshToken = result?.data?.refreshToken.token;
 
       setTokens({
-        accessToken: result?.data?.accessToken.token,
-        refreshToken: result?.data?.refreshToken.token,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       });
 
       // Redirect to the app
       if (trialId) {
         window.location.href = `/trial?trialId=${trialId}&name=${name}`;
+        return;
+      } else if (
+        flow === 'signup_standard_trial' ||
+        flow === 'signup_professional_trial' ||
+        flow === 'marketing_standard_trial' ||
+        flow === 'marketing_professional_trial'
+      ) {
+        window.location.href = `/usertrial?name=${name}&flow=${flow}&trialPeriod=${trialPeriod}&email=${email}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`;
         return;
       }
       window.location.href = '/hubs';

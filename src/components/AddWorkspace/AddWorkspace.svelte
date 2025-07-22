@@ -5,6 +5,7 @@
   import Textarea from '@/ui/Textarea/Textarea.svelte';
   import { notification } from '../Toast';
   import { hubsService } from '@/services/hubs.service';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   export let onClose: () => void;
   export let hubId: any;
@@ -63,6 +64,7 @@
         description: formData.summary.trim(),
       });
       const workspaceName = response?.data.name ?? formData.workspaceName.trim();
+      captureUserCreateWorkspace();
       notification.success(`"${workspaceName}" workspace is created successfully.`);
       onSuccess();
       onClose();
@@ -71,6 +73,13 @@
     } finally {
       isLoading = false;
     }
+  }
+
+  const captureUserCreateWorkspace = () =>{
+     const eventProperties ={
+      event_source:"admin_panel",
+    }
+    captureEvent("admin_create_workspace", eventProperties);
   }
 </script>
 

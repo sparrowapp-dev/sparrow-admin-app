@@ -6,7 +6,7 @@
   import Modal from '@/components/Modal/Modal.svelte';
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { onMount } from 'svelte';
-  import TrialFlowViewModel from './TrialFlow.ViewModel';
+  import TrialFlowViewModel from './UserTrialFlow.ViewModel';
   import { billingService } from '@/services/billing.service';
   import { handleStripePaymentConfirmation, initializeStripe } from '@/utils/stripeUtils';
   import { initializeStripeSocket } from '@/utils/socket.io.utils';
@@ -94,7 +94,7 @@
   let socket;
   // let hubId = '';
   let inviteCount;
-  let trialPeriod;
+  let trialPeriod = 14;
   let name;
   let teamDetailsComponent;
 
@@ -133,6 +133,10 @@
   let trialend = '';
   let isPaymentProcessing = false;
   let pricingDetails;
+  let source;
+  let accessToken;
+  let refreshToken;
+  let response;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -161,12 +165,12 @@
           const formDataToSend = new FormData();
           formDataToSend.append('name', formData.hubName.trim());
           formDataToSend.append('hubUrl', formatHubUrl(formData.hubUrl.trim()));
-          formDataToSend.append('isTrialHub', true);
-          formDataToSend.append('trialId', trailData?.data?._id);
           const createdHub = await _viewModel.createTrialHub(formDataToSend);
           if (createdHub?.isSuccessful) {
-            isHubCreated = true;
             createdHubId = createdHub.data.data._id;
+            isHubCreated = true;
+            localStorage.setItem('isHubCreated', 'true');
+            localStorage.setItem('createdHubId', createdHubId);
             currentStep += 1; // Move to next step after processing
           } else {
             console.error('Failed to create hub:', createdHub);
@@ -236,42 +240,46 @@
     socket = initializeStripeSocket(API_BASE_URL, createdHubId, {
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
-        const { team } = data;
+        const { team, invoice } = data;
         console.log('Payment success team:', team);
         let formatTeamData: { email: string; role: string }[] = [];
         let userCount = 1;
-        setTimeout(async () => {
-          if (triggerPoint === 'finish') {
-            formatTeamData = teamdata
-              .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
-              .map((user) => ({
-                email: user.email.trim(),
-                role: user.role.id === 'admin' ? 'admin' : 'member',
-              }));
-            const inviteResponse = await _viewModel.bulkInviteUsers({
-              teamId: team._id,
-              users: formatTeamData,
-            });
-            if (inviteResponse?.isSuccessful) {
-              userCount = userCount + formatTeamData?.length;
+        if (invoice?.amount_paid === 0) {
+          setTimeout(async () => {
+            if (triggerPoint === 'finish') {
+              formatTeamData = teamdata
+                .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
+                .map((user) => ({
+                  email: user.email.trim(),
+                  role: user.role.id === 'admin' ? 'admin' : 'member',
+                }));
+              const inviteResponse = await _viewModel.bulkInviteUsers({
+                teamId: team._id,
+                users: formatTeamData,
+              });
+              if (inviteResponse?.isSuccessful) {
+                userCount = userCount + formatTeamData?.length;
+              }
             }
-          }
-          isProcessing = false;
-          showProcessingModal = false;
 
-          // Set data for success modal
-          selectedPlanDetails = {
-            fromPlan: 'Community',
-            toPlan: 'Standard',
-            hubName: team?.name || '',
-            nextBilling: team?.billing?.current_period_end,
-          };
-          await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
-          navigate(
-            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}`,
-            { replace: true },
-          );
-        }, 5000);
+            // Set data for success modal
+            selectedPlanDetails = {
+              fromPlan: 'Community',
+              toPlan: 'Standard',
+              hubName: team?.name || '',
+              nextBilling: team?.billing?.current_period_end,
+            };
+            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            localStorage.removeItem('createdHubId');
+            localStorage.removeItem('isHubCreated');
+            isProcessing = false;
+            showProcessingModal = false;
+            navigate(
+              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
+              { replace: true },
+            );
+          }, 5000);
+        }
 
         // Show success modal
         setTimeout(() => {
@@ -309,14 +317,14 @@
     const metadata = {
       hubId: createdHubId,
       userCount: triggerPoint === 'finish' ? teamdata.length.toString() : '1',
-      planName: 'Standard',
+      planName: capitalizedFlow,
     };
     const result = await billingService.createSubscription({
       customerId,
       priceId,
       paymentMethodId: paymentMethodId,
       metadata,
-      trialPeriodDays: trailData?.data?.trialPeriod || 0,
+      trialPeriodDays: trialPeriod || 0,
       seats: triggerPoint === 'finish' ? teamdata.length : 1,
     });
     console.log('Subscription result:', result);
@@ -383,39 +391,60 @@
     nextBilling: '',
   };
   let showSubscriptionConfirmModal = false;
+  let flowName = '';
+  let trialFrequency = 'monthly'; // Default to monthly, can be overridden by query params
+  let planTier = '';
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
-    const trialId = params.get('trialId');
-    name = params.get('name');
-    const response = await _viewModel.getTrialDetails(trialId);
+    createdHubId = localStorage.getItem('createdHubId') ?? '';
+    isHubCreated = localStorage.getItem('isHubCreated') === 'true';
+    const userName = params.get('name');
+    trialFrequency = params.get('trialPeriod');
+    source = params.get('source');
+    accessToken = params.get('accessToken');
+    refreshToken = params.get('refreshToken');
+    response = params.get('response');
+    flowName = params.get('flow') || '';
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
       pricingDetails = pricingResponse.data.data;
-      priceId = pricingDetails?.plans[0]?.billing[0]?.providers?.stripe ?? '';
-    }
-    if (response?.isSuccessful) {
-      trailData = response.data;
-      inviteCount = trailData?.data?.inviteCount ?? 0;
-      trialPeriod = Math.round(trailData?.data?.trialPeriod / 30);
-      isHubCreated = trailData?.data?.isHubCreated || false;
-      createdHubId = trailData?.data?.createdHubId || '';
-      if (isHubCreated) {
-        const hubDetails = await _viewModel.getHubDetails(createdHubId);
-        if (hubDetails?.isSuccessful) {
-          formData.hubName = hubDetails.data.data.name || '';
-          formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
-        } else {
-          console.error('Failed to fetch hub details:', hubDetails);
-        }
+      // Normalize flowName to extract the plan/tier
+      let normalizedFlow = flowName?.toLowerCase() || '';
+      planTier = '';
+      if (normalizedFlow.includes('professional')) {
+        planTier = 'professional';
       } else {
-        formData.hubName = trailData?.data?.companyName || '';
+        planTier = 'standard';
       }
+
+      // Find the plan by tier
+      const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
+
+      // Find billing interval by trialFrequency (monthly/annual)
+      const billing = selectedPlan?.billing.find(
+        (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
+      );
+
+      // Assign priceId if found, else fallback to first available
+      priceId = billing?.providers?.stripe ?? selectedPlan?.billing[0]?.providers?.stripe ?? '';
+    }
+    if (isHubCreated) {
+      const hubDetails = await _viewModel.getHubDetails(createdHubId);
+      if (hubDetails?.isSuccessful) {
+        formData.hubName = hubDetails.data.data.name || '';
+        formData.hubUrl = getSubdomainFromHubUrl(hubDetails.data.data.hubUrl) || '';
+      } else {
+        console.error('Failed to fetch hub details:', hubDetails);
+      }
+    } else {
+      name = userName ?? '';
     }
     // Initialize Stripe
     stripe = await initializeStripe();
 
     // Set up socket connection for payment events
   });
+  $: capitalizedFlow = planTier ? planTier.charAt(0).toUpperCase() + planTier.slice(1) : '';
 </script>
 
 <TrialNav />
@@ -428,11 +457,11 @@
     <!-- Fixed Header Section -->
     <div class="text-center text-neutral-50">
       <h1 class="text-fs-ds-42 font-fw-ds-300 font-aileron text-neutral-50">
-        Welcome to <span class="gradient-text">Sparrow</span>, {name}
+        Welcome to <span class="gradient-text">Sparrow</span>, {name ?? ''}
       </h1>
       <p class="text-fs-ds-18 text-neutral-200">
-        We're excited to have you on board! Let's quickly set up your hub so you can start exploring
-        all the features of your {trialPeriod}-month free trial.
+        We’re excited to have you on board! Let’s quickly set up your hub so you can start exploring
+        all the features of your 14 days free {capitalizedFlow} trial.
       </p>
     </div>
 
@@ -474,7 +503,7 @@
     <!-- Dynamic Content Area -->
     <div class="mb-8 w-full">
       {#if currentStep === 1}
-        <HubDetails {formData} {handleInputChange} {hubFormError} />
+        <HubDetails {formData} {handleInputChange} {hubFormError} type={'secondary'} />
       {:else if currentStep === 2}
         <CardDetails
           bind:this={cardDetailsComponent}
@@ -490,6 +519,7 @@
           bind:this={teamDetailsComponent}
           {teamdata}
           on:change={handleTeamDataChange}
+          type={'secondary'}
           {inviteCount}
           {formData}
         />
