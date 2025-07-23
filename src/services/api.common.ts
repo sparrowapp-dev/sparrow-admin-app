@@ -145,10 +145,6 @@ export class HttpClient {
   }
 
   private logout() {
-    // Clear tokens
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-
     // Clear auth store
     import('@/store/auth').then(({ clearTokens }) => {
       clearTokens();
