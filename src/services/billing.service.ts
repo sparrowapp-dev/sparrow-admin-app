@@ -21,6 +21,7 @@ interface CreateSubscriptionParams {
   metadata?: any;
   trialPeriodDays?: number;
   seats?: number;
+  promoCodeId?: string; // Optional promo code ID
 }
 
 interface UpdateSubscriptionParams {
