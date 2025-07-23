@@ -9,6 +9,8 @@
   import { hubDetailsRefreshTrigger } from '@/store/hubs';
   import { onDestroy } from 'svelte';
   import { captureEvent } from '@/utils/posthogConfig';
+  import Button from '@/ui/Button/Button.svelte';
+  import SparkleRegular from '@/assets/icons/SparkleRegular.svelte';
 
   interface Team {
     teamId: string;
@@ -29,6 +31,8 @@
   export let pathMatcher: (path: string, dropdownOptions: any[]) => { selectOption: Team | null };
   export let selectOption: Team | null = null;
   export let isDropdownRequired = true;
+  export let startTrial: () => void = () => {};
+  export let isTrialExhausted;
   let dropdownOpen = false;
   let dropdownOptions: Array<any> = [];
   const location = useLocation();
@@ -59,7 +63,7 @@
     if (val?.teamId) {
       navigate(`${link}/${options[0].id}/${val.teamId}`);
     }
-    captureUserDropdownHubClick(val.teamName,dropdownOptions);
+    captureUserDropdownHubClick(val.teamName, dropdownOptions);
   }
   $: if (dropdownOptions.length && $location) {
     const { selectOption: newSelection } = pathMatcher($location.pathname, dropdownOptions);
@@ -91,25 +95,25 @@
     };
   });
 
-  const captureUserDropdownHubClick = (selectOption:string, hubs:any) =>{
-    const allHubs = hubs.map(item => ({ label: item.label }));
+  const captureUserDropdownHubClick = (selectOption: string, hubs: any) => {
+    const allHubs = hubs.map((item) => ({ label: item.label }));
     const eventProperties = {
-      type_filter:selectOption,
-      hub_list:allHubs
-    }
-    captureEvent("admin_user_management_dropdown-clicked", eventProperties);
-  }
+      type_filter: selectOption,
+      hub_list: allHubs,
+    };
+    captureEvent('admin_user_management_dropdown-clicked', eventProperties);
+  };
 
-  const captureUserViewInvoicesRedirect = () =>{
+  const captureUserViewInvoicesRedirect = () => {
     const eventProperties = {
-      source_location:"Billing side panel",
-    }
-    captureEvent("admin_view_invoices_clicked", eventProperties);
-  }
+      source_location: 'Billing side panel',
+    };
+    captureEvent('admin_view_invoices_clicked', eventProperties);
+  };
 </script>
 
 <section class="bg-surface-700 h-full w-full rounded-r-xl p-3">
-  <div class="flex flex-col gap-3" bind:this={dropdownRef}>
+  <div class="flex h-full flex-col gap-3" bind:this={dropdownRef}>
     {#if isDropdownRequired}
       <div class="border-surface-100 border-b pb-3">
         <Dropdown
@@ -136,9 +140,9 @@
               class="{activeId === option.id
                 ? 'bg-surface-500'
                 : ''} font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130 hover:bg-surface-500 cursor-pointer rounded-sm p-3 text-neutral-50 focus-within:outline-2 focus-within:outline-blue-300"
-              on:click={()=>{
-                if(option.id === "billingInvoices"){
-                  captureUserViewInvoicesRedirect()
+              on:click={() => {
+                if (option.id === 'billingInvoices') {
+                  captureUserViewInvoicesRedirect();
                 }
               }}
             >
@@ -150,6 +154,23 @@
     {:else}
       <div class="flex w-full items-center justify-center">
         <CircularLoader />
+      </div>
+    {/if}
+    <div class="flex-grow"></div>
+    {#if isTrialExhausted == false}
+      <div class="mt-8 flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <SparkleRegular />
+          <div class="text-fs-ds-12 flex flex-col">
+            <div class="text-neutral-50">Unlock trial Access</div>
+            <div class="text-neutral-200">
+              Unlock advanced features for 14 days, no charges until trial ends.
+            </div>
+          </div>
+        </div>
+        <Button variant="outline-primary" size="medium" on:click={startTrial}
+          >Start Free Trial</Button
+        >
       </div>
     {/if}
   </div>
