@@ -15,4 +15,13 @@ export class TrialService {
     const res = await makeRequest('POST', `/api/team/hub-url-exists`, data);
     return res?.data;
   }
+
+   public async validatePromoCode(promocode: string, priceId: string): Promise<any> {
+    const res = await makeRequest(
+      'POST',
+      `/api/stripe/promo-codes/validate`,
+      { promocode, priceId }
+    );
+    return res?.data;
+  }
 }

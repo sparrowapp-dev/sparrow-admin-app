@@ -5,6 +5,7 @@
   import SearchableDropdown from '@/ui/SearchableDropdown/SearchableDropdown.svelte';
   import CheckboxChecked from '@/assets/icons/CheckboxChecked.svelte';
   import CheckboxUnchecked from '@/assets/icons/CheckboxUnchecked.svelte';
+  import PromoCode from '@/components/TrialFlow/PromoCode.svelte';
 
   // Import the store for user information
   import { userEmail, userId, userName } from '@/store/auth';
@@ -16,6 +17,7 @@
   // Billing service for any API calls
   import { billingService } from '@/services/billing.service';
   import { notification } from '@/components/Toast';
+  import Button from '@/ui/Button/Button.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -24,6 +26,20 @@
   export let customerId = '';
   export let paymentMethodId = '';
   export let isCardDetailsAdded = false;
+  export let showPromoCode;
+  export let cardDetailsView;
+  export let isPaymentProcessing;
+  export let nextStep;
+  export let prevStep;
+  export let promoCode;
+  export let promoError;
+  export let promoSuccessMsg;
+  export let isApplyingPromo;
+  export let isPromoApplied;
+  export let handleApplyPromo;
+  export let trialStartDate = '';
+  export let trialEndDate = '';
+  export let amountAfterTrial = '';
 
   let activeView = 'cardDetails'; // Options: 'cardDetails' or 'billingDetails'
   let isLoading = true;
@@ -530,345 +546,348 @@
       </p>
     </div>
   </div>
+  <div class="flex w-full justify-center">
+    <div class="w-full max-w-2xl">
+      <!-- Tab switcher -->
+      <div class="border-surface-100 mx-auto flex w-full rounded-md border">
+        <button
+          class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${activeView === 'cardDetails' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+          on:click={() => switchView('cardDetails')}
+          disabled={isLoading || isSaving}
+        >
+          Card Details
+        </button>
+        <button
+          class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${activeView === 'billingDetails' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
+          on:click={() => {
+            formSubmitted = true;
+            if (validateFormCardDetails()) {
+              switchView('billingDetails');
+            }
+          }}
+          disabled={isLoading || isSaving}
+        >
+          Billing Address Details
+        </button>
+      </div>
 
-  <!-- Tab switcher -->
-  <div class="border-surface-100 mx-auto flex w-full rounded-md border">
-    <button
-      class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${activeView === 'cardDetails' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
-      on:click={() => switchView('cardDetails')}
-      disabled={isLoading || isSaving}
-    >
-      Card Details
-    </button>
-    <button
-      class={`text-fs-ds-12 font-inter font-fw-ds-400 m-1 flex-1 cursor-pointer rounded-md py-1.5 ${activeView === 'billingDetails' ? 'bg-surface-600 text-white' : 'bg-transparent text-neutral-300'}`}
-      on:click={() => {
-        formSubmitted = true;
-        if (validateFormCardDetails()) {
-          switchView('billingDetails');
-        }
-      }}
-      disabled={isLoading || isSaving}
-    >
-      Billing Address Details
-    </button>
-  </div>
-
-  {#if isLoading}
-    <div class="flex justify-center py-8">
-      <CircularLoader />
-    </div>
-  {:else if error && !cardNumberError && !cardExpiryError && !cardCvcError}
-    <!-- General error message -->
-    <div class="mb-4 rounded bg-red-500/10 p-3 text-red-300">
-      {error}
-    </div>
-  {/if}
-
-  <!-- Form content based on active view -->
-  <div class={isLoading ? 'hidden' : ''}>
-    {#if activeView === 'cardDetails'}
-      <!-- Card Details Section -->
-      <section class="mb-6 space-y-5">
-        <div class="mb-4">
-          <h3 class="text-fs-ds-16 font-fw-ds-400 mb-1 text-neutral-50">Card Details</h3>
-          <p class="text-fs-ds-14 text-gray-300 text-neutral-200">
-            Enter your card information to start your plan. You won't be charged until the trial
-            ends.
-          </p>
+      {#if isLoading}
+        <div class="flex justify-center py-8">
+          <CircularLoader />
         </div>
-
-        {#if isCardDetailsAdded && existingPaymentMethod}
-          <div class="grid grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                >Card Number <span class="text-red-400">*</span></label
-              >
-              <div class="flex items-center gap-2">
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500"
-                  >•••• •••• ••••</span
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-500">
-                  {existingPaymentMethod?.card?.last4 || '****'}
-                </span>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Expiration Date <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
-                  {existingPaymentMethod?.card?.exp_month || 'MM'}/{existingPaymentMethod?.card
-                    ?.exp_year || 'YY'}
-                </span>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >CVV/Security Code<span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <div class="flex flex-col">
-                <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
-                  >Cardholder Name <span class="text-red-400">*</span></label
-                >
-                <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
-                  {existingPaymentMethod?.billing_details?.name || ''}
-                </span>
-              </div>
-            </div>
-          </div>
-        {:else}
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Card Number -->
-            <div class="form-group">
-              <label
-                for="card-number-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                Card Number <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-number-element"
-                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardNumberEmpty || !cardNumberComplete)) ||
-                cardNumberError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardNumberError || 'Please enter your card number'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- Expiration Date -->
-            <div class="form-group">
-              <label
-                for="card-expiry-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                Expiration Date <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-expiry-element"
-                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardExpiryEmpty || !cardExpiryComplete)) ||
-                cardExpiryError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardExpiryError || 'Please enter expiration date'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- CVC/Security Code -->
-            <div class="form-group">
-              <label
-                for="card-cvc-element"
-                class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
-              >
-                CVV/Security Code <span class="text-red-400">*</span>
-              </label>
-              <div
-                id="card-cvc-element"
-                class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
-                  (cardCvcEmpty || !cardCvcComplete)) ||
-                cardCvcError
-                  ? 'border-red-300'
-                  : 'border-transparent'}"
-              ></div>
-              {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
-                <p class="text-fs-ds-12 mt-1 text-red-300">
-                  {cardCvcError || 'Please enter CVV/security code'}
-                </p>
-              {/if}
-            </div>
-
-            <!-- Cardholder Name -->
-            <div class="form-group">
-              <Input
-                label="Cardholder Name"
-                id="cardholder-name"
-                name="cardholderName"
-                inputType="name"
-                bind:value={formData.billingName}
-                required={true}
-                placeholder="Enter Cardholder Name"
-                hasError={formSubmitted && !formData.billingName?.trim()}
-                errorMessage={formSubmitted && !formData.billingName?.trim()
-                  ? 'Please enter cardholder name'
-                  : ''}
-                disabled={isSaving}
-              />
-            </div>
-          </div>
-        {/if}
-      </section>
-    {:else}
-      <!-- Billing Address Section -->
-      <section class="space-y-5">
-        <div class="mb-4">
-          <h3 class="text-fs-ds-16 font-fw-ds-400 mb-1 text-neutral-50">Billing Address Details</h3>
-          <p class="text-fs-ds-14 text-neutral-200">
-            Enter your billing address information to start your plan. We need your billing address
-            for verification and invoicing purposes.
-          </p>
+      {:else if error && !cardNumberError && !cardExpiryError && !cardCvcError}
+        <!-- General error message -->
+        <div class="mb-4 rounded bg-red-500/10 p-3 text-red-300">
+          {error}
         </div>
-        <div class="mb-7 grid grid-cols-2 gap-4">
-          <!-- Name -->
-          <div class="form-group">
-            <Input
-              label="Name"
-              id="billing-name"
-              name="billingName"
-              inputType="name"
-              bind:value={formData.billingName}
-              required={true}
-              placeholder="Enter Name"
-              hasError={formSubmitted && !formData.billingName?.trim()}
-              errorMessage={formSubmitted && !formData.billingName?.trim()
-                ? 'Please enter a valid name'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
+      {/if}
 
-          <!-- Email -->
-          <div class="form-group">
-            <Input
-              label="Billing Email"
-              id="billing-email"
-              name="billingEmail"
-              inputType="email"
-              bind:value={formData.billingEmail}
-              required={true}
-              placeholder="Enter Billing Email"
-              hasError={formSubmitted && !formData.billingEmail?.trim()}
-              errorMessage={formSubmitted && !formData.billingEmail?.trim()
-                ? 'Please enter valid billing email'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
-
-          <!-- Address Line 1 -->
-          <div class="form-group">
-            <Input
-              label="Address Line 1"
-              id="line1"
-              name="line1"
-              bind:value={formData.billingAddress}
-              required={true}
-              placeholder="Enter Address Line 1"
-              hasError={formSubmitted && !formData.billingAddress?.trim()}
-              errorMessage={formSubmitted && !formData.billingAddress?.trim()
-                ? 'Please enter your address'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
-
-          <!-- Address Line 2 -->
-          <div class="form-group">
-            <Input
-              label="Address Line 2"
-              id="line2"
-              name="line2"
-              bind:value={formData.billingAddress2}
-              placeholder="Enter Address Line 2"
-              disabled={isSaving}
-            />
-          </div>
-
-          <!-- Country -->
-          <div class="form-group">
-            <label class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200">
-              Country <span class="text-red-400">*</span>
-            </label>
-            <div on:click|stopPropagation|preventDefault>
-              <SearchableDropdown
-                options={countryOptions}
-                bind:selected={formData.billingCountry}
-                placeholder="Select Country"
-                searchPlaceholder="Search Country"
-                variant="primary"
-                width="w-full"
-                hasError={formSubmitted && !formData.billingCountry}
-                maxHeight="150px"
-                disabled={isSaving}
-                on:change={(e) => handleInputChange('billingCountry', e.detail)}
-              />
+      <!-- Form content based on active view -->
+      <div class={isLoading ? 'hidden' : ''}>
+        {#if activeView === 'cardDetails'}
+          <!-- Card Details Section -->
+          <section class="mt-6 mb-6 space-y-5">
+            <div class="mb-4">
+              <h3 class="text-fs-ds-16 font-fw-ds-400 mb-1 text-neutral-50">Card Details</h3>
+              <p class="text-fs-ds-14 text-gray-300 text-neutral-200">
+                Enter your card information to start your plan. You won't be charged until the trial
+                ends.
+              </p>
             </div>
-            {#if formSubmitted && !formData.billingCountry}
-              <p class="text-fs-ds-12 mt-1 text-red-300">Please select your country</p>
+
+            {#if isCardDetailsAdded && existingPaymentMethod}
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                    >Card Number <span class="text-red-400">*</span></label
+                  >
+                  <div class="flex items-center gap-2">
+                    <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500"
+                      >•••• •••• ••••</span
+                    >
+                    <span class="text-fs-ds-14 font-fw-ds-400 text-neutral-500">
+                      {existingPaymentMethod?.card?.last4 || '****'}
+                    </span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="flex flex-col">
+                    <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                      >Expiration Date <span class="text-red-400">*</span></label
+                    >
+                    <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                      {existingPaymentMethod?.card?.exp_month || 'MM'}/{existingPaymentMethod?.card
+                        ?.exp_year || 'YY'}
+                    </span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="flex flex-col">
+                    <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                      >CVV/Security Code<span class="text-red-400">*</span></label
+                    >
+                    <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">***</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="flex flex-col">
+                    <label class="text-fs-ds-14 font-fw-ds-400 mb-2 text-neutral-200"
+                      >Cardholder Name <span class="text-red-400">*</span></label
+                    >
+                    <span class="text-fs-ds-14 font-fw-ds-400 ml-2 text-neutral-500">
+                      {existingPaymentMethod?.billing_details?.name || ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            {:else}
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Card Number -->
+                <div class="form-group">
+                  <label
+                    for="card-number-element"
+                    class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+                  >
+                    Card Number <span class="text-red-400">*</span>
+                  </label>
+                  <div
+                    id="card-number-element"
+                    class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                      (cardNumberEmpty || !cardNumberComplete)) ||
+                    cardNumberError
+                      ? 'border-red-300'
+                      : 'border-transparent'}"
+                  ></div>
+                  {#if (formSubmitted && (cardNumberEmpty || !cardNumberComplete)) || cardNumberError}
+                    <p class="text-fs-ds-12 mt-1 text-red-300">
+                      {cardNumberError || 'Please enter your card number'}
+                    </p>
+                  {/if}
+                </div>
+
+                <!-- Expiration Date -->
+                <div class="form-group">
+                  <label
+                    for="card-expiry-element"
+                    class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+                  >
+                    Expiration Date <span class="text-red-400">*</span>
+                  </label>
+                  <div
+                    id="card-expiry-element"
+                    class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                      (cardExpiryEmpty || !cardExpiryComplete)) ||
+                    cardExpiryError
+                      ? 'border-red-300'
+                      : 'border-transparent'}"
+                  ></div>
+                  {#if (formSubmitted && (cardExpiryEmpty || !cardExpiryComplete)) || cardExpiryError}
+                    <p class="text-fs-ds-12 mt-1 text-red-300">
+                      {cardExpiryError || 'Please enter expiration date'}
+                    </p>
+                  {/if}
+                </div>
+
+                <!-- CVC/Security Code -->
+                <div class="form-group">
+                  <label
+                    for="card-cvc-element"
+                    class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200"
+                  >
+                    CVV/Security Code <span class="text-red-400">*</span>
+                  </label>
+                  <div
+                    id="card-cvc-element"
+                    class="bg-surface-400 rounded-sm border p-2.5 text-neutral-50 {(formSubmitted &&
+                      (cardCvcEmpty || !cardCvcComplete)) ||
+                    cardCvcError
+                      ? 'border-red-300'
+                      : 'border-transparent'}"
+                  ></div>
+                  {#if (formSubmitted && (cardCvcEmpty || !cardCvcComplete)) || cardCvcError}
+                    <p class="text-fs-ds-12 mt-1 text-red-300">
+                      {cardCvcError || 'Please enter CVV/security code'}
+                    </p>
+                  {/if}
+                </div>
+
+                <!-- Cardholder Name -->
+                <div class="form-group">
+                  <Input
+                    label="Cardholder Name"
+                    id="cardholder-name"
+                    name="cardholderName"
+                    inputType="name"
+                    bind:value={formData.billingName}
+                    required={true}
+                    placeholder="Enter Cardholder Name"
+                    hasError={formSubmitted && !formData.billingName?.trim()}
+                    errorMessage={formSubmitted && !formData.billingName?.trim()
+                      ? 'Please enter cardholder name'
+                      : ''}
+                    disabled={isSaving}
+                  />
+                </div>
+              </div>
             {/if}
-          </div>
+          </section>
+        {:else}
+          <!-- Billing Address Section -->
+          <section class="mt-6 space-y-5">
+            <div class="mb-4">
+              <h3 class="text-fs-ds-16 font-fw-ds-400 mb-1 text-neutral-50">
+                Billing Address Details
+              </h3>
+              <p class="text-fs-ds-14 text-neutral-200">
+                Enter your billing address information to start your plan. We need your billing
+                address for verification and invoicing purposes.
+              </p>
+            </div>
+            <div class="mb-7 grid grid-cols-2 gap-4">
+              <!-- Name -->
+              <div class="form-group">
+                <Input
+                  label="Name"
+                  id="billing-name"
+                  name="billingName"
+                  inputType="name"
+                  bind:value={formData.billingName}
+                  required={true}
+                  placeholder="Enter Name"
+                  hasError={formSubmitted && !formData.billingName?.trim()}
+                  errorMessage={formSubmitted && !formData.billingName?.trim()
+                    ? 'Please enter a valid name'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
 
-          <!-- City -->
-          <div class="form-group">
-            <Input
-              label="City"
-              id="city"
-              name="city"
-              bind:value={formData.billingCity}
-              required={true}
-              placeholder="Enter City"
-              hasError={formSubmitted && !formData.billingCity?.trim()}
-              errorMessage={formSubmitted && !formData.billingCity?.trim()
-                ? 'Please enter a valid city'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
+              <!-- Email -->
+              <div class="form-group">
+                <Input
+                  label="Billing Email"
+                  id="billing-email"
+                  name="billingEmail"
+                  inputType="email"
+                  bind:value={formData.billingEmail}
+                  required={true}
+                  placeholder="Enter Billing Email"
+                  hasError={formSubmitted && !formData.billingEmail?.trim()}
+                  errorMessage={formSubmitted && !formData.billingEmail?.trim()
+                    ? 'Please enter valid billing email'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
 
-          <!-- State -->
-          <div class="form-group">
-            <Input
-              label="State"
-              id="state"
-              name="state"
-              bind:value={formData.billingState}
-              required={true}
-              placeholder="Enter State"
-              hasError={formSubmitted && !formData.billingState?.trim()}
-              errorMessage={formSubmitted && !formData.billingState?.trim()
-                ? 'Please enter a valid state'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
+              <!-- Address Line 1 -->
+              <div class="form-group">
+                <Input
+                  label="Address Line 1"
+                  id="line1"
+                  name="line1"
+                  bind:value={formData.billingAddress}
+                  required={true}
+                  placeholder="Enter Address Line 1"
+                  hasError={formSubmitted && !formData.billingAddress?.trim()}
+                  errorMessage={formSubmitted && !formData.billingAddress?.trim()
+                    ? 'Please enter your address'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
 
-          <!-- ZIP Code -->
-          <div class="form-group">
-            <Input
-              label="ZIP Code"
-              id="postalCode"
-              name="postalCode"
-              inputType="postal"
-              bind:value={formData.billingZip}
-              required={true}
-              placeholder="Enter ZIP Code"
-              hasError={formSubmitted && !formData.billingZip?.trim()}
-              errorMessage={formSubmitted && !formData.billingZip?.trim()
-                ? 'Please enter a valid ZIP or postal code'
-                : ''}
-              disabled={isSaving}
-            />
-          </div>
-        </div>
+              <!-- Address Line 2 -->
+              <div class="form-group">
+                <Input
+                  label="Address Line 2"
+                  id="line2"
+                  name="line2"
+                  bind:value={formData.billingAddress2}
+                  placeholder="Enter Address Line 2"
+                  disabled={isSaving}
+                />
+              </div>
 
-        <!-- Default payment method checkbox -->
-        <!-- <div
+              <!-- Country -->
+              <div class="form-group">
+                <label class="text-fs-ds-14 font-inter font-fw-ds-400 mb-2 block text-neutral-200">
+                  Country <span class="text-red-400">*</span>
+                </label>
+                <div on:click|stopPropagation|preventDefault>
+                  <SearchableDropdown
+                    options={countryOptions}
+                    bind:selected={formData.billingCountry}
+                    placeholder="Select Country"
+                    searchPlaceholder="Search Country"
+                    variant="primary"
+                    width="w-full"
+                    hasError={formSubmitted && !formData.billingCountry}
+                    maxHeight="150px"
+                    disabled={isSaving}
+                    on:change={(e) => handleInputChange('billingCountry', e.detail)}
+                  />
+                </div>
+                {#if formSubmitted && !formData.billingCountry}
+                  <p class="text-fs-ds-12 mt-1 text-red-300">Please select your country</p>
+                {/if}
+              </div>
+
+              <!-- City -->
+              <div class="form-group">
+                <Input
+                  label="City"
+                  id="city"
+                  name="city"
+                  bind:value={formData.billingCity}
+                  required={true}
+                  placeholder="Enter City"
+                  hasError={formSubmitted && !formData.billingCity?.trim()}
+                  errorMessage={formSubmitted && !formData.billingCity?.trim()
+                    ? 'Please enter a valid city'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
+
+              <!-- State -->
+              <div class="form-group">
+                <Input
+                  label="State"
+                  id="state"
+                  name="state"
+                  bind:value={formData.billingState}
+                  required={true}
+                  placeholder="Enter State"
+                  hasError={formSubmitted && !formData.billingState?.trim()}
+                  errorMessage={formSubmitted && !formData.billingState?.trim()
+                    ? 'Please enter a valid state'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
+
+              <!-- ZIP Code -->
+              <div class="form-group">
+                <Input
+                  label="ZIP Code"
+                  id="postalCode"
+                  name="postalCode"
+                  inputType="postal"
+                  bind:value={formData.billingZip}
+                  required={true}
+                  placeholder="Enter ZIP Code"
+                  hasError={formSubmitted && !formData.billingZip?.trim()}
+                  errorMessage={formSubmitted && !formData.billingZip?.trim()
+                    ? 'Please enter a valid ZIP or postal code'
+                    : ''}
+                  disabled={isSaving}
+                />
+              </div>
+            </div>
+
+            <!-- Default payment method checkbox -->
+            <!-- <div
           class="text-fs-ds-14 leading-lh-ds-143 text-fw-ds-300 mt-2 flex cursor-pointer items-center gap-1 text-neutral-50"
         >
           <span
@@ -889,16 +908,58 @@
             Set this card as default payment method
           </span>
         </div> -->
-      </section>
-    {/if}
-  </div>
+          </section>
+        {/if}
+      </div>
 
-  <!-- {#if isSaving}
+      <!-- {#if isSaving}
     <div class="flex justify-center py-4">
       <CircularLoader />
       <span class="ml-2 text-white">Processing payment information...</span>
     </div>
   {/if} -->
+      <div class="mt-10 flex gap-3">
+        <div class="flex-1">
+          <Button variant="filled-secondary" size="medium" className="w-full" on:click={prevStep}>
+            Previous
+          </Button>
+        </div>
+        <div class="flex-1">
+          <Button
+            disabled={isPaymentProcessing}
+            variant="filled-primary"
+            size="medium"
+            className="w-full"
+            on:click={async () => {
+              isPaymentProcessing = true;
+              await nextStep();
+              isPaymentProcessing = false;
+            }}
+          >
+            {cardDetailsView === 'cardDetails' ? 'Next' : 'Continue'}
+          </Button>
+        </div>
+      </div>
+    </div>
+    {#if showPromoCode}
+      <div
+        class="ml-5 flex flex-col items-start justify-start md:w-[30%]"
+        style="border-left: 1px solid var(--Neutral-600, #3D3F43);"
+      >
+        <PromoCode
+          bind:promoCode
+          isApplying={isApplyingPromo}
+          errorMessage={promoError}
+          successMessage={promoSuccessMsg}
+          isApplied={isPromoApplied}
+          onApply={handleApplyPromo}
+          {trialStartDate}
+          {trialEndDate}
+          {amountAfterTrial}
+        />
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
