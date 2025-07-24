@@ -9,6 +9,7 @@
   import { hubsService } from '@/services/hubs.service';
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
   import { captureEvent } from '@/utils/posthogConfig';
+  import { triggerHubRefetch } from '@/store/hubRefetch';
   const dispatch = createEventDispatcher();
   export let onClose: () => void;
   export let hubId: any;
@@ -130,6 +131,10 @@
       onClose();
     } catch (error: any) {
       console.error('Error inviting users:', error);
+      
+      // Trigger BaseLayout's hub data refetch when invite fails
+      triggerHubRefetch();
+      
       if (error.message === 'An invite has already been sent to this email.') {
         notification.error('An invite has already been sent to this email.');
       } else if (error.message === 'Hub Member already Exist.') {
