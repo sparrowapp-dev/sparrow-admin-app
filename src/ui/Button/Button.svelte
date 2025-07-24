@@ -71,6 +71,13 @@
         disabled:bg-transparent disabled:text-neutral-500 border border-surface-50
         hover:border-transparent active:border-transparent
       `,
+    'link-secondary': `
+        bg-transparent text-[#b6b7b9] font-inter font-fw-ds-400 underline underline-offset-4 border-0
+        hover:text-neutral-50 hover:bg-transparent
+        focus-visible:text-blue-400 focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:no-underline
+        active:text-blue-400 active:bg-transparent
+        disabled:text-[#b6b7b9] disabled:opacity-60 disabled:cursor-not-allowed
+      `,
   };
 
   $: baseClasses = `

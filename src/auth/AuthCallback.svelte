@@ -15,7 +15,7 @@
     const trialPeriod = params.get('trialPeriod');
     const email = params.get('email');
     const source = params.get('source');
-    const response = params.get('response');
+    const trial = params.get('trial');
 
     if (!token) {
       window.location.href = '/login';
@@ -42,7 +42,10 @@
         flow === 'marketing_standard_trial' ||
         flow === 'marketing_professional_trial'
       ) {
-        window.location.href = `/usertrial?name=${name}&flow=${flow}&trialPeriod=${trialPeriod}&email=${email}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`;
+        window.location.href = `/usertrial?name=${name}&flow=${flow}&trialPeriod=${trialPeriod}&email=${email}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}`;
+        return;
+      } else if (trial == 'login_trial') {
+        window.location.href = `/plans?email=${email}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}`;
         return;
       }
       window.location.href = '/hubs';

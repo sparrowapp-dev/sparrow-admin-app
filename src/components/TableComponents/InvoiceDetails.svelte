@@ -33,13 +33,6 @@
       value: invoice?.status || '-', // Pass status value for rendering with component
       isStatus: true, // Custom flag to identify status row
     },
-    {
-      field: 'Payment Method',
-      value:
-        invoice?.cardBrand && invoice?.cardLast4
-          ? `${invoice.cardBrand} (Ending with ${invoice.cardLast4})`
-          : '-',
-    },
     { field: 'Gross Amount', value: invoice?.grossAmount ? `$${invoice.grossAmount}` : '-' },
     { field: 'Tax Amount', value: invoice?.taxAmount ? `$${invoice.taxAmount}` : '-' },
     { field: 'Net Amount', value: invoice?.netAmount ? `$${invoice.netAmount}` : '-' },
