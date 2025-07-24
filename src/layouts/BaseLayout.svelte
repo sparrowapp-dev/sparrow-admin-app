@@ -6,6 +6,7 @@
   import { hubsService } from '@/services/hubs.service';
   import { navigate, useLocation } from 'svelte-routing';
   import { writable } from 'svelte/store';
+  import { hubRefetchTrigger } from '@/store/hubRefetch';
 
   const showOptionalSideNav = writable(false);
   const location = useLocation();
@@ -29,13 +30,19 @@
   // Reactive hubId
   $: hubId = extractHubId($location.pathname);
 
-  // Fetch hub data
+  // Store hub data
   const { data: hubData, refetch: hubsDataRefetch } = createQuery(() =>
     hubsService.getHubDetails(hubId),
   );
 
-  // Refetch when hubId changes
+  // Clear stale hubData when hubId changes
   $: if (hubId) {
+    hubData.set(null); // Clear previous data
+    hubsDataRefetch();
+  }
+
+  // Listen to global refetch trigger
+  $: if ($hubRefetchTrigger > 0 && hubId) {
     hubsDataRefetch();
   }
 

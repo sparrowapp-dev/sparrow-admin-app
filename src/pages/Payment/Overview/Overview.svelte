@@ -468,7 +468,8 @@
               {/if}
 
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
+                Last paid amount: {$hubData?.data?.billing?.in_trial ? "$0.00" : lastInvoiceAmount}{currentBillingCycle ===
+                'monthly'
                   ? '/user/month'
                   : '/user/year'}
               </p>
