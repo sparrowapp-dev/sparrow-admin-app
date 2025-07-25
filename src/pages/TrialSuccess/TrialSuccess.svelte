@@ -22,6 +22,7 @@
   let response;
   let promoDiscountType = '';
   let promoDiscountValue = 0;
+  let billingCycles;
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
@@ -37,6 +38,7 @@
     trialFrequency = params.get('trialFrequency') || 'monthly'; // Use query param or default to monthly
     promoDiscountType = params.get('promoType') || '';
     promoDiscountValue = Number(params.get('promoValue')) || 0;
+    billingCycles = params.get('billingCycles');
 
     // Convert Unix timestamp (seconds) to Date string
     if (trialstart) {
@@ -68,16 +70,22 @@
     if (billing) {
       let price = Number(billing.price);
       let finalPrice = price;
+
       if (promoDiscountType && promoDiscountValue > 0) {
         if (promoDiscountType === 'percentage') {
           finalPrice = price - (price * promoDiscountValue) / 100;
+          amount = users ? parseInt(users) * finalPrice : finalPrice;
         } else if (promoDiscountType === 'amount') {
-          finalPrice = price - promoDiscountValue;
-          if (finalPrice < 0) finalPrice = 0;
+          // Discount applied once to the total, not per user
+          amount = users
+            ? parseInt(users) * price - promoDiscountValue
+            : price - promoDiscountValue;
+          if (amount < 0) amount = 0;
         }
+      } else {
+        amount = users ? parseInt(users) * price : price;
       }
-      let floored = Math.floor(finalPrice * 100) / 100;
-      amount = users ? parseInt(users) * floored : floored;
+      amount = Math.floor(amount * 100) / 100;
     }
   });
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
@@ -107,6 +115,9 @@
         {accessToken}
         {refreshToken}
         {response}
+        {billingCycles}
+        {promoDiscountType}
+        {promoDiscountValue}
       />
     </div>
   </div>

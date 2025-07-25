@@ -45,29 +45,6 @@
     },
   ];
 
-  const options = [
-    {
-      value: 'standard-monthly',
-      label: 'Standard - Monthly',
-      description: '$9.99 per user/month',
-    },
-    {
-      value: 'professional-monthly',
-      label: 'Professional - Monthly',
-      description: '$19.99 per user/month',
-    },
-    {
-      value: 'standard-annual',
-      label: 'Standard - Annual',
-      description: '$99 per user/year',
-    },
-    {
-      value: 'professional-annual',
-      label: 'Professional - Annual',
-      description: '$199 per user/year',
-    },
-  ];
-
   let promoCode = '';
   let promoError = '';
   let promoSuccessMsg = '';
@@ -76,9 +53,11 @@
   let trialStartDate = '';
   let trialEndDate = '';
   let amountAfterTrial = '';
+  let promoAppliedValue = '';
   let promoDiscountType = '';
   let promoDiscountValue = 0;
   let promoCodeId = '';
+  let billingCycles;
 
   $: {
     const start = new Date();
@@ -97,30 +76,34 @@
     });
   }
 
-  $: if (pricingDetails && planTier && trialFrequency) {
-    const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
-    const billing = selectedPlan?.billing.find(
-      (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
-    );
-    if (billing) {
-      let price = Number(billing.price);
-      let finalPrice = price;
-      if (isPromoApplied && promoDiscountType && promoDiscountValue > 0) {
-        if (promoDiscountType === 'percentage') {
-          finalPrice = price - (price * promoDiscountValue) / 100;
-        } else if (promoDiscountType === 'amount') {
-          finalPrice = price - promoDiscountValue;
-          if (finalPrice < 0) finalPrice = 0;
+  $: {
+    if (pricingDetails && planTier && trialFrequency) {
+      const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
+      const billing = selectedPlan?.billing.find(
+        (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
+      );
+      if (billing) {
+        // Real price per user per interval
+        const price = Number(billing.price);
+        const floored = Math.floor(price * 100) / 100;
+        const intervalLabel =
+          billing.interval === 'monthly'
+            ? 'month'
+            : billing.interval === 'annual'
+              ? 'year'
+              : billing.interval;
+        amountAfterTrial = `$${floored.toFixed(2)}/user/${intervalLabel}`;
+
+        // Promo applied value
+        if (promoDiscountType && promoDiscountValue > 0) {
+          if (promoDiscountType === 'percentage') {
+            const discountValue = Math.floor(((price * promoDiscountValue) / 100) * 100) / 100;
+            promoAppliedValue = `$${discountValue.toFixed(2)}/user/${intervalLabel}`;
+          } else if (promoDiscountType === 'amount') {
+            promoAppliedValue = `$${promoDiscountValue}/${intervalLabel}`;
+          }
         }
       }
-      let floored = Math.floor(finalPrice * 100) / 100;
-      let intervalLabel =
-        billing.interval === 'monthly'
-          ? 'month'
-          : billing.interval === 'annual'
-            ? 'year'
-            : billing.interval;
-      amountAfterTrial = `$${floored.toFixed(2)}/${billing.unit || 'user'}/${intervalLabel}`;
     }
   }
 
@@ -148,6 +131,7 @@
           promoDiscountType = result.data.data.type;
           promoDiscountValue = result.data.data.value;
           promoCodeId = result.data.data.promo_id || '';
+          billingCycles = result.data.data.billing_cycles;
         }
       }
     } catch (err) {
@@ -157,7 +141,22 @@
     }
   }
 
-  let selected = options[0];
+  // Dynamic plan options from backend
+  let options = [];
+  $: options = pricingDetails
+    ? pricingDetails.plans.flatMap((plan) =>
+        plan.billing.map((bill) => ({
+          value: `${plan.tier.toLowerCase()}-${bill.interval.toLowerCase()}`,
+          label: `${plan.tier} - ${bill.interval.charAt(0).toUpperCase() + bill.interval.slice(1)}`,
+          description: `$${bill.price} per user/${bill.interval === 'monthly' ? 'month' : bill.interval === 'annual' ? 'year' : bill.interval}`,
+        })),
+      )
+    : [];
+
+  let selected;
+  $: if (options && options.length > 0 && !selected) {
+    selected = options[0];
+  }
 
   function handleSelect(event) {
     selected = event.detail;
@@ -414,15 +413,32 @@
               hubName: team?.name || '',
               nextBilling: team?.billing?.current_period_end,
             };
-            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            if (isPromoApplied) {
+              await _viewModel.sendUserConfirmationEmail(
+                createdHubId,
+                planTier,
+                trialFrequency,
+                promoDiscountType,
+                promoDiscountValue,
+              );
+            } else {
+              await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            }
             localStorage.removeItem('createdHubId');
             localStorage.removeItem('isHubCreated');
             isProcessing = false;
             showProcessingModal = false;
-            navigate(
-              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}`,
-              { replace: true },
-            );
+            if (isPromoApplied) {
+              navigate(
+                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}&billingCycles=${billingCycles}`,
+                { replace: true },
+              );
+            } else {
+              navigate(
+                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
+                { replace: true },
+              );
+            }
           }, 5000);
         }
 
@@ -563,6 +579,25 @@
       priceId = billing?.providers?.stripe ?? selectedPlan?.billing[0]?.providers?.stripe ?? '';
     }
   }
+  $: if (options && options.length > 0) {
+    let normalizedFlow = flowName?.toLowerCase() || '';
+    let frequency = (trialFrequency || 'monthly').toLowerCase();
+
+    if (normalizedFlow.includes('standard')) {
+      selected =
+        options.find(
+          (opt) => opt.value === (frequency === 'annual' ? 'standard-annual' : 'standard-monthly'),
+        ) || options[0];
+    } else if (normalizedFlow.includes('professional')) {
+      selected =
+        options.find(
+          (opt) =>
+            opt.value === (frequency === 'annual' ? 'professional-annual' : 'professional-monthly'),
+        ) || options[1];
+    } else {
+      selected = options[0];
+    }
+  }
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     createdHubId = localStorage.getItem('createdHubId') ?? '';
@@ -578,19 +613,6 @@
     // Set selected plan based on flowName and trialFrequency
     let normalizedFlow = flowName?.toLowerCase() || '';
     let frequency = (trialFrequency || 'monthly').toLowerCase();
-
-    if (normalizedFlow.includes('standard')) {
-      selected =
-        options.find(
-          (opt) => opt.value === (frequency === 'annual' ? 'standard-annual' : 'standard-monthly'),
-        ) || options[0];
-    } else if (normalizedFlow.includes('professional')) {
-      selected =
-        options.find(
-          (opt) =>
-            opt.value === (frequency === 'annual' ? 'professional-annual' : 'professional-monthly'),
-        ) || options[1];
-    }
 
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
@@ -723,6 +745,7 @@
           {trialStartDate}
           {trialEndDate}
           {amountAfterTrial}
+          {promoAppliedValue}
         />
       {:else if currentStep === 3}
         <TeamDetails
