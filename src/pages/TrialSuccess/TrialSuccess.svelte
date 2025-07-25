@@ -22,6 +22,7 @@
   let response;
   let promoDiscountType = '';
   let promoDiscountValue = 0;
+  let billingCycles;
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
@@ -37,6 +38,7 @@
     trialFrequency = params.get('trialFrequency') || 'monthly'; // Use query param or default to monthly
     promoDiscountType = params.get('promoType') || '';
     promoDiscountValue = Number(params.get('promoValue')) || 0;
+    billingCycles = params.get('billingCycles');
 
     // Convert Unix timestamp (seconds) to Date string
     if (trialstart) {
@@ -113,6 +115,9 @@
         {accessToken}
         {refreshToken}
         {response}
+        {billingCycles}
+        {promoDiscountType}
+        {promoDiscountValue}
       />
     </div>
   </div>

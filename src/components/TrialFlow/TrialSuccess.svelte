@@ -16,6 +16,10 @@
   export let accessToken;
   export let refreshToken;
   export let response;
+  export let billingCycles;
+  export let promoDiscountType;
+  export let promoDiscountValue;
+
   const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
   function handleLaunch() {
     const sparrowWebRedirect = `${launchUrl}?accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&event=register&method=email`;
@@ -34,6 +38,27 @@
   }
   // Capitalize first letter of flow
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
+  function numberToWords(n) {
+    const words = [
+      'zero',
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine',
+      'ten',
+      'eleven',
+      'twelve',
+    ];
+    return n >= 0 && n <= 12 ? words[n] : n.toString();
+  }
+  $: trialFrequencyLabel = trialFrequency
+    ? trialFrequency.charAt(0).toUpperCase() + trialFrequency.slice(1)
+    : '';
 </script>
 
 <div class="flex items-center justify-center">
@@ -47,7 +72,15 @@
           <div class="text-fs-ds-16">Congratulations! Your {capitalizedFlow} Trial is Unlocked</div>
           <div class="text-fs-ds-14 mx-auto max-w-xl break-words">
             You’ve successfully activated the {capitalizedFlow} Trial for ‘{hub}’ Hub. All premium
-            features are now available, start exploring, collaborating, and building with your team.
+            features are now available, start exploring, collaborating, and building with your team. {#if billingCycles && promoDiscountValue > 0}
+              You’ll get
+              {promoDiscountType === 'percentage'
+                ? ` ${promoDiscountValue}%`
+                : ` $${promoDiscountValue}`}
+              off for the first {numberToWords(Number(billingCycles))} month{billingCycles > 1
+                ? 's'
+                : ''} after your 14-day trial ends.
+            {/if}
           </div>
         </div>
         <div class="mr-5 ml-15 w-full max-w-md">
@@ -57,6 +90,16 @@
               <span
                 class="text-ds-ds-16 font-fw-ds-400 max-w-xs truncate text-center text-neutral-50"
                 >{hub}</span
+              >
+            </div>
+            <div class="flex flex-col items-center justify-center gap-1">
+              <span class="text-fs-ds-12 text-neutral-400">Total Members</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{users}</span>
+            </div>
+            <div class="flex flex-col items-center justify-center gap-1">
+              <span class="text-fs-ds-12 text-neutral-400">Your Plan</span>
+              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50"
+                >{capitalizedFlow} - {trialFrequencyLabel}</span
               >
             </div>
             <div class="flex flex-col items-center justify-center gap-1">
@@ -72,10 +115,6 @@
             <div class="flex flex-col items-center justify-center gap-1">
               <span class="text-fs-ds-12 text-neutral-400">Trial End Date</span>
               <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{trialEndDate}</span>
-            </div>
-            <div class="flex flex-col items-center justify-center gap-1">
-              <span class="text-fs-ds-12 text-neutral-400">Total Members</span>
-              <span class="text-ds-ds-16 font-fw-ds-400 text-neutral-50">{users}</span>
             </div>
           </div>
         </div>
