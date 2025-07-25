@@ -40,6 +40,7 @@
   export let trialStartDate = '';
   export let trialEndDate = '';
   export let amountAfterTrial = '';
+  export let promoAppliedValue;
 
   let activeView = 'cardDetails'; // Options: 'cardDetails' or 'billingDetails'
   let isLoading = true;
@@ -956,6 +957,7 @@
           {trialStartDate}
           {trialEndDate}
           {amountAfterTrial}
+          {promoAppliedValue}
         />
       </div>
     {/if}

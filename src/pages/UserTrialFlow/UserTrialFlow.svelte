@@ -53,9 +53,11 @@
   let trialStartDate = '';
   let trialEndDate = '';
   let amountAfterTrial = '';
+  let promoAppliedValue = '';
   let promoDiscountType = '';
   let promoDiscountValue = 0;
   let promoCodeId = '';
+  let billingCycles;
 
   $: {
     const start = new Date();
@@ -74,30 +76,34 @@
     });
   }
 
-  $: if (pricingDetails && planTier && trialFrequency) {
-    const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
-    const billing = selectedPlan?.billing.find(
-      (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
-    );
-    if (billing) {
-      let price = Number(billing.price);
-      let finalPrice = price;
-      if (isPromoApplied && promoDiscountType && promoDiscountValue > 0) {
-        if (promoDiscountType === 'percentage') {
-          finalPrice = price - (price * promoDiscountValue) / 100;
-        } else if (promoDiscountType === 'amount') {
-          finalPrice = price - promoDiscountValue;
-          if (finalPrice < 0) finalPrice = 0;
+  $: {
+    if (pricingDetails && planTier && trialFrequency) {
+      const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === planTier);
+      const billing = selectedPlan?.billing.find(
+        (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
+      );
+      if (billing) {
+        // Real price per user per interval
+        const price = Number(billing.price);
+        const floored = Math.floor(price * 100) / 100;
+        const intervalLabel =
+          billing.interval === 'monthly'
+            ? 'month'
+            : billing.interval === 'annual'
+              ? 'year'
+              : billing.interval;
+        amountAfterTrial = `$${floored.toFixed(2)}/user/${intervalLabel}`;
+
+        // Promo applied value
+        if (promoDiscountType && promoDiscountValue > 0) {
+          if (promoDiscountType === 'percentage') {
+            const discountValue = Math.floor(((price * promoDiscountValue) / 100) * 100) / 100;
+            promoAppliedValue = `$${discountValue.toFixed(2)}/user/${intervalLabel}`;
+          } else if (promoDiscountType === 'amount') {
+            promoAppliedValue = `$${promoDiscountValue}/${intervalLabel}`;
+          }
         }
       }
-      let floored = Math.floor(finalPrice * 100) / 100;
-      let intervalLabel =
-        billing.interval === 'monthly'
-          ? 'month'
-          : billing.interval === 'annual'
-            ? 'year'
-            : billing.interval;
-      amountAfterTrial = `$${floored.toFixed(2)}/${billing.unit || 'user'}/${intervalLabel}`;
     }
   }
 
@@ -125,6 +131,7 @@
           promoDiscountType = result.data.data.type;
           promoDiscountValue = result.data.data.value;
           promoCodeId = result.data.data.promo_id || '';
+          billingCycles = result.data.data.billing_cycles;
         }
       }
     } catch (err) {
@@ -423,7 +430,7 @@
             showProcessingModal = false;
             if (isPromoApplied) {
               navigate(
-                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}`,
+                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}&billingCycles=${billingCycles}`,
                 { replace: true },
               );
             } else {
@@ -738,6 +745,7 @@
           {trialStartDate}
           {trialEndDate}
           {amountAfterTrial}
+          {promoAppliedValue}
         />
       {:else if currentStep === 3}
         <TeamDetails
