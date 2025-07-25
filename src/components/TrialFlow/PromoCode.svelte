@@ -12,6 +12,7 @@
   export let trialStartDate = '';
   export let trialEndDate = '';
   export let amountAfterTrial = '';
+  export let promoAppliedValue = '';
 </script>
 
 <div class="ml-4 flex flex-col gap-4 px-6 py-3" style="background-color: #181C26;">
@@ -30,6 +31,12 @@
       <span class="text-neutral-200">Amount After Trial:</span>
       <span>{amountAfterTrial}</span>
     </div>
+    {#if promoAppliedValue}
+      <div class="text-fs-ds-14 mb-2 flex gap-1">
+        <span class="text-neutral-200">Promo applied:</span>
+        <span>{promoAppliedValue} discount</span>
+      </div>
+    {/if}
     <div style="border-top: 1px solid #3D3F43; margin-top: 16px; width: 100%;"></div>
   </div>
 
