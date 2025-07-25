@@ -37,6 +37,7 @@
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import GreenCheckIconFill from '@/assets/icons/GreenCheckIconFill.svelte';
 
   // ===== CONSTANTS =====
   const location = useLocation();
@@ -63,6 +64,7 @@
   let subscriptionStatus = '';
   let invoiceUrl = '';
   let isScheduledDowngrade = false;
+  let promoDiscount = null;
 
   // UI state
   let isLoadingSubscription = false;
@@ -188,10 +190,27 @@
       totalPaidAmount = processedData.totalPaidAmount;
       userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
+
+      // Extract promo discount information
+      if (subscriptionData?.discounts?.length > 0) {
+        const discount = subscriptionData?.discounts[0];
+        const coupon = discount?.coupon;
+        if (coupon) {
+          promoDiscount = {
+            type: coupon.percent_off ? 'percentage' : 'amount',
+            value: coupon.percent_off || coupon.amount_off,
+            name: coupon.name || 'Promo',
+            metadata: coupon.metadata,
+          };
+        }
+      } else {
+        promoDiscount = null;
+      }
     } else {
       // If subscription is canceled or inactive, use default values
       // Keep the plan name from the database, but reset other subscription details
       subscriptionId = null;
+      promoDiscount = null;
 
       // For free Community plan
       if (currentPlan === 'Community') {
@@ -462,6 +481,19 @@
           </div>
           <div class="pt-0">
             <div class="flex flex-col gap-1">
+              {#if promoDiscount}
+                <div class="flex items-center gap-2">
+                  <GreenCheckIconFill />
+                  <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+                    Promo applied:
+                    {#if promoDiscount.type === 'percentage'}
+                      {promoDiscount.value}%/user/month discount
+                    {:else}
+                      ${promoDiscount.value.toFixed(2)}/month discount
+                    {/if}
+                  </p>
+                </div>
+              {/if}
               {#if subscriptionId && subscriptionData?.cancel_at_period_end}
                 <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                   Next billing date: –
