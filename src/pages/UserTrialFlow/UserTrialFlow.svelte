@@ -146,6 +146,8 @@
       }
     } catch (err) {
       promoError = 'Failed to validate promo code. Please try again.';
+    } finally {
+      isApplyingPromo = false;
     }
   }
 
