@@ -16,6 +16,7 @@
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
   import { captureEvent } from '@/utils/posthogConfig';
+  import { triggerHubRefetch } from '@/store/hubRefetch';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -267,6 +268,9 @@
           `Failed to delete "${formData.workspaceName}" workspace. Please try again.`,
         );
       } else if (modalVariants.isInviteModal) {
+        // Trigger BaseLayout's hub data refetch when invite fails
+        triggerHubRefetch();
+        
         if (error.message === 'An invite has already been sent to this email.') {
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {

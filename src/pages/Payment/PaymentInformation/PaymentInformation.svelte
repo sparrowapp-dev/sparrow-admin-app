@@ -177,12 +177,17 @@
   });
 
   const cardOpacity = tweened(0, {
-    duration: 500,
+    duration: 600,
     easing: cubicOut,
   });
 
-  const cardScale = tweened(0.95, {
-    duration: 500,
+  const cardTranslateY = tweened(20, {
+    duration: 600,
+    easing: cubicOut,
+  });
+
+  const cardBlur = tweened(4, {
+    duration: 600,
     easing: cubicOut,
   });
 
@@ -190,12 +195,10 @@
   $: if ($customerData?.httpStatusCode && !$isLoadingPaymentMethods && !$isLoadingCustomer) {
     setTimeout(() => {
       pageOpacity.set(1);
-    }, 100);
-
-    setTimeout(() => {
       cardOpacity.set(1);
-      cardScale.set(1);
-    }, 300);
+      cardBlur.set(0);
+      cardTranslateY.set(0);
+    }, 100);
   }
 </script>
 
@@ -252,7 +255,7 @@
       <!-- Payment Method Section -->
       <div
         class="payment-method bg-surface-600 rounded-md p-6"
-        style="opacity: {$cardOpacity}; transform: scale({$cardScale});"
+        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
       >
         <div class="mb-4 flex items-center gap-2">
           <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
