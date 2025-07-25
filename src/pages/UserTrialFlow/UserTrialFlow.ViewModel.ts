@@ -99,11 +99,15 @@ class TrialFlowViewModel {
     hubId: string,
     trailFlow: string,
     trialFrequency: string,
+    promoDiscountType?: string,
+    promoDiscountValue?: number,
   ): Promise<ResponseInterface<any>> {
     try {
       const response = await this.hubService.sendUserConfirmationMail(hubId, {
         trailFlow: trailFlow,
         trialFrequency: trialFrequency,
+        promoDiscountType: promoDiscountType,
+        promoDiscountValue: promoDiscountValue,
       });
       return successResponse(response);
     } catch (error) {

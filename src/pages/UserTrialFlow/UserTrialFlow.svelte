@@ -408,7 +408,7 @@
               hubName: team?.name || '',
               nextBilling: team?.billing?.current_period_end,
             };
-            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency, promoDiscountType, promoDiscountValue);
             localStorage.removeItem('createdHubId');
             localStorage.removeItem('isHubCreated');
             isProcessing = false;
