@@ -92,13 +92,13 @@
             : billing.interval === 'annual'
               ? 'year'
               : billing.interval;
-        amountAfterTrial = `$${floored.toFixed(2)}/${billing.unit || 'user'}/${intervalLabel}`;
+        amountAfterTrial = `$${floored.toFixed(2)}/user/${intervalLabel}`;
 
         // Promo applied value
         if (promoDiscountType && promoDiscountValue > 0) {
           if (promoDiscountType === 'percentage') {
             const discountValue = Math.floor(((price * promoDiscountValue) / 100) * 100) / 100;
-            promoAppliedValue = `$${discountValue.toFixed(2)}/${billing.unit || 'user'}/${intervalLabel}`;
+            promoAppliedValue = `$${discountValue.toFixed(2)}/user/${intervalLabel}`;
           } else if (promoDiscountType === 'amount') {
             promoAppliedValue = `$${promoDiscountValue}/${intervalLabel}`;
           }
