@@ -482,7 +482,7 @@
           <div class="pt-0">
             <div class="flex flex-col gap-1">
               {#if promoDiscount}
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1">
                   <GreenCheckIconFill />
                   <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                     Promo applied:
