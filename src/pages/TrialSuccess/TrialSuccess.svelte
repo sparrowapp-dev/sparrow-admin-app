@@ -77,7 +77,7 @@
         }
       }
       let floored = Math.floor(finalPrice * 100) / 100;
-      amount = users ? parseInt(users) * floored : floored;
+      amount = floored;
     }
   });
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
