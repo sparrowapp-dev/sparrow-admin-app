@@ -111,6 +111,16 @@ class TrialFlowViewModel {
       return errorResponse(error?.message || 'Failed to send confirmation email', null);
     }
   }
+
+   public async validatePromoCode(promocode: string, priceId: string): Promise<ResponseInterface<any>> {
+    try {
+      const response = await this.trialService.validatePromoCode(promocode, priceId);
+      return successResponse(response);
+    } catch (error) {
+      console.error('Error validating promo code:', error);
+      return errorResponse(error?.message || 'Failed to validate promo code', null);
+    }
+  }
 }
 
 export default TrialFlowViewModel;
