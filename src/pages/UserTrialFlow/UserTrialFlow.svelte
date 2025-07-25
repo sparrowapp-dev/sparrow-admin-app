@@ -114,7 +114,13 @@
         }
       }
       let floored = Math.floor(finalPrice * 100) / 100;
-      amountAfterTrial = `$${floored.toFixed(2)}/${billing.unit || 'user'}/${billing.interval}`;
+      let intervalLabel =
+        billing.interval === 'monthly'
+          ? 'month'
+          : billing.interval === 'annual'
+            ? 'year'
+            : billing.interval;
+      amountAfterTrial = `$${floored.toFixed(2)}/${billing.unit || 'user'}/${intervalLabel}`;
     }
   }
 
@@ -414,7 +420,7 @@
             isProcessing = false;
             showProcessingModal = false;
             navigate(
-              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
+              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}`,
               { replace: true },
             );
           }, 5000);
