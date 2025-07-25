@@ -11,7 +11,11 @@
   import { hubsService } from '@/services/hubs.service';
 
   // Utils
-  import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
+  import {
+    processSubscriptionData,
+    getCurrentPlanDetails,
+    initializePlanDetails,
+  } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import { captureEvent } from '@/utils/posthogConfig';
 
@@ -128,6 +132,7 @@
     if (hubId) {
       refetchCustomer();
       refetchHub();
+      initializePlanDetails();
     }
   }
 
@@ -198,8 +203,9 @@
       } else {
         // For paid plans that are canceled, show default pricing based on plan name
         const planKey = currentPlan.toLowerCase();
-        if (DEFAULT_PLAN_DETAILS[planKey]) {
-          currentPrice = DEFAULT_PLAN_DETAILS[planKey].monthly.price;
+        const planDetails = getCurrentPlanDetails();
+        if (planDetails[planKey]) {
+          currentPrice = planDetails[planKey].monthly.price;
           currentBillingCycle = 'monthly';
           // Clear dates and amounts since the subscription is inactive
           nextBillingDate = '';
@@ -468,8 +474,9 @@
               {/if}
 
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Last paid amount: {$hubData?.data?.billing?.in_trial ? "$0.00" : lastInvoiceAmount}{currentBillingCycle ===
-                'monthly'
+                Last paid amount: {$hubData?.data?.billing?.in_trial
+                  ? '$0.00'
+                  : lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
                   : '/user/year'}
               </p>
