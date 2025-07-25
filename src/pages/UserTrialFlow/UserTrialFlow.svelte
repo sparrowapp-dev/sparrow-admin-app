@@ -45,29 +45,6 @@
     },
   ];
 
-  const options = [
-    {
-      value: 'standard-monthly',
-      label: 'Standard - Monthly',
-      description: '$9.99 per user/month',
-    },
-    {
-      value: 'professional-monthly',
-      label: 'Professional - Monthly',
-      description: '$19.99 per user/month',
-    },
-    {
-      value: 'standard-annual',
-      label: 'Standard - Annual',
-      description: '$99 per user/year',
-    },
-    {
-      value: 'professional-annual',
-      label: 'Professional - Annual',
-      description: '$199 per user/year',
-    },
-  ];
-
   let promoCode = '';
   let promoError = '';
   let promoSuccessMsg = '';
@@ -157,7 +134,22 @@
     }
   }
 
-  let selected = options[0];
+  // Dynamic plan options from backend
+  let options = [];
+  $: options = pricingDetails
+    ? pricingDetails.plans.flatMap((plan) =>
+        plan.billing.map((bill) => ({
+          value: `${plan.tier.toLowerCase()}-${bill.interval.toLowerCase()}`,
+          label: `${plan.tier} - ${bill.interval.charAt(0).toUpperCase() + bill.interval.slice(1)}`,
+          description: `$${bill.price} per user/${bill.interval === 'monthly' ? 'month' : bill.interval === 'annual' ? 'year' : bill.interval}`,
+        })),
+      )
+    : [];
+
+  let selected;
+  $: if (options && options.length > 0 && !selected) {
+    selected = options[0];
+  }
 
   function handleSelect(event) {
     selected = event.detail;
@@ -563,6 +555,25 @@
       priceId = billing?.providers?.stripe ?? selectedPlan?.billing[0]?.providers?.stripe ?? '';
     }
   }
+  $: if (options && options.length > 0) {
+    let normalizedFlow = flowName?.toLowerCase() || '';
+    let frequency = (trialFrequency || 'monthly').toLowerCase();
+
+    if (normalizedFlow.includes('standard')) {
+      selected =
+        options.find(
+          (opt) => opt.value === (frequency === 'annual' ? 'standard-annual' : 'standard-monthly'),
+        ) || options[0];
+    } else if (normalizedFlow.includes('professional')) {
+      selected =
+        options.find(
+          (opt) =>
+            opt.value === (frequency === 'annual' ? 'professional-annual' : 'professional-monthly'),
+        ) || options[1];
+    } else {
+      selected = options[0];
+    }
+  }
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     createdHubId = localStorage.getItem('createdHubId') ?? '';
@@ -578,19 +589,6 @@
     // Set selected plan based on flowName and trialFrequency
     let normalizedFlow = flowName?.toLowerCase() || '';
     let frequency = (trialFrequency || 'monthly').toLowerCase();
-
-    if (normalizedFlow.includes('standard')) {
-      selected =
-        options.find(
-          (opt) => opt.value === (frequency === 'annual' ? 'standard-annual' : 'standard-monthly'),
-        ) || options[0];
-    } else if (normalizedFlow.includes('professional')) {
-      selected =
-        options.find(
-          (opt) =>
-            opt.value === (frequency === 'annual' ? 'professional-annual' : 'professional-monthly'),
-        ) || options[1];
-    }
 
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
