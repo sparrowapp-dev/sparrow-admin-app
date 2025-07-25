@@ -413,15 +413,32 @@
               hubName: team?.name || '',
               nextBilling: team?.billing?.current_period_end,
             };
-            await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency, promoDiscountType, promoDiscountValue);
+            if (isPromoApplied) {
+              await _viewModel.sendUserConfirmationEmail(
+                createdHubId,
+                planTier,
+                trialFrequency,
+                promoDiscountType,
+                promoDiscountValue,
+              );
+            } else {
+              await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
+            }
             localStorage.removeItem('createdHubId');
             localStorage.removeItem('isHubCreated');
             isProcessing = false;
             showProcessingModal = false;
-            navigate(
-              `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}&billingCycles=${billingCycles}`,
-              { replace: true },
-            );
+            if (isPromoApplied) {
+              navigate(
+                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&promoType=${promoDiscountType}&promoValue=${promoDiscountValue}&billingCycles=${billingCycles}`,
+                { replace: true },
+              );
+            } else {
+              navigate(
+                `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${planTier}&trialFrequency=${trialFrequency}&source=${source}&accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}`,
+                { replace: true },
+              );
+            }
           }, 5000);
         }
 
