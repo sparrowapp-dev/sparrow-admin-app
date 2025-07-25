@@ -34,7 +34,7 @@
     {#if promoAppliedValue}
       <div class="text-fs-ds-14 mb-2 flex gap-1">
         <span class="text-neutral-200">Promo applied:</span>
-        <span>{promoAppliedValue}</span>
+        <span>{promoAppliedValue} discount</span>
       </div>
     {/if}
     <div style="border-top: 1px solid #3D3F43; margin-top: 16px; width: 100%;"></div>
