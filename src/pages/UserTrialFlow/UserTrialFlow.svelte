@@ -608,7 +608,9 @@
       flowName === 'signup_standard_trial' ||
       flowName === 'signup_professional_trial' ||
       flowName === 'marketing_standard_trial' ||
-      flowName === 'marketing_professional_trial';
+      flowName === 'marketing_professional_trial' ||
+      flowName === 'login_standard_trial' ||
+      flowName === 'login_professional_trial';
   });
   $: capitalizedFlow = planTier ? planTier.charAt(0).toUpperCase() + planTier.slice(1) : '';
 </script>
