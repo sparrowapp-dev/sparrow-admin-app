@@ -194,13 +194,11 @@
       // Extract promo discount information
       if (subscriptionData?.discounts?.length > 0) {
         const discount = subscriptionData?.discounts[0];
-        const coupon = discount?.coupon;
+        const coupon = discount?.coupon?.metadata;
         if (coupon) {
           promoDiscount = {
-            type: coupon.percent_off ? 'percentage' : 'amount',
-            value: coupon.percent_off || coupon.amount_off,
-            name: coupon.name || 'Promo',
-            metadata: coupon.metadata,
+            type: coupon.type === 'percentage' ? 'percentage' : 'amount',
+            value: coupon.value,
           };
         }
       } else {
