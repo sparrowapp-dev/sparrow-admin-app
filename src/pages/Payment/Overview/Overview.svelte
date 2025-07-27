@@ -198,7 +198,7 @@
         if (coupon) {
           promoDiscount = {
             type: coupon.type === 'percentage' ? 'percentage' : 'amount',
-            value: coupon.value,
+            value: coupon.value ? Number(coupon.value) : 0,
           };
         }
       } else {
@@ -484,10 +484,10 @@
                   <GreenCheckIconFill />
                   <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                     Promo applied:
-                    {#if promoDiscount.type === 'percentage'}
-                      {promoDiscount.value}%/user/month discount
+                    {#if promoDiscount?.type === 'percentage'}
+                      {promoDiscount?.value}%/user/month discount
                     {:else}
-                      ${promoDiscount.value.toFixed(2)}/month discount
+                      ${promoDiscount?.value.toFixed(2)}/month discount
                     {/if}
                   </p>
                 </div>
