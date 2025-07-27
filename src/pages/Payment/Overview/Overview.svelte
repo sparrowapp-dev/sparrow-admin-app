@@ -198,7 +198,7 @@
         if (coupon) {
           promoDiscount = {
             type: coupon.type === 'percentage' ? 'percentage' : 'amount',
-            value: coupon.value,
+            value: coupon.value ? Number(coupon.value) : 0,
           };
         }
       } else {
