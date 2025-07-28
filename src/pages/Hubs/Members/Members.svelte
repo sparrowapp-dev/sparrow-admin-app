@@ -22,6 +22,7 @@
   import { userService } from '@/services/users.service';
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   // State management
   let activeTab = 'members'; // 'members' or 'invites'
@@ -318,12 +319,21 @@
   ];
   $: owner = users?.find((u) => u.role === 'owner');
   const handleRedirect = () => {
+    captureUserClickUpgrade();
     if (isOwner) {
       navigate(`/billing/billingOverview/${params}`);
     } else {
       window.open(`mailto:${owner?.email}`);
     }
   };
+
+  const captureUserClickUpgrade =() =>{
+    const eventProperties ={
+      event_source : "admin",
+      cta_location:"limit_exceeded_modal"
+    }
+    captureEvent("admin_upgrade_intent",eventProperties)
+  }
 </script>
 
 <section class="w-full">
