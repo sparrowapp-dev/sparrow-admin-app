@@ -60,8 +60,8 @@
 
   // Withdraw invite handler
   async function handleWithdrawInvite(event) {
+    captureWithdrawInvite();
     event.stopPropagation();
-    captureInviteDropdownSelect("Withdraw Invite")
     try {
       isLoading.withdraw = true;
       const email = row.original.email;
@@ -131,6 +131,13 @@
       select_type: selectName
     }
     captureEvent("admin_hub_invite_action", eventProperties);
+  }
+
+  const captureWithdrawInvite = () =>{
+    const eventProperties = {
+      event_source : "admin_panel"
+    }
+    captureEvent("admin_withdraw_invite", eventProperties);
   }
 </script>
 

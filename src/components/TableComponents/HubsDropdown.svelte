@@ -79,6 +79,7 @@
 
   function handleUpgrade(event, hub) {
     event.stopPropagation();
+    captureUserClickUpgrade();
     navigate(`/billing/billingOverview/${hub?._id}`);
     // Your upgrade logic here
     // closeDropdown();
@@ -128,6 +129,14 @@
       select_type: selectName
     }
     captureEvent("admin_hub_row_actions_clicked", eventProperties);
+  }
+
+  const captureUserClickUpgrade = () =>{
+    const eventProperties = {
+      event_source : "admin_panel",
+      cta_location: "hubs_overview_table_more"
+    }
+    captureEvent("admin_upgrade_intent", eventProperties);
   }
 </script>
 
