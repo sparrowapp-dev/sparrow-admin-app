@@ -67,6 +67,7 @@
       overviewRefetch();
     }
     if (modalVariants.isInviteModal) {
+      overviewRefetch();
     }
     if (modalVariants.isDeleteWorkspaceModalOpen) {
       navigate(`/hubs/workspace/${hubId}`);
