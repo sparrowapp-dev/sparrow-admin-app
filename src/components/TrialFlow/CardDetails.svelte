@@ -533,6 +533,8 @@
       isSaving = false;
     }
   }
+
+  $: isLoading = existingPaymentMethod == null;
 </script>
 
 <div class="-mt-11 flex flex-col gap-10">
