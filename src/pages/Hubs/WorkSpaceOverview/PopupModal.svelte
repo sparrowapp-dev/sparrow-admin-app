@@ -215,12 +215,20 @@
           params: { workspaceId: params, hubId: hubId },
           data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
         });
-        captureWorkspaceUpdatedDetails("Save",formData.workspaceName.trim(),formData.summary.trim());
+        captureWorkspaceUpdatedDetails(
+          'Save',
+          formData.workspaceName.trim(),
+          formData.summary.trim(),
+        );
         const updatedName = response?.data?.name ?? formData.workspaceName.trim();
         notification.success(`"${updatedName}" Workspace updated successfully.`);
       } else if (modalVariants.isMakeItPublicModalOpen) {
         // Handle making workspace public
-        captureWorkspacePublish("Publish",data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE', `${baseUrl}/hubs/workspace-details/${hubId}/${params}`);
+        captureWorkspacePublish(
+          'Publish',
+          data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE',
+          `${baseUrl}/hubs/workspace-details/${hubId}/${params}`,
+        );
         const response = await hubsService.makeitpublic({
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
@@ -270,7 +278,7 @@
       } else if (modalVariants.isInviteModal) {
         // Trigger BaseLayout's hub data refetch when invite fails
         triggerHubRefetch();
-        
+
         if (error.message === 'An invite has already been sent to this email.') {
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
@@ -322,41 +330,45 @@
     errors.roleError = '';
   }
 
-  const captureWorkspaceUpdatedDetails = (buttonName:string, updatedName:string, updatedSummary:string) =>{
+  const captureWorkspaceUpdatedDetails = (
+    buttonName: string,
+    updatedName: string,
+    updatedSummary: string,
+  ) => {
     const eventProperties = {
-      button_name:buttonName,
-      name:updatedName,
-      summary:updatedSummary
-    }
-    captureEvent("admin_workspace_edit_saved", eventProperties);
-  }
+      button_name: buttonName,
+      name: updatedName,
+      summary: updatedSummary,
+    };
+    captureEvent('admin_workspace_edit_saved', eventProperties);
+  };
 
-  const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
+  const captureWorkspacePublish = (buttonName: string, workspaceType: string, location: string) => {
     const eventProperties = {
-      event_source : "admin_panel",
-      button_name:buttonName,
-      new_visibility:workspaceType,
-      source_Location:location
-    }
-    captureEvent("admin_publish_workspace", eventProperties);
-  }
+      event_source: 'admin_panel',
+      button_name: buttonName,
+      new_visibility: workspaceType,
+      source_Location: location,
+    };
+    captureEvent('admin_publish_workspace', eventProperties);
+  };
 
-  const captureWorkspaceDelete = (workspaceId:string)=>{
+  const captureWorkspaceDelete = (workspaceId: string) => {
     const eventProperties = {
-      event_source:"admin_panel",
-      button_name:"Delete Workspace",
-      workspace_id:workspaceId
-    }
-    captureEvent("admin_workspace_deleted", eventProperties);
-  } 
+      event_source: 'admin_panel',
+      button_name: 'Delete Workspace',
+      workspace_id: workspaceId,
+    };
+    captureEvent('admin_workspace_deleted', eventProperties);
+  };
 
-  const captureUserClickUpgrade =() =>{
-    const eventProperties ={
-      event_source : "admin",
-      cta_location:"limit_exceeded_modal"
-    }
-    captureEvent("admin_upgrade_intent",eventProperties)
-  }
+  const captureUserClickUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'limit_exceeded_modal',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 </script>
 
 <div class="bg-surface-600 rounded-md p-6">
@@ -575,6 +587,8 @@
           hasError={!!errors.emailError}
           errorMessage={errors.emailError}
           placeholder="Enter email ID"
+          IsWorkspaceInvite={true}
+          UserDetails={data?.nonWorkspaceHubMembers}
         />
       </div>
 
