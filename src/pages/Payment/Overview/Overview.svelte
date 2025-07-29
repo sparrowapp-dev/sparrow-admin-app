@@ -84,16 +84,6 @@
     easing: cubicOut,
   });
 
-  const cardTranslateY = tweened(20, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const cardBlur = tweened(4, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
   // ===== API QUERIES =====
   // Fetch customer ID
   const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
@@ -240,8 +230,6 @@
   $: if (!$isFetchingSubscription && !$isFetchingHub && $hubData?.data) {
     setTimeout(() => {
       cardOpacity.set(1);
-      cardTranslateY.set(0);
-      cardBlur.set(0);
     }, 100);
   }
 
@@ -420,7 +408,7 @@
       <!-- Current Plan Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-1">
           <div class="flex w-full items-center justify-between">
@@ -555,7 +543,7 @@
       <!-- Need Help Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
@@ -580,10 +568,7 @@
       </div>
 
       <!-- Quick Links Card -->
-      <div
-        class="bg-surface-600 rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
-      >
+      <div class="bg-surface-600 rounded-lg p-6" style="opacity: {$cardOpacity};">
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">Quick Links</h2>
           <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">

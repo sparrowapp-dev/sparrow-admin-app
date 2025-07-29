@@ -83,9 +83,9 @@
 
   const captureBillingButtonClick = () => {
     const eventProperties = {
-      button_name:"biling_Icon"
+      button_name: 'biling_Icon',
     };
-    captureEvent("admin_billing_page_viewed", eventProperties);
+    captureEvent('admin_billing_page_viewed', eventProperties);
   };
 </script>
 
@@ -252,9 +252,9 @@
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/billing')}
-        on:click={() =>{ 
-          captureBillingButtonClick() 
-          navigate('/billing')
+        on:click={() => {
+          captureBillingButtonClick();
+          navigate('/billing');
         }}
         on:mouseenter={() => (hoveredPath = '/billing')}
         on:mouseleave={() => (hoveredPath = null)}
