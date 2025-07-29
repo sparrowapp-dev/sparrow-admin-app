@@ -115,6 +115,11 @@
           hubFormError.hubUrlError = true;
           hubFormError.hubUrlErrorMessage =
             'This hub URL is already in use. Please enter a different one.';
+        } else if (hubUrlExist.data.data?.isInvalid) {
+          isHubUrlExist = true;
+          hubFormError.hubUrlError = true;
+          hubFormError.hubUrlErrorMessage =
+            'Hub URL is invalid. It should contain only characters and numbers.';
         } else {
           isHubUrlExist = false;
           hubFormError.hubUrlError = false;

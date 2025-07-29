@@ -11,7 +11,11 @@
   import { hubsService } from '@/services/hubs.service';
 
   // Utils
-  import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
+  import {
+    processSubscriptionData,
+    getCurrentPlanDetails,
+    initializePlanDetails,
+  } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import { captureEvent } from '@/utils/posthogConfig';
 
@@ -33,6 +37,7 @@
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import GreenCheckIconFill from '@/assets/icons/GreenCheckIconFill.svelte';
 
   // ===== CONSTANTS =====
   const location = useLocation();
@@ -59,6 +64,7 @@
   let subscriptionStatus = '';
   let invoiceUrl = '';
   let isScheduledDowngrade = false;
+  let promoDiscount = null;
 
   // UI state
   let isLoadingSubscription = false;
@@ -74,16 +80,6 @@
 
   // Animation stores for cards
   const cardOpacity = tweened(0, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const cardTranslateY = tweened(20, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const cardBlur = tweened(4, {
     duration: 600,
     easing: cubicOut,
   });
@@ -128,6 +124,7 @@
     if (hubId) {
       refetchCustomer();
       refetchHub();
+      initializePlanDetails();
     }
   }
 
@@ -183,10 +180,25 @@
       totalPaidAmount = processedData.totalPaidAmount;
       userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
+
+      // Extract promo discount information
+      if (subscriptionData?.discounts?.length > 0) {
+        const discount = subscriptionData?.discounts[0];
+        const coupon = discount?.coupon?.metadata;
+        if (coupon) {
+          promoDiscount = {
+            type: coupon.type === 'percentage' ? 'percentage' : 'amount',
+            value: coupon.value ? Number(coupon.value) : 0,
+          };
+        }
+      } else {
+        promoDiscount = null;
+      }
     } else {
       // If subscription is canceled or inactive, use default values
       // Keep the plan name from the database, but reset other subscription details
       subscriptionId = null;
+      promoDiscount = null;
 
       // For free Community plan
       if (currentPlan === 'Community') {
@@ -198,8 +210,9 @@
       } else {
         // For paid plans that are canceled, show default pricing based on plan name
         const planKey = currentPlan.toLowerCase();
-        if (DEFAULT_PLAN_DETAILS[planKey]) {
-          currentPrice = DEFAULT_PLAN_DETAILS[planKey].monthly.price;
+        const planDetails = getCurrentPlanDetails();
+        if (planDetails[planKey]) {
+          currentPrice = planDetails[planKey].monthly.price;
           currentBillingCycle = 'monthly';
           // Clear dates and amounts since the subscription is inactive
           nextBillingDate = '';
@@ -217,8 +230,6 @@
   $: if (!$isFetchingSubscription && !$isFetchingHub && $hubData?.data) {
     setTimeout(() => {
       cardOpacity.set(1);
-      cardTranslateY.set(0);
-      cardBlur.set(0);
     }, 100);
   }
 
@@ -397,7 +408,7 @@
       <!-- Current Plan Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-1">
           <div class="flex w-full items-center justify-between">
@@ -456,6 +467,19 @@
           </div>
           <div class="pt-0">
             <div class="flex flex-col gap-1">
+              {#if promoDiscount}
+                <div class="flex items-center gap-1">
+                  <GreenCheckIconFill />
+                  <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+                    Promo applied:
+                    {#if promoDiscount?.type === 'percentage'}
+                      {promoDiscount?.value}%/user/month discount
+                    {:else}
+                      ${promoDiscount?.value.toFixed(2)}/month discount
+                    {/if}
+                  </p>
+                </div>
+              {/if}
               {#if subscriptionId && subscriptionData?.cancel_at_period_end}
                 <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                   Next billing date: –
@@ -468,7 +492,9 @@
               {/if}
 
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
+                Last paid amount: {$hubData?.data?.billing?.in_trial
+                  ? '$0.00'
+                  : lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
                   : '/user/year'}
               </p>
@@ -517,7 +543,7 @@
       <!-- Need Help Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
@@ -542,10 +568,7 @@
       </div>
 
       <!-- Quick Links Card -->
-      <div
-        class="bg-surface-600 rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
-      >
+      <div class="bg-surface-600 rounded-lg p-6" style="opacity: {$cardOpacity};">
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">Quick Links</h2>
           <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">

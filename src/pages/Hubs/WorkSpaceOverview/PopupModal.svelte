@@ -16,6 +16,7 @@
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
   import { captureEvent } from '@/utils/posthogConfig';
+  import { triggerHubRefetch } from '@/store/hubRefetch';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -267,6 +268,9 @@
           `Failed to delete "${formData.workspaceName}" workspace. Please try again.`,
         );
       } else if (modalVariants.isInviteModal) {
+        // Trigger BaseLayout's hub data refetch when invite fails
+        triggerHubRefetch();
+        
         if (error.message === 'An invite has already been sent to this email.') {
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
@@ -334,7 +338,7 @@
       new_visibility:workspaceType,
       source_Location:location
     }
-    captureEvent("admin_workspace_edit_saved", eventProperties);
+    captureEvent("admin_publish_workspace", eventProperties);
   }
 
   const captureWorkspaceDelete = (workspaceId:string)=>{
@@ -345,6 +349,14 @@
     }
     captureEvent("admin_workspace_deleted", eventProperties);
   } 
+
+  const captureUserClickUpgrade =() =>{
+    const eventProperties ={
+      event_source : "admin",
+      cta_location:"limit_exceeded_modal"
+    }
+    captureEvent("admin_upgrade_intent",eventProperties)
+  }
 </script>
 
 <div class="bg-surface-600 rounded-md p-6">
@@ -637,6 +649,7 @@
       userRole={user?.role}
       {isOwner}
       reDirect={() => {
+        captureUserClickUpgrade();
         if (isOwner) {
           navigate(`/billing/billingOverview/${hubId}`);
         } else {

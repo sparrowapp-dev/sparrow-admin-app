@@ -177,12 +177,7 @@
   });
 
   const cardOpacity = tweened(0, {
-    duration: 500,
-    easing: cubicOut,
-  });
-
-  const cardScale = tweened(0.95, {
-    duration: 500,
+    duration: 600,
     easing: cubicOut,
   });
 
@@ -190,12 +185,8 @@
   $: if ($customerData?.httpStatusCode && !$isLoadingPaymentMethods && !$isLoadingCustomer) {
     setTimeout(() => {
       pageOpacity.set(1);
-    }, 100);
-
-    setTimeout(() => {
       cardOpacity.set(1);
-      cardScale.set(1);
-    }, 300);
+    }, 100);
   }
 </script>
 
@@ -250,10 +241,7 @@
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <!-- Payment Method Section -->
-      <div
-        class="payment-method bg-surface-600 rounded-md p-6"
-        style="opacity: {$cardOpacity}; transform: scale({$cardScale});"
-      >
+      <div class="payment-method bg-surface-600 rounded-md p-6" style="opacity: {$cardOpacity};">
         <div class="mb-4 flex items-center gap-2">
           <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
           {#if selectedPaymentMethod?.isDefault}
@@ -296,7 +284,9 @@
                     Expiry Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{selectedPaymentMethod.card
                       .exp_month}/{selectedPaymentMethod.card.exp_year}
                   </div>
-                  <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                  <div
+                    class="text-fs-ds-16 font-inter font-fw-ds-400 w-full truncate text-neutral-200 uppercase"
+                  >
                     {[
                       selectedPaymentMethod.billing_details.address.line1,
                       selectedPaymentMethod.billing_details.address.city,

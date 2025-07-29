@@ -6,6 +6,8 @@
   import { hubsService } from '@/services/hubs.service';
   import { navigate, useLocation } from 'svelte-routing';
   import { writable } from 'svelte/store';
+  import { hubRefetchTrigger } from '@/store/hubRefetch';
+  import { captureEvent } from '@/utils/posthogConfig';
 
   const showOptionalSideNav = writable(false);
   const location = useLocation();
@@ -29,13 +31,19 @@
   // Reactive hubId
   $: hubId = extractHubId($location.pathname);
 
-  // Fetch hub data
+  // Store hub data
   const { data: hubData, refetch: hubsDataRefetch } = createQuery(() =>
     hubsService.getHubDetails(hubId),
   );
 
-  // Refetch when hubId changes
+  // Clear stale hubData when hubId changes
   $: if (hubId) {
+    hubData.set(null); // Clear previous data
+    hubsDataRefetch();
+  }
+
+  // Listen to global refetch trigger
+  $: if ($hubRefetchTrigger > 0 && hubId) {
     hubsDataRefetch();
   }
 
@@ -57,7 +65,16 @@
   $: paddingTop = topBannerShow ? 'pt-[68px]' : 'pt-[48px]';
 
   const handleRedirect = () => {
+    captureUserClicUpgrade();
     if (hubId) navigate(`/billing/billingOverview/${hubId}`);
+  };
+
+  const captureUserClicUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'upgrade_banner',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
   };
 </script>
 

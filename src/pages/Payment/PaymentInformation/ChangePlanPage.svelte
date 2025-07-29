@@ -15,7 +15,8 @@
 
   // Utils
   import {
-    DEFAULT_PLAN_DETAILS,
+    getCurrentPlanDetails,
+    initializePlanDetails,
     AVAILABLE_PLANS,
     isPlanSelectable as checkPlanSelectable,
     capitalizeFirstLetter,
@@ -88,7 +89,13 @@
   }
 
   // Plan details for comparison
-  let planDetails = DEFAULT_PLAN_DETAILS;
+  let planDetails = getCurrentPlanDetails();
+
+  // Initialize plan details with API data
+  onMount(async () => {
+    await initializePlanDetails();
+    planDetails = getCurrentPlanDetails();
+  });
 
   // State
   let billingCycle: BillingCycleType = currentBillingCycle;

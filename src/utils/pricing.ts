@@ -2,7 +2,7 @@
  * Plan details and pricing utility functions for the billing system
  */
 
-import { APP_ENVIRONMENT } from '@/constants/environment';
+import { billingService } from '@/services/billing.service';
 
 // Plan types
 export type PlanType = 'community' | 'standard' | 'professional' | 'enterprise';
@@ -32,8 +32,6 @@ interface PlanDetails {
 /**
  * Default plan details with features and pricing
  */
-const isProduction = APP_ENVIRONMENT === 'production';
-
 export const DEFAULT_PLAN_DETAILS: PlanDetails = {
   community: {
     monthly: {
@@ -64,10 +62,6 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      // test price $1
-      // priceId: isProduction ? 'price_1RWVleLdqw2Igdv35Pck94FB' : 'price_1RZaD7FLRwufXqZCEtDiMO02',
-      // actual price
-      priceId: isProduction ? 'price_1Re8x2Ldqw2Igdv3B1TVmnok' : 'price_1RZaD7FLRwufXqZCEtDiMO02',
     },
     annual: {
       price: '$99',
@@ -78,7 +72,6 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17.4%',
-      priceId: isProduction ? 'price_1RWVpJLdqw2Igdv3tJJLzCE0' : 'price_1RZaFiFLRwufXqZCNc7JterI',
     },
   },
   professional: {
@@ -90,10 +83,6 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collections: 'Unlimited',
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
-      // test price $1
-      // priceId: isProduction ? 'price_1Rh8STLdqw2Igdv3Ta6ohGaZ' : 'price_1RZaELFLRwufXqZCRDIWybT1',
-      // actual price
-      priceId: isProduction ? 'price_1RWVo9Ldqw2Igdv3ktkXFNKo' : 'price_1RZaELFLRwufXqZCRDIWybT1',
     },
     annual: {
       price: '$199',
@@ -104,7 +93,6 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
       collaborators: 'Unlimited',
       buttonText: 'Upgrade',
       discount: 'Save 17%',
-      priceId: isProduction ? 'price_1RWVpsLdqw2Igdv3mRd83zkN' : 'price_1RZaGtFLRwufXqZCVUrpvs74',
     },
   },
   enterprise: {
@@ -134,6 +122,30 @@ export const DEFAULT_PLAN_DETAILS: PlanDetails = {
  * List of available plans
  */
 export const AVAILABLE_PLANS: PlanType[] = ['community', 'standard', 'professional', 'enterprise'];
+
+/**
+ * Current plan details with populated price IDs from API
+ * This will be updated when populatePriceIdsFromAPI is called
+ */
+let currentPlanDetails: PlanDetails = DEFAULT_PLAN_DETAILS;
+
+/**
+ * Get the current plan details (with populated price IDs if available)
+ * @returns Current plan details
+ */
+export function getCurrentPlanDetails(): PlanDetails {
+  return currentPlanDetails;
+}
+
+/**
+ * Initialize plan details with price IDs from API
+ * Should be called during app initialization
+ * @returns Promise that resolves when plan details are populated
+ */
+export async function initializePlanDetails(): Promise<PlanDetails> {
+  currentPlanDetails = await populatePriceIdsFromAPI();
+  return currentPlanDetails;
+}
 
 /**
  * Format a price from cents to dollars with $ sign
@@ -424,4 +436,56 @@ export function getScheduledDowngrade(subscriptionData: any): {
   }
 
   return { hasScheduledDowngrade: false };
+}
+
+/**
+ * Populate price IDs from the API response into the plan details
+ * @param planDetails The plan details object to update
+ * @returns Updated plan details with price IDs from API
+ */
+export async function populatePriceIdsFromAPI(
+  planDetails: PlanDetails = DEFAULT_PLAN_DETAILS,
+): Promise<PlanDetails> {
+  try {
+    const response = await billingService.getAllPricingDetails();
+
+    if (!response?.data?.plans) {
+      console.warn('No pricing data available from API');
+      return planDetails;
+    }
+
+    // Create a deep copy of the plan details to avoid mutating the original
+    const updatedPlanDetails: PlanDetails = JSON.parse(JSON.stringify(planDetails));
+
+    // Process each plan from the API
+    response.data.plans.forEach((apiPlan: any) => {
+      const planName = apiPlan.plan_name?.toLowerCase();
+
+      // Skip if plan doesn't exist in our plan details
+      if (!updatedPlanDetails[planName]) {
+        return;
+      }
+
+      // Process billing cycles for this plan
+      apiPlan.billing?.forEach((billing: any) => {
+        const interval = billing.interval === 'monthly' ? 'monthly' : 'annual';
+        const stripePrice = billing.providers?.stripe;
+
+        // Update the price ID if we have a valid Stripe price ID
+        if (stripePrice && updatedPlanDetails[planName][interval]) {
+          updatedPlanDetails[planName][interval].priceId = stripePrice;
+
+          // Also update the price from API if available
+          if (billing.price) {
+            updatedPlanDetails[planName][interval].price = `$${billing.price}`;
+          }
+        }
+      });
+    });
+
+    return updatedPlanDetails;
+  } catch (error) {
+    console.error('Error fetching pricing details from API:', error);
+    return planDetails;
+  }
 }
