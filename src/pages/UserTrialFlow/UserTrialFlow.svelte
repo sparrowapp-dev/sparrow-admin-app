@@ -318,8 +318,8 @@
           if (createdHub?.isSuccessful) {
             createdHubId = createdHub.data.data._id;
             isHubCreated = true;
-            localStorage.setItem('isHubCreated', 'true');
-            localStorage.setItem('createdHubId', createdHubId);
+            sessionStorage.setItem('isHubCreated', 'true');
+            sessionStorage.setItem('createdHubId', createdHubId);
             currentStep += 1; // Move to next step after processing
           } else {
             console.error('Failed to create hub:', createdHub);
@@ -429,8 +429,8 @@
             } else {
               await _viewModel.sendUserConfirmationEmail(createdHubId, planTier, trialFrequency);
             }
-            localStorage.removeItem('createdHubId');
-            localStorage.removeItem('isHubCreated');
+            sessionStorage.removeItem('createdHubId');
+            sessionStorage.removeItem('isHubCreated');
             isProcessing = false;
             showProcessingModal = false;
             if (isPromoApplied) {
@@ -605,8 +605,8 @@
   }
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
-    createdHubId = localStorage.getItem('createdHubId') ?? '';
-    isHubCreated = localStorage.getItem('isHubCreated') === 'true';
+    createdHubId = sessionStorage.getItem('createdHubId') ?? '';
+    isHubCreated = sessionStorage.getItem('isHubCreated') === 'true';
     const userName = params.get('name');
     trialFrequency = params.get('trialPeriod') || 'monthly';
     source = params.get('source');
