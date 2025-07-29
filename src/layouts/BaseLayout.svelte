@@ -7,6 +7,7 @@
   import { navigate, useLocation } from 'svelte-routing';
   import { writable } from 'svelte/store';
   import { hubRefetchTrigger } from '@/store/hubRefetch';
+    import { captureEvent } from '@/utils/posthogConfig';
 
   const showOptionalSideNav = writable(false);
   const location = useLocation();
@@ -64,8 +65,17 @@
   $: paddingTop = topBannerShow ? 'pt-[68px]' : 'pt-[48px]';
 
   const handleRedirect = () => {
+    captureUserClicUpgrade();
     if (hubId) navigate(`/billing/billingOverview/${hubId}`);
   };
+
+  const captureUserClicUpgrade =() =>{
+    const eventProperties ={
+      event_source : "admin",
+      cta_location:"upgrade_banner"
+    }
+    captureEvent("admin_upgrade_intent",eventProperties)
+  }
 </script>
 
 <div class="relative h-screen">

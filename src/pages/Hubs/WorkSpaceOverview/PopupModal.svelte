@@ -350,7 +350,7 @@
       new_visibility: workspaceType,
       source_Location: location,
     };
-    captureEvent('admin_workspace_edit_saved', eventProperties);
+    captureEvent('admin_publish_workspace', eventProperties);
   };
 
   const captureWorkspaceDelete = (workspaceId: string) => {
@@ -360,6 +360,14 @@
       workspace_id: workspaceId,
     };
     captureEvent('admin_workspace_deleted', eventProperties);
+  };
+
+  const captureUserClickUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'limit_exceeded_modal',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
   };
 </script>
 
@@ -655,6 +663,7 @@
       userRole={user?.role}
       {isOwner}
       reDirect={() => {
+        captureUserClickUpgrade();
         if (isOwner) {
           navigate(`/billing/billingOverview/${hubId}`);
         } else {

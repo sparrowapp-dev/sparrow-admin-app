@@ -85,7 +85,7 @@
       if (billing) {
         // Real price per user per interval
         const price = Number(billing.price);
-        const floored = Math.floor(price * 100) / 100;
+        const floored = Math.round(price * 100) / 100;
         const intervalLabel =
           billing.interval === 'monthly'
             ? 'month'
