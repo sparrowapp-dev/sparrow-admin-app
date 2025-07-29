@@ -299,7 +299,9 @@
                     Expiry Date:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{selectedPaymentMethod.card
                       .exp_month}/{selectedPaymentMethod.card.exp_year}
                   </div>
-                  <div class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-200 uppercase">
+                  <div
+                    class="text-fs-ds-16 font-inter font-fw-ds-400 w-full truncate text-neutral-200 uppercase"
+                  >
                     {[
                       selectedPaymentMethod.billing_details.address.line1,
                       selectedPaymentMethod.billing_details.address.city,
