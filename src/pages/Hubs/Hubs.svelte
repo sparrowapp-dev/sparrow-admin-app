@@ -71,11 +71,20 @@
   $: if (hubId) {
     hubsDataRefetch();
   }
-  $: topBannerShow =
+
+  $: isCommunityPlan =
     ($location.pathname.startsWith('/hubs/workspace') ||
       $location.pathname.startsWith('/hubs/settings') ||
       $location.pathname.startsWith('/hubs/members')) &&
     $hubData?.data?.plan?.name === 'Community';
+
+  $: isBillingFailed =
+    ($location.pathname.startsWith('/hubs/workspace') ||
+      $location.pathname.startsWith('/hubs/settings') ||
+      $location.pathname.startsWith('/hubs/members')) &&
+    ['action_required', 'payment_failed'].includes($hubData?.data?.billing?.status || '');
+
+  $: topBannerShow = isCommunityPlan || isBillingFailed;
 
   const hubsPathMatcher = (pathname: string, dropdownOptions: any[]) => {
     let currentId;

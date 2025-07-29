@@ -181,23 +181,11 @@
     easing: cubicOut,
   });
 
-  const cardTranslateY = tweened(20, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const cardBlur = tweened(4, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
   // Trigger animations when data is loaded
   $: if ($customerData?.httpStatusCode && !$isLoadingPaymentMethods && !$isLoadingCustomer) {
     setTimeout(() => {
       pageOpacity.set(1);
       cardOpacity.set(1);
-      cardBlur.set(0);
-      cardTranslateY.set(0);
     }, 100);
   }
 </script>
@@ -253,10 +241,7 @@
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <!-- Payment Method Section -->
-      <div
-        class="payment-method bg-surface-600 rounded-md p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
-      >
+      <div class="payment-method bg-surface-600 rounded-md p-6" style="opacity: {$cardOpacity};">
         <div class="mb-4 flex items-center gap-2">
           <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Payment Method</h2>
           {#if selectedPaymentMethod?.isDefault}
