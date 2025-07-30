@@ -85,7 +85,7 @@
       } else {
         amount = users ? parseInt(users) * price : price;
       }
-      amount = Math.floor(amount * 100) / 100;
+      amount = Math.round(amount * 100) / 100;
     }
   });
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
