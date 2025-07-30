@@ -294,7 +294,7 @@
   async function nextStep() {
     // Special handling for step 2
     if (currentStep == 1) {
-      if (formData.hubName === '') {
+      if (!formData.hubName.trim()) {
         hubFormError.hubNameErrorMessage = 'Please enter your hub name.';
         hubFormError.hubNameError = true;
       } else if (formData.hubUrl === '') {
