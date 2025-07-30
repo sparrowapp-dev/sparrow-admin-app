@@ -480,9 +480,16 @@
       },
     });
     showProcessingModal = true;
+    let formatTeamData = teamdata
+      .filter((user) => user.email?.trim() && user.role?.id) // Only include if both exist
+      .map((user) => ({
+        email: user.email.trim(),
+        role: user.role.id === 'admin' ? 'admin' : 'member',
+      }));
+    let hubUserCount = formatTeamData ? formatTeamData.length + 1 : 1;
     const metadata = {
       hubId: createdHubId,
-      userCount: triggerPoint === 'finish' ? teamdata.length.toString() : '1',
+      userCount: triggerPoint === 'finish' ? hubUserCount.toString() : '1',
       planName: capitalizedFlow,
     };
     const result = await billingService.createSubscription({
@@ -491,7 +498,7 @@
       paymentMethodId: paymentMethodId,
       metadata,
       trialPeriodDays: trialPeriod || 0,
-      seats: triggerPoint === 'finish' ? teamdata.length : 1,
+      seats: triggerPoint === 'finish' ? hubUserCount : 1,
       promoCodeId,
     });
     console.log('Subscription result:', result);
