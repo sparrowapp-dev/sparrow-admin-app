@@ -190,7 +190,7 @@
         props: {
           hubId: row.original._id,
           showOnHover: true,
-          ctaLocation: "hubs_table"
+          ctaLocation: 'hubs_table',
         },
       }),
     },
@@ -259,6 +259,7 @@
   ];
   function handleSelect(event) {
     selected = event.detail;
+    pagination = { ...pagination, pageIndex: 0 };
     refetch();
   }
   $: totalItems = $hubsData?.data?.totalCount || 0;
