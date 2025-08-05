@@ -85,7 +85,7 @@
 
       tooltipPosition = {
         x: rect.left + rect.width / 4,
-        y: rect.bottom - 40, // Position below with 0px gap
+        y: rect.bottom - 60, // Position below with 0px gap
       };
     }
   }
