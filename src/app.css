@@ -12,123 +12,24 @@
     font-family: Inter, sans-serif;
   }
 }
-.table-outer-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
 
-.table-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.table-scroll-container {
-  position: relative;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #4a4a4a #1a1a1a;
-}
-
-.loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 10;
-}
-
-.loading-spinner {
-  height: 1.5rem;
-  width: 1.5rem;
-  border-radius: 9999px;
-  border: 2px solid rgb(209 213 219);
-  border-top-color: rgb(59 130 246);
-  animation: spin 1s linear infinite;
-}
-
-.table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.table-row {
-  transition: background-color 150ms;
-}
-
-.table-row:hover {
-  background-color: #181c26;
-}
-
-.empty-state {
-  padding: 2rem;
-  text-align: center;
-  color: rgb(156 163 175);
-}
-
-.table-scroll-container::-webkit-scrollbar {
+/* Safari-compatible scrollbar */
+*::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 8px;
   height: 8px;
 }
 
-.table-scroll-container::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
-  border-radius: 4px;
-}
-
-.table-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-/* Universal scrollbar styling */
-* {
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-/* Chrome, Edge, and Safari */
-*::-webkit-scrollbar {
-  width: 4px;
-  height: 4px; /* For horizontal scrollbars */
-}
-
 *::-webkit-scrollbar-track {
-  background: transparent;
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
+  background: #222630; /* Much more visible */
   border-radius: 4px;
-  border: none;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background: #222630;
 }
-/* For Safari specific fixes */
-@supports not (scrollbar-width: thin) {
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-/* For macOS */
-@supports (-moz-osx-font-smoothing: auto) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-  }
-}
+

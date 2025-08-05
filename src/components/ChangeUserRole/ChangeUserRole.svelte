@@ -109,12 +109,12 @@
     }
   }
 
-  const captureUserRoleChange = (currentRole:string,updatedRole:string) =>{
+  const captureUserRoleChange = (currentRole: string, updatedRole: string) => {
     const eventProperties = {
-      role_change: `${currentRole} to ${updatedRole}`
-    }
-    captureEvent("admin_workspace_row_actions_clicked", eventProperties);
-  }
+      role_change: `${currentRole} to ${updatedRole}`,
+    };
+    captureEvent('admin_workspace_row_actions_clicked', eventProperties);
+  };
 </script>
 
 <section class="bg-surface-600 rounded-lg">
@@ -157,7 +157,7 @@
 
         <div class="border-b-surface-100 border-b"></div>
 
-        <div class="custom-scroll h-[200px] overflow-y-auto">
+        <div class="h-[200px] overflow-y-auto">
           {#if data?.simplifiedWorkspaces && data.simplifiedWorkspaces?.length > 0}
             {#each data.simplifiedWorkspaces as workspace, i}
               {#if workspace.userRole !== null}<div
@@ -174,9 +174,9 @@
                       dropdownId={`workspace-role-dropdown-${i}`}
                       selected={workspaceSelected[workspace.workspace._id]}
                       options={workspaceOptions}
-                      on:change={(event) =>{ 
-                        handleWorkspaceRoleChange(event, workspace) 
-                        captureUserRoleChange(workspace.userRole,event?.detail?.id)
+                      on:change={(event) => {
+                        handleWorkspaceRoleChange(event, workspace);
+                        captureUserRoleChange(workspace.userRole, event?.detail?.id);
                       }}
                     />
                   </span>
@@ -188,25 +188,3 @@
     </div>
   </div>
 </section>
-
-<style>
-  /* global.css */
-  .custom-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: #a3a3a3 transparent;
-  }
-
-  .custom-scroll::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: #a3a3a3;
-    border-radius: 10px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-</style>

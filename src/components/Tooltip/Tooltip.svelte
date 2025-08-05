@@ -28,13 +28,21 @@
   let actualPosition = position;
   let showTooltip = false; // Controls actual visibility
 
+  function handleScroll() {
+    isHovered = false;
+    isVisible = false;
+    showTooltip = false;
+  }
+
   onMount(() => {
     mounted = true;
+    document.addEventListener('scroll', handleScroll, true);
   });
 
   onDestroy(() => {
     clearTimeout(hoverTimeout);
     clearTimeout(hideTimeout);
+    document.removeEventListener('scroll', handleScroll, true);
   });
 
   // Handle mouse enter event

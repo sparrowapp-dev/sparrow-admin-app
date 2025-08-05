@@ -18,10 +18,7 @@
 
         {#if i === items.length - 1}
           <!-- Last item (current page) -->
-          <span
-            class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] truncate text-neutral-400"
-            title={item.label}
-          >
+          <span class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] truncate text-neutral-400">
             {item.label}
           </span>
         {:else if item.action}
@@ -29,7 +26,6 @@
           <button
             on:click={item.action}
             class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] cursor-pointer truncate text-neutral-50"
-            title={item.label}
           >
             {item.label}
           </button>
@@ -38,7 +34,6 @@
           <Link
             to={item.path}
             class="text-fs-ds-12 font-fw-ds-400 max-w-[8rem] truncate text-neutral-50"
-            title={item.label}
           >
             {item.label}
           </Link>
