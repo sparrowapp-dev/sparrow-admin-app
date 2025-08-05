@@ -85,7 +85,7 @@
 
       tooltipPosition = {
         x: rect.left + rect.width / 4,
-        y: rect.bottom - 60, // Position below with 0px gap
+        y: rect.bottom - 40, // Position below with 0px gap
       };
     }
   }
@@ -127,10 +127,16 @@
     }
   }
 
+  function handleScroll() {
+    hoveredOption = null;
+  }
+
   onMount(() => {
     document.addEventListener('click', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true);
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
     };
   });
 </script>
@@ -227,7 +233,7 @@
                       >
                         <path
                           d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
-                          fill="currentColor"
+                          fill="#6894F9"
                         />
                       </svg>
                     </span>
@@ -258,7 +264,7 @@
         style="left: {tooltipPosition.x}px; top: {tooltipPosition.y}px; transform: translateX(-50%);"
       >
         <div
-          class="relative max-w-[200px] rounded-md border border-surface-100 bg-surface-100 px-3 py-2 text-xs text-white shadow-lg"
+          class="border-surface-100 bg-surface-100 relative max-w-[200px] rounded-md border px-3 py-2 text-xs text-white shadow-lg"
         >
           <div class="leading-relaxed break-words whitespace-pre-wrap">
             {option.label}
@@ -266,11 +272,11 @@
 
           <div class="absolute bottom-full left-1/2 -translate-x-1/2 transform">
             <div
-              class="h-0 w-0 border-r-[6px] border-b-[6px] border-l-[6px] border-r-transparent border-b-surface-100 border-l-transparent"
+              class="border-b-surface-100 h-0 w-0 border-r-[6px] border-b-[6px] border-l-[6px] border-r-transparent border-l-transparent"
             ></div>
 
             <div
-              class="absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 translate-y-[1px] transform border-r-[7px] border-b-[7px] border-l-[7px] border-r-transparent border-b-surface-100 border-l-transparent"
+              class="border-b-surface-100 absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 translate-y-[1px] transform border-r-[7px] border-b-[7px] border-l-[7px] border-r-transparent border-l-transparent"
             ></div>
           </div>
         </div>
