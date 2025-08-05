@@ -258,8 +258,7 @@
             : 'bg-white'}"
         >
           <ul
-            class="px-1 py-1 {needsScroll ? 'dropdown-scroll overflow-y-auto' : ''} {variant ===
-            'primary'
+            class="px-1 py-1 {needsScroll ? 'overflow-y-auto' : ''} {variant === 'primary'
               ? 'dark'
               : ''}"
             style="max-height: {maxHeight};"
@@ -295,23 +294,3 @@
     {/await}
   {/if}
 </div>
-
-<style>
-  .dropdown-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
-  }
-
-  .dropdown-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .dropdown-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .dropdown-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 116, 139, 0.5);
-    border-radius: 6px;
-  }
-</style>

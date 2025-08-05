@@ -1,7 +1,7 @@
 <script lang="ts">
   import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
-  import Tooltip from '../Tooltip/Tooltip.svelte';
   import type { ComponentType } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
 
   export let icon: ComponentType;
   export let label: { label: string; id: string };
@@ -13,12 +13,18 @@
   export let open = false;
   let searchMode = false;
   let searchTerm = '';
+
   $: filteredOptions = searchTerm
     ? options.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
 
+  const dispatch = createEventDispatcher();
+  let dropdownElement: HTMLElement;
+  let searchInput: HTMLInputElement;
+  let hoveredOption: string | null = null;
+  let tooltipPosition = { x: 0, y: 0 };
+
   function toggleDropdown(event: MouseEvent) {
-    // Don't toggle if clicking the search button
     const target = event.target as HTMLElement;
     if (target.closest('.search-button')) {
       return;
@@ -26,7 +32,9 @@
 
     open = !open;
     searchMode = false;
-    if (!open) searchTerm = '';
+    if (!open) {
+      searchTerm = '';
+    }
   }
 
   function openSearchMode() {
@@ -34,12 +42,13 @@
     open = true;
   }
 
-  function selectOption(option) {
+  function selectOption(option: any) {
     open = false;
     searchMode = false;
     searchTerm = '';
     selected = { label: option.label, id: option.id };
     onSelect(option.value);
+    dispatch('select', option);
   }
 
   function getDynamicCssClasses(plan: string) {
@@ -56,115 +65,175 @@
         return '';
     }
   }
-  let searchInput: HTMLInputElement;
 
   $: if (searchMode && open && searchInput) {
-    searchInput.focus();
+    setTimeout(() => searchInput.focus(), 0);
   }
 
   let isTyping = false;
   function handleInput() {
     isTyping = true;
+    setTimeout(() => {
+      isTyping = false;
+    }, 1000);
   }
+
+  function handleMouseEnter(event: MouseEvent, option: any) {
+    if (option.label.length > 17) {
+      hoveredOption = option.id;
+      const rect = (event.target as HTMLElement).getBoundingClientRect();
+
+      tooltipPosition = {
+        x: rect.left + rect.width / 4,
+        y: rect.bottom - 60, // Position below with 0px gap
+      };
+    }
+  }
+
+  function handleMouseLeave() {
+    hoveredOption = null;
+  }
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!open) return;
+
+    switch (event.key) {
+      case 'Escape':
+        event.preventDefault();
+        open = false;
+        searchMode = false;
+        searchTerm = '';
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        break;
+      case 'Enter':
+        if (filteredOptions.length === 1) {
+          event.preventDefault();
+          selectOption(filteredOptions[0]);
+        }
+        break;
+    }
+  }
+
+  function handleClickOutside(event: MouseEvent) {
+    if (dropdownElement && !dropdownElement.contains(event.target as Node)) {
+      open = false;
+      searchMode = false;
+      searchTerm = '';
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  });
 </script>
 
-<section class="relative w-full max-w-xs">
+<section class="relative w-full max-w-xs" bind:this={dropdownElement}>
   <button
     on:click={toggleDropdown}
-    class="flex w-full items-center gap-2 rounded px-3 py-2 {searchMode
-      ? ''
+    on:keydown={handleKeydown}
+    class="flex w-full items-center gap-2 rounded px-3 transition-colors duration-200 {searchMode
+      ? 'py-2'
       : 'py-3'} {searchMode || open
       ? 'bg-surface-600'
-      : ''} hover:bg-surface-500 focus-within:bg-surface-500 cursor-pointer text-neutral-50 {isTyping
-      ? 'focus-within:outline-2 focus-within:outline-blue-300'
-      : 'focus-within:outline-2 focus-within:outline-blue-300'}"
+      : 'bg-transparent'} hover:bg-surface-500 focus:bg-surface-500 cursor-pointer text-neutral-50 focus:ring-2 focus:ring-blue-300 focus:outline-none"
+    aria-expanded={open}
+    aria-haspopup="listbox"
   >
-    <svelte:component this={icon} />
+    <svelte:component this={icon} class="flex-shrink-0" />
 
     {#if !searchMode}
       <button
-        class="search-button font-inter text-fs-ds-12 fw-ds-500 focus-within:bg-surface-500 max-w-[186px] flex-1 cursor-pointer truncate text-start text-neutral-50"
+        class="search-button font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 cursor-pointer truncate text-start text-neutral-50 focus:outline-none"
         on:click|stopPropagation={openSearchMode}
+        tabindex="-1"
       >
-        {label.label}
+        {selected.label}
       </button>
     {:else}
-      <button class="" on:click|stopPropagation>
+      <div class="flex-1">
         <input
           bind:this={searchInput}
           type="text"
-          class="font-inter text-fs-ds-12 fw-ds-500 max-w-[186px] flex-1 text-neutral-50 outline-none"
-          placeholder="Search"
+          class="font-inter text-fs-ds-12 fw-ds-500 w-full max-w-[186px] bg-transparent text-neutral-50 placeholder-neutral-400 outline-none"
+          placeholder="Search..."
           bind:value={searchTerm}
           on:input={handleInput}
           on:click|stopPropagation
-          on:keydown|stopPropagation
+          on:keydown|stopPropagation={handleKeydown}
         />
-      </button>
+      </div>
     {/if}
 
-    <!-- Always-visible arrow -->
-    <button class="cursor-pointer" on:click={toggleDropdown}>
+    <button
+      class="flex-shrink-0 cursor-pointer focus:outline-none"
+      on:click|stopPropagation={toggleDropdown}
+      tabindex="-1"
+    >
       <DropdownArrow {open} />
     </button>
   </button>
 
   {#if open}
-    <div class="bg-surface-600 w-full rounded-sm shadow-2xs">
+    <div class="absolute z-50 mt-1 w-full">
       <div
-        class="bg-surface-600 custom-scroll absolute z-10 mt-1 flex max-h-70 w-full flex-col gap-2 overflow-y-auto p-1 shadow"
+        class="bg-surface-600 border-surface-500 flex max-h-70 w-full flex-col rounded-sm border shadow-lg"
+        role="listbox"
       >
-        {#if filteredOptions.length === 0}
-          <div
-            class="leading-lh-ds-143 text-fs-ds-14 flex items-center justify-center p-6 text-neutral-400"
-          >
-            No results found.
-          </div>
-        {:else}
-          {#each filteredOptions as option, index}
-            <Tooltip
-              text={option.label}
-              position={index === 0 ? 'bottom' : 'top'}
-              mode={option.label.length > 17 ? 'hover' : 'controlled'}
-              size="xs"
-              maxWidth="300px"
-              allowOverflow={true}
-              show={option.label.length > 17 ? undefined : false}
+        <div class="max-h-64 overflow-y-auto p-1">
+          {#if filteredOptions.length === 0}
+            <div
+              class="leading-lh-ds-143 text-fs-ds-14 flex items-center justify-center p-6 text-neutral-400"
             >
+              No results found.
+            </div>
+          {:else}
+            {#each filteredOptions as option, index}
               <button
                 class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130
-              hover:bg-surface-400 flex w-full cursor-pointer items-center
-              justify-between rounded-sm p-1 py-2 transition-colors
-              duration-300 ease-in-out focus-within:outline-2 focus-within:outline-blue-300
-              {selected.id.toString() === option.id.toString()
-                  ? 'text-blue-300'
+                hover:bg-surface-400 focus:bg-surface-400 flex w-full cursor-pointer items-center
+                justify-between rounded-sm px-2 py-2.5 transition-colors
+                duration-200 ease-in-out focus:ring-2 focus:ring-blue-300 focus:outline-none
+                {selected.id.toString() === option.id.toString()
+                  ? 'bg-surface-500 text-blue-300'
                   : 'text-neutral-50'}"
                 on:click={() => selectOption(option)}
+                on:mouseenter={(e) => handleMouseEnter(e, option)}
+                on:mouseleave={handleMouseLeave}
+                role="option"
+                aria-selected={selected.id.toString() === option.id.toString()}
               >
-                <!-- Add max-width and truncation to prevent long text from breaking layout -->
-                <span class="block truncate text-left">
+                <span class="block min-w-0 flex-1 truncate text-left">
                   {option.label}
                 </span>
 
                 <div class="ml-2 flex-shrink-0">
                   {#if selected.id.toString() === option.id.toString()}
-                    <span>
+                    <span class="flex items-center">
                       <svg
                         width="12"
                         height="9"
                         viewBox="0 0 12 9"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
                       >
                         <path
                           d="M11.8639 0.656087C12.0533 0.857041 12.0439 1.17348 11.8429 1.36288L3.91309 8.83678C3.67573 9.0605 3.30311 9.05361 3.07417 8.82126L0.393838 6.10093C0.200027 5.90422 0.202372 5.58765 0.399074 5.39384C0.595777 5.20003 0.912351 5.20237 1.10616 5.39908L3.51192 7.84073L11.1571 0.635166C11.358 0.445766 11.6745 0.455133 11.8639 0.656087Z"
-                          fill="#6894F9"
+                          fill="currentColor"
                         />
                       </svg>
                     </span>
                   {:else if showPlans && option.plan}
                     <span
-                      class="rounded-[2x] border px-1 py-0.5 whitespace-nowrap {getDynamicCssClasses(
+                      class="rounded border px-1.5 py-0.5 text-xs whitespace-nowrap {getDynamicCssClasses(
                         option.plan,
                       )}"
                     >
@@ -173,30 +242,39 @@
                   {/if}
                 </div>
               </button>
-            </Tooltip>
-          {/each}
-        {/if}
+            {/each}
+          {/if}
+        </div>
       </div>
     </div>
   {/if}
+
+  <!-- Custom Tooltip -->
+  {#if hoveredOption && open}
+    {@const option = filteredOptions.find((opt) => opt.id === hoveredOption)}
+    {#if option && option.label.length > 17}
+      <div
+        class="pointer-events-none fixed z-[9999]"
+        style="left: {tooltipPosition.x}px; top: {tooltipPosition.y}px; transform: translateX(-50%);"
+      >
+        <div
+          class="relative max-w-[200px] rounded-md border border-surface-100 bg-surface-100 px-3 py-2 text-xs text-white shadow-lg"
+        >
+          <div class="leading-relaxed break-words whitespace-pre-wrap">
+            {option.label}
+          </div>
+
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 transform">
+            <div
+              class="h-0 w-0 border-r-[6px] border-b-[6px] border-l-[6px] border-r-transparent border-b-surface-100 border-l-transparent"
+            ></div>
+
+            <div
+              class="absolute bottom-0 left-1/2 h-0 w-0 -translate-x-1/2 translate-y-[1px] transform border-r-[7px] border-b-[7px] border-l-[7px] border-r-transparent border-b-surface-100 border-l-transparent"
+            ></div>
+          </div>
+        </div>
+      </div>
+    {/if}
+  {/if}
 </section>
-
-<style>
-  .custom-scroll::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2); /* Light thumb */
-    border-radius: 4px;
-  }
-
-  .custom-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scroll {
-    scrollbar-color: #31353f transparent;
-    scrollbar-width: thin;
-  }
-</style>

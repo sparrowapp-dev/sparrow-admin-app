@@ -158,10 +158,22 @@
     border-collapse: collapse;
   }
 
-  .empty-state {
-    padding: 2rem;
-    text-align: center;
-    color: rgb(156 163 175);
+  .table-scroll-container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-scroll-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+  }
+
+  .table-scroll-container::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 4px;
+  }
+
+  .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #666;
   }
 
   @keyframes spin {
