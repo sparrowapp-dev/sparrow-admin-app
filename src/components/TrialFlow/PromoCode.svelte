@@ -15,7 +15,7 @@
   export let promoAppliedValue = '';
 </script>
 
-<div class="ml-4 flex flex-col gap-4 px-6 py-3" style="background-color: #181C26;">
+<div class="ml-4 flex flex-col gap-4 rounded-md px-6 py-3" style="background-color: #181C26;">
   <div class="flex flex-col text-white">
     <h3 class="text-fs-ds-20 font-fw-ds-500" style="margin-bottom: 4px;">Billing Summary</h3>
 
@@ -51,9 +51,9 @@
       <span class="text-fs-ds-12 font-fw-ds-400 text-neutral-200">Promo Code</span>
       <div class="flex gap-2">
         <div class="flex flex-col">
-          <Input placeholder="Enter promo code" bind:value={promoCode} />
+          <Input placeholder="Enter promo code" bind:value={promoCode} hasError={!!errorMessage} />
           {#if errorMessage}
-            <div class="mt-1 text-xs text-red-400">{errorMessage}</div>
+            <div class="mt-2 text-xs text-red-300">{errorMessage}</div>
           {/if}
           {#if isApplied && successMessage}
             <div class="mt-2 flex gap-2">
@@ -65,7 +65,7 @@
         <Button
           variant="outline-primary"
           size="medium"
-          className="px-4"
+          className="px-4 py-4.5"
           on:click={onApply}
           disabled={isApplying}
         >
