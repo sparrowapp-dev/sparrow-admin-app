@@ -35,7 +35,6 @@
   let dropdownPosition = { left: 0, top: 0, bottom: 0, width: 0 };
   let portalContainer: HTMLElement;
   let isPositioning = false;
-
   // Update filtered options when search term or options change
   $: {
     if (searchTerm.trim() === '') {
@@ -91,9 +90,10 @@
 
     dropdownDirection = viewportHeight - rect.bottom >= dropdownHeight ? 'down' : 'up';
 
+    // Use window.scrollX and window.scrollY for more reliable positioning
     dropdownPosition = {
-      left: rect.left + window.scrollX,
-      top: rect.bottom + window.scrollY + 1,
+      left: rect.left,
+      top: rect.bottom + 1,
       bottom: viewportHeight - rect.top + 1,
       width: rect.width,
     };
@@ -150,10 +150,9 @@
     }
   }
 
-  function handleScroll() {
-    if (open && !isPositioning) {
-      updateDropdownPosition();
-    }
+  function handleScroll(event: Event) {
+    if (!open || isPositioning) return;
+    updateDropdownPosition();
   }
 
   onMount(() => {
@@ -217,8 +216,7 @@
 
 <div class="text-fs-ds-12 leading-lh-ds-150 relative" bind:this={dropdownRef}>
   {#if open}
-    <div class="relative mt-[9px] scale-[99.5%] flex items-center">
-
+    <div class="relative mt-[9px] flex scale-[99.5%] items-center">
       <input
         bind:this={inputRef}
         bind:value={searchTerm}
