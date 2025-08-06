@@ -228,7 +228,7 @@
         {disabled}
       />
       <button
-        class="absolute top-[60%] right-3 z-10 -m-1 -translate-y-1/2 transform cursor-pointer p-1 transition-opacity hover:opacity-70"
+        class="absolute top-[60%] right-2 z-10 -m-1 -translate-y-1/2 transform cursor-pointer p-1 transition-opacity hover:opacity-70"
         on:click|stopPropagation={closeDropdown}
         tabindex="-1"
       >
