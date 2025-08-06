@@ -1,7 +1,7 @@
 <script lang="ts">
   import ArrowVerticalV2 from '@/assets/icons/ArrowVerticalV2.svelte';
   import BlueCheckIcon from '@/assets/icons/BlueCheckIcon.svelte';
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
 
   interface DropdownOption {
     value: any;
@@ -33,7 +33,8 @@
   let searchTerm = '';
   let filteredOptions: DropdownOption[] = [];
   let dropdownPosition = { left: 0, top: 0, bottom: 0, width: 0 };
-  let portalTarget: HTMLElement;
+  let portalContainer: HTMLElement;
+  let isPositioning = false;
 
   // Update filtered options when search term or options change
   $: {
@@ -49,41 +50,52 @@
     }
   }
 
-  function openDropdown() {
-    if (!disabled && !open) {
-      open = true;
-      searchTerm = ''; // Clear search term to show all options
+  async function openDropdown() {
+    if (disabled || open) return;
 
-      // Focus input when opened
-      setTimeout(() => {
-        if (inputRef) {
-          inputRef.focus();
-        }
-        updateDropdownPosition();
-      }, 0);
+    isPositioning = true;
+    open = true;
+    searchTerm = ''; // Clear search term to show all options
+
+    // Wait for DOM to update, then position and focus
+    await tick();
+    updateDropdownPosition();
+
+    if (inputRef) {
+      inputRef.focus();
     }
+
+    isPositioning = false;
   }
 
   function closeDropdown() {
     open = false;
     searchTerm = '';
+    isPositioning = false;
+  }
+
+  function toggleDropdown() {
+    if (open) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
   }
 
   function updateDropdownPosition() {
-    if (!dropdownRef) return;
+    if (!dropdownRef || !open) return;
 
     const rect = dropdownRef.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    // Use maxHeight value to calculate if dropdown fits
     const dropdownHeight = parseInt(maxHeight.replace('px', '')) || 240;
 
     dropdownDirection = viewportHeight - rect.bottom >= dropdownHeight ? 'down' : 'up';
 
     dropdownPosition = {
-      left: rect.left,
-      top: rect.bottom + 1,
+      left: rect.left + window.scrollX,
+      top: rect.bottom + window.scrollY + 1,
       bottom: viewportHeight - rect.top + 1,
-      width: dropdownRef.offsetWidth,
+      width: rect.width,
     };
   }
 
@@ -95,7 +107,12 @@
   }
 
   function handleClickOutside(event: MouseEvent) {
-    if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
+    if (
+      dropdownRef &&
+      !dropdownRef.contains(event.target as Node) &&
+      portalContainer &&
+      !portalContainer.contains(event.target as Node)
+    ) {
       closeDropdown();
     }
   }
@@ -106,7 +123,7 @@
     if (event.key === 'Escape') {
       closeDropdown();
     } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault(); // Prevent scrolling the page
+      event.preventDefault();
 
       if (filteredOptions.length === 0) return;
 
@@ -124,7 +141,6 @@
       selectOption(filteredOptions[newIndex]);
       searchTerm = filteredOptions[newIndex].label;
     } else if (event.key === 'Enter' && filteredOptions.length > 0) {
-      // Select first option or current option on Enter
       const optionToSelect =
         selected && filteredOptions.some((o) => o.value === selected?.value)
           ? selected
@@ -135,33 +151,30 @@
   }
 
   function handleScroll() {
-    if (open) {
+    if (open && !isPositioning) {
       updateDropdownPosition();
     }
   }
 
   onMount(() => {
-    // Create portal target for dropdown
-    portalTarget = document.createElement('div');
-    portalTarget.style.position = 'absolute';
-    portalTarget.style.top = '0';
-    portalTarget.style.left = '0';
-    portalTarget.style.zIndex = '9999';
-    portalTarget.style.pointerEvents = 'none';
-    document.body.appendChild(portalTarget);
+    // Create portal container
+    portalContainer = document.createElement('div');
+    portalContainer.style.position = 'absolute';
+    portalContainer.style.top = '0';
+    portalContainer.style.left = '0';
+    portalContainer.style.zIndex = '9999';
+    portalContainer.style.pointerEvents = 'none';
+    document.body.appendChild(portalContainer);
 
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleKeydown);
     window.addEventListener('resize', updateDropdownPosition);
-
-    // Add scroll event listeners to window and all scrollable parents
     window.addEventListener('scroll', handleScroll, true);
   });
 
   onDestroy(() => {
-    // Clean up portal target
-    if (portalTarget && portalTarget.parentNode) {
-      portalTarget.parentNode.removeChild(portalTarget);
+    if (portalContainer?.parentNode) {
+      portalContainer.parentNode.removeChild(portalContainer);
     }
 
     document.removeEventListener('click', handleClickOutside);
@@ -172,7 +185,7 @@
 
   // Input classes with error state handling
   $: inputClasses = `
-          w-full rounded-sm px-3 py-2 ${width}
+          w-full rounded-sm px-2 py-2 ${width}
           text-fs-ds-14 font-fw-ds-300
           focus:ring-1 focus:outline-none
           disabled:cursor-not-allowed disabled:opacity-50 
@@ -187,7 +200,7 @@
   // Button classes with error state handling
   $: buttonClasses = `
           flex ${width} cursor-pointer items-center justify-between 
-          rounded-sm px-3 py-2 
+          rounded-sm px-2 py-2 
           focus:ring-1 focus:outline-none
           disabled:cursor-not-allowed disabled:opacity-50 
           ${hasError ? 'border border-red-300' : 'border border-transparent hover:border-neutral-300'}
@@ -204,18 +217,23 @@
 
 <div class="text-fs-ds-12 leading-lh-ds-150 relative" bind:this={dropdownRef}>
   {#if open}
-    <div class="relative ml-1 flex items-center">
+    <div class="relative mt-[9px] scale-[99.5%] flex items-center">
+
       <input
         bind:this={inputRef}
         bind:value={searchTerm}
         type="text"
         placeholder={searchPlaceholder}
-        class={inputClasses}
+        class="{inputClasses} {'pr-10'}"
         {disabled}
       />
-      <div class="absolute top-1/2 right-3 -translate-y-1/2 transform">
+      <button
+        class="absolute top-[60%] right-3 z-10 -m-1 -translate-y-1/2 transform cursor-pointer p-1 transition-opacity hover:opacity-70"
+        on:click|stopPropagation={closeDropdown}
+        tabindex="-1"
+      >
         <ArrowVerticalV2 open={true} />
-      </div>
+      </button>
     </div>
   {:else}
     <button class={buttonClasses} on:click={openDropdown} {disabled}>
@@ -233,64 +251,65 @@
           {/if}
         </span>
       </div>
-      <ArrowVerticalV2 open={false} />
+      <button
+        class="-m-1 cursor-pointer p-1 transition-opacity hover:opacity-70"
+        on:click|stopPropagation={toggleDropdown}
+        tabindex="-1"
+      >
+        <ArrowVerticalV2 open={false} />
+      </button>
     </button>
   {/if}
 
-  {#if open && portalTarget}
-    <!-- Render dropdown in portal to escape parent container clipping -->
-    {#await import('svelte')}
-      <!-- Loading -->
-    {:then}
+  {#if open && portalContainer && !isPositioning}
+    <div
+      style="position: fixed; 
+             left: {dropdownPosition.left}px; 
+             {dropdownDirection === 'down'
+        ? `top: ${dropdownPosition.top}px;`
+        : `bottom: ${dropdownPosition.bottom}px;`}
+             width: {dropdownPosition.width}px;
+             z-index: 9999;
+             pointer-events: auto;"
+    >
       <div
-        style="position: fixed; 
-               left: {dropdownPosition.left}px; 
-               {dropdownDirection === 'down'
-          ? `top: ${dropdownPosition.top}px;`
-          : `bottom: ${dropdownPosition.bottom}px;`}
-               width: {dropdownPosition.width}px;
-               z-index: 9999;
-               pointer-events: auto;"
+        class="overflow-hidden rounded-md shadow-lg {variant === 'primary'
+          ? 'bg-surface-600'
+          : 'bg-white'}"
       >
-        <div
-          class="overflow-hidden rounded-md shadow-lg {variant === 'primary'
-            ? 'bg-surface-600'
-            : 'bg-white'}"
+        <ul
+          class="px-1 py-1 {needsScroll ? 'overflow-y-auto' : ''} {variant === 'primary'
+            ? 'dark'
+            : ''}"
+          style="max-height: {maxHeight};"
         >
-          <ul
-            class="px-1 py-1 {needsScroll ? 'overflow-y-auto' : ''} {variant === 'primary'
-              ? 'dark'
-              : ''}"
-            style="max-height: {maxHeight};"
-          >
-            {#if filteredOptions.length === 0}
-              <li class="px-2 py-2 text-neutral-400">No results found</li>
-            {:else}
-              {#each filteredOptions as option}
-                <li class="flex items-center justify-between">
-                  <button
-                    class="font-fw-ds-300 flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
-                            {variant === 'primary'
-                      ? `hover:bg-surface-400 ${selected?.value === option.value ? 'text-blue-300' : 'text-neutral-50'}`
-                      : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
-                    on:click={() => selectOption(option)}
-                  >
-                    {#if option.leftIcon}
-                      <svelte:component this={option.leftIcon} />
-                    {/if}
-                    {option.label}
-                    {#if selected?.value === option.value}
-                      <div class="ml-auto">
-                        <BlueCheckIcon />
-                      </div>
-                    {/if}
-                  </button>
-                </li>
-              {/each}
-            {/if}
-          </ul>
-        </div>
+          {#if filteredOptions.length === 0}
+            <li class="px-2 py-2 text-neutral-400">No results found</li>
+          {:else}
+            {#each filteredOptions as option}
+              <li class="flex items-center justify-between">
+                <button
+                  class="font-fw-ds-300 flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-left
+                          {variant === 'primary'
+                    ? `hover:bg-surface-400 ${selected?.value === option.value ? 'text-blue-300' : 'text-neutral-50'}`
+                    : `hover:bg-gray-50 ${selected?.value === option.value ? 'text-blue-600' : 'text-gray-900'}`}"
+                  on:click={() => selectOption(option)}
+                >
+                  {#if option.leftIcon}
+                    <svelte:component this={option.leftIcon} />
+                  {/if}
+                  {option.label}
+                  {#if selected?.value === option.value}
+                    <div class="ml-auto">
+                      <BlueCheckIcon />
+                    </div>
+                  {/if}
+                </button>
+              </li>
+            {/each}
+          {/if}
+        </ul>
       </div>
-    {/await}
+    </div>
   {/if}
 </div>
