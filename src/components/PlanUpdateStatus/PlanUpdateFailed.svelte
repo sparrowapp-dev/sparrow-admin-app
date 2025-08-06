@@ -50,7 +50,9 @@
   <div class="mb-6 grid grid-cols-2 gap-y-4">
     <div>
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Hub Name</p>
-      <p class="text-fs-ds-16 font-inter font-fw-ds-500 max-w-[10rem] truncate">{hubName}</p>
+      <p class="text-fs-ds-16 font-inter font-fw-ds-500 max-w-[10rem] truncate text-neutral-50">
+        {hubName}
+      </p>
     </div>
     <div>
       <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400">Current Plan</p>
