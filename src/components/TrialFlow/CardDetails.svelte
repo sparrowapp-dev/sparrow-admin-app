@@ -251,7 +251,6 @@
       // Use billing service to fetch payment method
       const data = await billingService.getPaymentMethod(paymentMethodId);
       existingPaymentMethod = data.paymentMethod;
-      console.log('Fetched existing payment method:', existingPaymentMethod);
 
       // Pre-fill card details (read-only in edit mode)
       if (existingPaymentMethod.card) {
@@ -293,7 +292,7 @@
     setTimeout(() => {
       mountStripeElements();
     }, 100);
-    console.log('CardDetails mounted', isCardDetailsAdded);
+
     if (isCardDetailsAdded) {
       fetchPaymentMethod();
     }
@@ -389,7 +388,6 @@
 
   // Process payment information (called from parent component)
   export async function processCardDetailsAdd() {
-    console.log('inside processPayment');
     // return;
     if (isSaving) return { success: false, error: 'Processing in progress' };
 

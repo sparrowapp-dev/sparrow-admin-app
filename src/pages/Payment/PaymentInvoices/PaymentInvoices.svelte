@@ -46,7 +46,6 @@
     return hubsService.getHubDetails(hubId);
   });
 
-  $: console.log($hubData);
 
   // Combined query for customer data and invoices
   const {

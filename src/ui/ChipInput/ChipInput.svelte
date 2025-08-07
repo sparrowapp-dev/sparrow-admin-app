@@ -29,7 +29,7 @@
   );
   let showDropdown = false;
   let selectedIndex = -1;
-  $: console.log(emails);
+
   // Validation
   let invalidEmails: string[] = [];
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;

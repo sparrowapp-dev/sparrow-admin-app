@@ -94,7 +94,6 @@
   };
 
   onMount(() => {
-    console.log('---------------we are calling it.------>');
     initPostHog();
     const email = get(userEmail);
     if (email) {
