@@ -23,7 +23,7 @@
 
   function extractAndValidateToken() {
     const urlParams = new URLSearchParams($location.search);
-    const tokenFromUrl = urlParams.get('token');
+    const tokenFromUrl = urlParams.get('xid');
 
     if (tokenFromUrl) {
       queryToken = tokenFromUrl;
