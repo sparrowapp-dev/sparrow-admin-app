@@ -1,12 +1,14 @@
 <script lang="ts">
   import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
+  import Tag from '@/ui/Tag/Tag.svelte';
+  import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import type { ComponentType } from 'svelte';
   import { createEventDispatcher, onMount } from 'svelte';
 
   export let icon: ComponentType;
   export let label: { label: string; id: string };
   export let options: { id: string; label: string; value: any; plan?: string }[] = [];
-  export let showPlans: boolean = false;
+  export let showPlans: boolean = true;
   export let onSelect: (value: any) => void = () => {};
 
   export let selected: { label: string; id: string } = label;
@@ -49,21 +51,6 @@
     selected = { label: option.label, id: option.id };
     onSelect(option.value);
     dispatch('select', option);
-  }
-
-  function getDynamicCssClasses(plan: string) {
-    switch (plan) {
-      case 'Professional':
-        return 'border-cyan-700 text-cyan-300 bg-cyan-900';
-      case 'Community':
-        return 'border-neutral-500 bg-neutral-700 text-neutral-200';
-      case 'Standard':
-        return 'border-purple-700 text-purple-200 bg-purple-900';
-      case 'Enterprise':
-        return 'border-yellow-700 text-yellow-300 bg-yellow-900';
-      default:
-        return '';
-    }
   }
 
   $: if (searchMode && open && searchInput) {
@@ -206,7 +193,7 @@
                 class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130
                 hover:bg-surface-400 focus:bg-surface-400 flex w-full cursor-pointer items-center
                 justify-between rounded-sm px-2 py-2.5 transition-colors
-                duration-200 ease-in-out focus:ring-2 focus:ring-blue-300 focus:outline-none
+                duration-200 ease-in-out focus:outline-none
                 {selected.id.toString() === option.id.toString()
                   ? 'bg-surface-500 text-blue-300'
                   : 'text-neutral-50'}"
@@ -238,13 +225,13 @@
                       </svg>
                     </span>
                   {:else if showPlans && option.plan}
-                    <span
-                      class="rounded border px-1.5 py-0.5 text-xs whitespace-nowrap {getDynamicCssClasses(
-                        option.plan,
-                      )}"
-                    >
-                      {option.plan}
-                    </span>
+                    <Tag
+                      text={option.plan}
+                      bgColor={getDynamicCssClasses(option.plan)?.bgColor}
+                      textColor={getDynamicCssClasses(option.plan)?.textColor}
+                      borderColor={getDynamicCssClasses(option.plan)?.borderColor}
+                      size="xs"
+                    />
                   {/if}
                 </div>
               </button>

@@ -50,9 +50,9 @@
   $: if ($data?.data?.length) {
     dropdownOptions = $data.data.map((team) => ({
       id: team.teamId,
-      label: team.teamName || '',
+      label: team?.teamName || '',
       value: team,
-      plan: null,
+      plan: team?.plan || null,
     }));
   } else {
     dropdownOptions = [];
