@@ -196,7 +196,6 @@
 
   function handleRowClick(event) {
     const rowData = event.detail;
-    console.log('Row clicked:', rowData);
   }
   $: breadcrumbItems = [
     { label: 'Users', path: `/users/users-overview` },

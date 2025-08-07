@@ -501,7 +501,6 @@
       seats: triggerPoint === 'finish' ? hubUserCount : 1,
       promoCodeId,
     });
-    console.log('Subscription result:', result);
     trialstart = result?.subscription?.trial_start;
     trialend = result?.subscription?.trial_end;
     // Check if additional authentication is required (like 3D Secure)
