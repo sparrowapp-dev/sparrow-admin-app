@@ -575,51 +575,62 @@
             Quick access to commonly used features.
           </p>
           <ul class="flex flex-col gap-5">
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/members/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Manage Users
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/workspace/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Open Hub
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
 
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInvoices/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Invoice History
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInformation/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Payment Information
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/settings/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Settings
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
           </ul>
         </div>
