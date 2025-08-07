@@ -1,7 +1,7 @@
 <script lang="ts">
   import DropdownArrow from '@/assets/icons/DropdownArrow.svelte';
   import Tag from '@/ui/Tag/Tag.svelte';
-    import { getDynamicCssClasses } from '@/utils/planTagStyles';
+  import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import type { ComponentType } from 'svelte';
   import { createEventDispatcher, onMount } from 'svelte';
 
