@@ -258,7 +258,6 @@
     <div
       bind:this={dropdownElement}
       class="border-surface-200 bg-surface-400 absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-sm border shadow-lg"
-      transition:fade
     >
       {#if filteredUsers.length > 0}
         {#each filteredUsers as user, i}
