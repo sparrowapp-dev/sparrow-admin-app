@@ -161,7 +161,6 @@
     ).sort((a, b) => a.email.localeCompare(b.email));
   }
 
-  // Outside click handler
   function handleOutsideClick(event: MouseEvent) {
     if (!showDropdown) return;
 
