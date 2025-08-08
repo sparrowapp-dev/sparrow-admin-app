@@ -138,7 +138,7 @@
   function handleRedirect() {
     captureUserClickUpgrade();
     if (isOwner) {
-      navigate(`/billing/billingOverview/${hubId}`);
+      navigate(`/billing/billingOverview/${hubId}redirectTo=changePlan`);
     } else {
       window.open(`mailto:${owner?.email}`);
     }
