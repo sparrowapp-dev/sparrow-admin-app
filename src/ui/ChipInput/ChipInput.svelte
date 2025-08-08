@@ -22,6 +22,7 @@
   let inputValue = '';
   let inputElement: HTMLInputElement;
   let containerElement: HTMLDivElement;
+  let dropdownElement: HTMLDivElement;
 
   // Dropdown and selection logic
   $: filteredUsers = UserDetails.filter((user) => !emails.includes(user.email)).sort((a, b) =>
@@ -160,8 +161,26 @@
     ).sort((a, b) => a.email.localeCompare(b.email));
   }
 
+  // Outside click handler
+  function handleOutsideClick(event: MouseEvent) {
+    if (!showDropdown) return;
+
+    const target = event.target as Node;
+    const isClickInside = containerElement?.contains(target) || dropdownElement?.contains(target);
+
+    if (!isClickInside) {
+      showDropdown = false;
+      selectedIndex = -1;
+
+      // Add email if there's input and not in workspace invite mode
+      if (inputValue.trim() && !IsWorkspaceInvite) {
+        addEmail();
+      }
+    }
+  }
+
   onMount(() => {
-    if (inputElement) inputElement.focus();
+    if (inputElement && !IsWorkspaceInvite) inputElement.focus();
     checkEmailsValidity(emails);
 
     const observer = new IntersectionObserver(
@@ -177,7 +196,14 @@
     );
 
     if (inputElement) observer.observe(inputElement);
-    return () => observer.disconnect();
+
+    // Add outside click listener
+    document.addEventListener('click', handleOutsideClick);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('click', handleOutsideClick);
+    };
   });
 
   // Reactive dropdown filter
@@ -231,6 +257,7 @@
   </div>
   {#if IsWorkspaceInvite && showDropdown}
     <div
+      bind:this={dropdownElement}
       class="border-surface-200 bg-surface-400 absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-sm border shadow-lg"
       transition:fade
     >
