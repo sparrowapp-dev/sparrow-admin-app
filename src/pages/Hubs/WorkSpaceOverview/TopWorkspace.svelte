@@ -71,22 +71,26 @@
     closeDropdown();
   }
 
-  const captureWorkspaceDropdown = (buttonName:string, location:string,captureName:string)=>{
+  const captureWorkspaceDropdown = (buttonName: string, location: string, captureName: string) => {
     const eventProperties = {
-      event_source : "admin_panel",
-      resource:"workspace",
-      button_name:buttonName,
-      source_location:location
-    }
+      event_source: 'admin_panel',
+      resource: 'workspace',
+      button_name: buttonName,
+      source_location: location,
+    };
     captureEvent(captureName, eventProperties);
-  }
+  };
 
   function launchInSparrow(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
 
     if (workspaceId) {
-      captureWorkspaceDropdown("Lanuch in Sparrow",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"admin_launch_web_app");
+      captureWorkspaceDropdown(
+        'Lanuch in Sparrow',
+        `${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,
+        'admin_launch_web_app',
+      );
       // Build URL with required query parameters
       const baseUrl = `${SPARROW_LAUNCH_URL}/app/collections`;
       const params = new URLSearchParams();
@@ -102,7 +106,11 @@
     closeDropdown();
   }
   function handleMakeItPublic() {
-    captureWorkspaceDropdown("Share Workspace",`${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,"workspace_share_clicked");
+    captureWorkspaceDropdown(
+      'Share Workspace',
+      `${SPARROW_LAUNCH_URL}/hubs/workspace-details/${hubId}/${workspaceId}`,
+      'workspace_share_clicked',
+    );
     openModal('makeItPublic');
     closeDropdown();
   }
@@ -269,12 +277,11 @@
       </div>
     </div>
     <div class="font-inter text-fs-ds-12 leading-lh-ds-150 flex text-neutral-400">
-      You are viewing details for the workspace '
-
-      {topData?.title?.length > 10 ? `${topData?.title?.slice(0, 10)}...` : topData?.title}
-
-      '. This workspace contains API collections, test flows, and environments that are organized
-      for collaborative development and testing.
+      You are viewing details for the workspace '{(topData?.title?.length > 10
+        ? `${topData?.title?.slice(0, 10).trim()}...`
+        : topData?.title
+      ).trim()}'. This workspace contains API collections, test flows, and environments that are
+      organized for collaborative development and testing.
     </div>
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {#each stats as stat (stat?.label)}
