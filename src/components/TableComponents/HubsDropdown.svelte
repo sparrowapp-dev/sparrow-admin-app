@@ -80,7 +80,7 @@
   function handleUpgrade(event, hub) {
     event.stopPropagation();
     captureUserClickUpgrade();
-    navigate(`/billing/billingOverview/${hub?._id}`);
+    navigate(`/billing/billingOverview/${hub?._id}?redirectTo=changePlan`);
     // Your upgrade logic here
     // closeDropdown();
   }

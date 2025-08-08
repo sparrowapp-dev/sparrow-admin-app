@@ -66,7 +66,7 @@
 
   const handleRedirect = () => {
     captureUserClicUpgrade();
-    if (hubId) navigate(`/billing/billingOverview/${hubId}`);
+    if (hubId) navigate(`/billing/billingOverview/${hubId}?redirectTo=changePlan`);
   };
 
   const captureUserClicUpgrade = () => {
