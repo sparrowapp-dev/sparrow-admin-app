@@ -102,8 +102,6 @@
     return billingService.getCustomerSubscriptions(customerId);
   });
 
-  $: console.log(customerId);
-
   // Fetch hub data
   const {
     data: hubData,
