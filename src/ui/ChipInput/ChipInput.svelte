@@ -211,10 +211,6 @@
     showDropdown = filteredUsers.length > 0 || !!inputValue;
     selectedIndex = -1;
   }
-  $: console.log(inputValue);
-  $: console.log(emails);
-  $: console.log(UserDetails);
-  $: console.log(filteredUsers);
 </script>
 
 <div class="relative">
