@@ -277,9 +277,9 @@
       </div>
     </div>
     <div class="font-inter text-fs-ds-12 leading-lh-ds-150 flex text-neutral-400">
-      You are viewing details for the workspace '{(topData?.title?.length > 10
-        ? `${topData?.title?.slice(0, 10).trim()}...`
-        : topData?.title
+      You are viewing details for the workspace '{((topData?.title ?? '').length > 10
+        ? `${(topData?.title ?? '').slice(0, 10).trim()}...`
+        : (topData?.title ?? '')
       ).trim()}'. This workspace contains API collections, test flows, and environments that are
       organized for collaborative development and testing.
     </div>
