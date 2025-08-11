@@ -211,6 +211,10 @@
     showDropdown = filteredUsers.length > 0 || !!inputValue;
     selectedIndex = -1;
   }
+  $: console.log(inputValue);
+  $: console.log(emails);
+  $: console.log(UserDetails);
+  $: console.log(filteredUsers);
 </script>
 
 <div class="relative">
@@ -305,7 +309,7 @@
             </div>
           </div>
         </button>
-      {:else if inputValue == '' && emails.length < 1 && filteredUsers?.length < 1}
+      {:else if (inputValue == '' && emails.length < 1 && filteredUsers?.length < 1) || (emails.length > 0 && filteredUsers?.length < 1 && inputValue === '')}
         <button
           class="hover:bg-surface-200 flex w-full cursor-pointer items-center gap-2 px-3 py-2"
           on:click|stopPropagation={() => addEmail()}
