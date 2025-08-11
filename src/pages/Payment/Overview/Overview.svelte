@@ -70,6 +70,8 @@
   let isLoadingSubscription = false;
   let hasRedirected = false; // Prevent multiple redirects
   let isRedirecting = false; // Track redirect loading state
+  let isLoading = false; // Debounced loading state
+  let loadingTimeout = null;
 
   // Cancel subscription state
   let showCancelConfirmModal = false;
@@ -378,6 +380,36 @@
     };
     captureEvent('admin_upgrade_intent', eventProperties);
   };
+
+  // Debounced loading state to prevent glitch effect
+  $: {
+    const shouldBeLoading = $isFetchingHub || $isFetchingCustomer || $isFetchingSubscription;
+
+    if (shouldBeLoading && !isLoading) {
+      // Show loading immediately when it should be loading
+      isLoading = true;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+    } else if (!shouldBeLoading && isLoading) {
+      // Delay hiding the loader to prevent flickering
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      loadingTimeout = setTimeout(() => {
+        isLoading = false;
+        loadingTimeout = null;
+      }, 350); // 350ms delay before hiding loader
+    }
+  }
+
+  // Cleanup timeout on component destroy
+  onDestroy(() => {
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+  });
 </script>
 
 {#if isRedirecting}
@@ -394,7 +426,7 @@
       </p>
     </div>
   </div>
-{:else if $isFetchingHub || $isFetchingCustomer || ($isFetchingSubscription && customerId)}
+{:else if isLoading}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
