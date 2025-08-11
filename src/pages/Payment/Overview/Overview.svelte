@@ -88,7 +88,11 @@
 
   // ===== API QUERIES =====
   // Fetch customer ID
-  const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
+  const {
+    data: customerData,
+    refetch: refetchCustomer,
+    isFetching: isFetchingCustomer,
+  } = createQuery(async () => {
     return billingService.fetchCustomerId(hubId);
   });
 
@@ -390,11 +394,11 @@
       </p>
     </div>
   </div>
-{:else if $isFetchingHub || ($isFetchingSubscription && customerId)}
+{:else if $isFetchingHub || $isFetchingCustomer || ($isFetchingSubscription && customerId)}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
-{:else}
+{:else if $hubData?.data}
   <section class="payment-information text-white">
     <div class="mb-6 flex items-end justify-between">
       <div>
