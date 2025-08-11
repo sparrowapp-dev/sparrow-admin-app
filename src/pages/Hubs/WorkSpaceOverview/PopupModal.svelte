@@ -613,8 +613,12 @@
       <div class="text-fs-ds-12 font-fw-ds-300 text-neutral-400">
         You can invite hub members or external collaborators to this workspace. Invited people will
         have access to only the
-        <span class="inline-block w-[10rem] truncate align-bottom text-neutral-50">
-          {data?.title}
+        <span class="text-neutral-50">
+          {typeof data?.title === 'string'
+            ? data.title.length > 10
+              ? `${data.title.slice(0, 10)}...`
+              : data.title
+            : ''}
         </span>
         workspace.
       </div>
