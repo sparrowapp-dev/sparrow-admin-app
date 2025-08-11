@@ -102,6 +102,8 @@
     return billingService.getCustomerSubscriptions(customerId);
   });
 
+  $: console.log(customerId);
+
   // Fetch hub data
   const {
     data: hubData,
@@ -390,7 +392,7 @@
       </p>
     </div>
   </div>
-{:else if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}
+{:else if $isFetchingHub || ($isFetchingSubscription && customerId)}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
