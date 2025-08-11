@@ -623,7 +623,7 @@
         workspace.
       </div>
 
-      {#if hubDetails?.data?.plan?.name !== 'Community' && hubDetails?.data?.plan?.name !== undefined}
+      {#if data?.plan?.name !== 'Community'}
         <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
           Note: Inviting a user reserves a license and may trigger a charge, unless an unused
           license is available.

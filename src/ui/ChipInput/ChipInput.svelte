@@ -171,8 +171,8 @@
       showDropdown = false;
       selectedIndex = -1;
 
-      // Add email if there's input and not in workspace invite mode
-      if (inputValue.trim() && !IsWorkspaceInvite) {
+      // Add email if there's input
+      if (inputValue.trim()) {
         addEmail();
       }
     }
