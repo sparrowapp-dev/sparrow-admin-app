@@ -24,7 +24,7 @@
   let isPressed: string | null = null;
   function launchSparrow() {
     captureUserClickTopbar('launch_web_app', true);
-    window.open(`${SPARROW_LAUNCH_URL}app/collections`, '_blank');
+    window.open(`${SPARROW_LAUNCH_URL}/app/collections`, '_blank');
   }
 
   const docsUrl = SPARROW_DOCS_URL;
