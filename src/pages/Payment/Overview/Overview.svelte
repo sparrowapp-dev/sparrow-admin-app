@@ -400,7 +400,7 @@
       loadingTimeout = setTimeout(() => {
         isLoading = false;
         loadingTimeout = null;
-      }, 350); // 350ms delay before hiding loader
+      }, 1500);
     }
   }
 
@@ -426,11 +426,14 @@
       </p>
     </div>
   </div>
-{:else if isLoading}
+{/if}
+{#if isLoading}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
-{:else if $hubData?.data}
+{/if}
+
+{#if $hubData?.data}
   <section class="payment-information text-white">
     <div class="mb-6 flex items-end justify-between">
       <div>
