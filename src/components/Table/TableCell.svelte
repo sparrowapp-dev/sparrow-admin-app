@@ -57,7 +57,7 @@
   style="width: {finalColumnWidth}; {finalOpacity !== undefined ? `opacity: ${finalOpacity};` : ''}"
   on:click
 >
-  <div class="overflow-hidden text-ellipsis whitespace-nowrap" title={cellValue}>
+  <div class="overflow-hidden text-ellipsis whitespace-nowrap">
     {#if typeof cell.column.columnDef.cell === 'function'}
       {#if typeof cell.column.columnDef.cell(cell) === 'object'}
         {#if cell.column.columnDef.cell(cell)?.Component}

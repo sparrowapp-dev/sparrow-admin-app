@@ -294,7 +294,7 @@
   async function nextStep() {
     // Special handling for step 2
     if (currentStep == 1) {
-      if (formData.hubName === '') {
+      if (!formData.hubName.trim()) {
         hubFormError.hubNameErrorMessage = 'Please enter your hub name.';
         hubFormError.hubNameError = true;
       } else if (formData.hubUrl === '') {
@@ -501,7 +501,6 @@
       seats: triggerPoint === 'finish' ? hubUserCount : 1,
       promoCodeId,
     });
-    console.log('Subscription result:', result);
     trialstart = result?.subscription?.trial_start;
     trialend = result?.subscription?.trial_end;
     // Check if additional authentication is required (like 3D Secure)

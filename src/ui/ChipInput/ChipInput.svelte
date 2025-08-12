@@ -1,91 +1,54 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import CloseIcon from '@/assets/icons/CloseIcon.svelte';
+  import { fade } from 'svelte/transition';
 
+  interface UserDetail {
+    email: string;
+    name: string;
+  }
+
+  // Props
   export let emails: string[] = [];
-  export let hasError: boolean = false;
-  export let errorMessage: string = '';
-  export let placeholder: string = 'Enter email ID';
+  export let hasError = false;
+  export let errorMessage = '';
+  export let placeholder = 'Enter email ID';
+  export let IsWorkspaceInvite = false;
+  export let UserDetails: UserDetail[] = [];
 
   const dispatch = createEventDispatcher();
+
+  // Refs
   let inputValue = '';
   let inputElement: HTMLInputElement;
   let containerElement: HTMLDivElement;
-  function scrollToInput() {
-    if (containerElement && inputElement) {
-      // Get the input's position relative to the container
-      const containerRect = containerElement.getBoundingClientRect();
-      const inputRect = inputElement.getBoundingClientRect();
+  let dropdownElement: HTMLDivElement;
 
-      // Calculate if input is below visible area
-      const isInputBelow = inputRect.bottom - containerRect.top > containerRect.height;
+  // Dropdown and selection logic
+  $: filteredUsers = UserDetails.filter((user) => !emails.includes(user.email)).sort((a, b) =>
+    a.email.localeCompare(b.email),
+  );
+  let showDropdown = false;
+  let selectedIndex = -1;
 
-      if (isInputBelow) {
-        // Smooth scroll to show input at bottom
-        containerElement.scrollTo({
-          top: containerElement.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
-    }
-  }
-
-  // Track invalid emails
+  // Validation
   let invalidEmails: string[] = [];
-
-  // Email validation regex
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-
-  onMount(() => {
-    if (inputElement) {
-      inputElement.focus();
-    }
-
-    // Check existing emails for validity
-    checkEmailsValidity(emails);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            scrollToInput();
-          }
-        });
-      },
-      {
-        root: containerElement,
-        threshold: 1.0,
-      },
-    );
-
-    if (inputElement) {
-      observer.observe(inputElement);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  });
 
   function validateEmail(email: string): boolean {
     return emailRegex.test(email.trim());
   }
 
-  // Check all emails for validity
-  function checkEmailsValidity(emailList: string[]) {
+  function checkEmailsValidity(emailList: string[]): boolean {
     invalidEmails = emailList.filter((email) => !validateEmail(email));
 
-    if (invalidEmails.length > 0) {
-      hasError = true;
+    hasError = invalidEmails.length > 0;
+    if (hasError) {
       errorMessage = 'Please check and enter correct email address.';
-    } else {
-      // Only clear errors if they were set by this component
-      if (errorMessage === 'Please check and enter correct email address.') {
-        hasError = false;
-        errorMessage = '';
-      }
+    } else if (errorMessage === 'Please check and enter correct email address.') {
+      errorMessage = '';
     }
 
-    // This is critical for the parent component to know if emails are valid
     dispatch('validity', {
       isValid: invalidEmails.length === 0,
       invalidEmails,
@@ -94,95 +57,159 @@
     return invalidEmails.length === 0;
   }
 
+  function addEmail(): boolean {
+    const emailsToAdd = inputValue
+      .split(/[\s,]+/)
+      .map((e) => e.trim())
+      .filter((e) => e && !emails.includes(e));
+
+    if (!emailsToAdd.length) return true;
+
+    const newEmails = [...emails, ...emailsToAdd];
+    inputValue = '';
+    showDropdown = false;
+
+    dispatch('change', newEmails);
+    return checkEmailsValidity(newEmails);
+  }
+
+  function removeEmail(index: number): boolean {
+    const newEmails = emails.filter((_, i) => i !== index);
+    dispatch('change', newEmails);
+    return checkEmailsValidity(newEmails);
+  }
+
   function handleKeyDown(event: KeyboardEvent) {
-    // Add email on Enter, comma, or space
-    if (event.key === 'Enter' || event.key === ',' || event.key === ' ') {
+    if (['Enter', ',', ' '].includes(event.key)) {
       event.preventDefault();
       addEmail();
     }
 
-    // Delete last email on Backspace if input is empty
-    if (event.key === 'Backspace' && inputValue === '' && emails.length > 0) {
+    if (event.key === 'Backspace' && !inputValue && emails.length > 0) {
       removeEmail(emails.length - 1);
     }
+
     scrollToInput();
   }
 
+  function handlePaste(event: ClipboardEvent): boolean {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') || '';
+
+    const pastedEmails = pastedText
+      .split(/[\s,]+/)
+      .map((e) => e.trim())
+      .filter((e) => e && !emails.includes(e));
+
+    if (!pastedEmails.length) return true;
+
+    const newEmails = [...emails, ...pastedEmails];
+    dispatch('change', newEmails);
+    return checkEmailsValidity(newEmails);
+  }
+
+  function selectUser(user: UserDetail) {
+    const newEmails = [...emails, user.email];
+    inputValue = '';
+    showDropdown = false;
+    selectedIndex = -1;
+    dispatch('change', newEmails);
+    checkEmailsValidity(newEmails);
+  }
+
+  function handleFocus() {
+    scrollToInput();
+    showDropdown = true;
+  }
+
   function handleBlur() {
-    if (inputValue.trim()) {
+    if (inputValue.trim() && !IsWorkspaceInvite) {
       addEmail();
     }
   }
 
-  function addEmail() {
-    const emailsToAdd = inputValue
-      .split(/[,\s]+/) // Split by commas or whitespace
-      .map((e) => e.trim())
-      .filter((e) => e && !emails.includes(e));
+  function scrollToInput() {
+    if (!containerElement || !inputElement) return;
 
-    if (emailsToAdd.length) {
-      // Accept all emails, even if invalid
-      const newEmails = [...emails, ...emailsToAdd];
+    const containerRect = containerElement.getBoundingClientRect();
+    const inputRect = inputElement.getBoundingClientRect();
 
-      // Clear input
-      inputValue = '';
-
-      // Update the emails list
-      dispatch('change', newEmails);
-
-      // Check for invalid emails and return validity status
-      const isValid = checkEmailsValidity(newEmails);
-
-      // Make sure parent knows if there are invalid emails
-      return isValid;
+    const isInputBelow = inputRect.bottom - containerRect.top > containerRect.height;
+    if (isInputBelow) {
+      containerElement.scrollTo({
+        top: containerElement.scrollHeight,
+        behavior: 'smooth',
+      });
     }
-
-    return true;
   }
 
-  function removeEmail(index: number) {
-    const newEmails = emails.filter((_, i) => i !== index);
-    dispatch('change', newEmails);
-
-    // Recheck validity when an email is removed
-    return checkEmailsValidity(newEmails);
-  }
-
-  function handlePaste(event: ClipboardEvent) {
-    event.preventDefault();
-    const pastedText = event.clipboardData?.getData('text') || '';
-    if (!pastedText) return;
-
-    const pastedEmails = pastedText
-      .split(/[,\s]+/)
-      .map((e) => e.trim())
-      .filter((e) => e && !emails.includes(e));
-
-    if (pastedEmails.length) {
-      // Accept all pasted emails, even if invalid
-      const newEmails = [...emails, ...pastedEmails];
-
-      // Update emails list
-      dispatch('change', newEmails);
-
-      // Check for validity
-      return checkEmailsValidity(newEmails);
-    }
-    scrollToInput();
-    return true;
-  }
-
-  // Check if an email is invalid
   function isInvalidEmail(email: string): boolean {
     return !validateEmail(email);
   }
 
-  // Expose method to check if there are currently any invalid emails
   export function hasInvalidEmails(): boolean {
     return invalidEmails.length > 0;
   }
-  function handleFocus() {
-    scrollToInput();
+
+  function filterUsers(input: string): UserDetail[] {
+    if (!input || !IsWorkspaceInvite) return [];
+    return UserDetails.filter(
+      (user) =>
+        !emails.includes(user.email) &&
+        (user.email.toLowerCase().includes(input.toLowerCase()) ||
+          user.name.toLowerCase().includes(input.toLowerCase())),
+    ).sort((a, b) => a.email.localeCompare(b.email));
+  }
+
+  function handleOutsideClick(event: MouseEvent) {
+    if (!showDropdown) return;
+
+    const target = event.target as Node;
+    const isClickInside = containerElement?.contains(target) || dropdownElement?.contains(target);
+
+    if (!isClickInside) {
+      showDropdown = false;
+      selectedIndex = -1;
+
+      // Add email if there's input
+      if (inputValue.trim()) {
+        addEmail();
+      }
+    }
+  }
+
+  onMount(() => {
+    if (inputElement && !IsWorkspaceInvite) inputElement.focus();
+    checkEmailsValidity(emails);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) scrollToInput();
+        });
+      },
+      {
+        root: containerElement,
+        threshold: 1.0,
+      },
+    );
+
+    if (inputElement) observer.observe(inputElement);
+
+    // Add outside click listener
+    document.addEventListener('click', handleOutsideClick);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  });
+
+  // Reactive dropdown filter
+  $: if (IsWorkspaceInvite && inputValue) {
+    filteredUsers = filterUsers(inputValue);
+    showDropdown = filteredUsers.length > 0 || !!inputValue;
+    selectedIndex = -1;
   }
 </script>
 
@@ -227,6 +254,72 @@
       on:focus={handleFocus}
     />
   </div>
+  {#if IsWorkspaceInvite && showDropdown}
+    <div
+      bind:this={dropdownElement}
+      class="border-surface-200 bg-surface-400 absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-sm border shadow-lg"
+    >
+      {#if filteredUsers.length > 0}
+        {#each filteredUsers as user, i}
+          <button
+            class="hover:bg-surface-200 flex w-full cursor-pointer items-center gap-2 px-3 py-2 {selectedIndex ===
+            i
+              ? 'bg-surface-300'
+              : ''}"
+            on:click|stopPropagation={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              selectUser(user);
+            }}
+          >
+            <div class="flex flex-row gap-3">
+              <div
+                class="border-surface-50 flex h-9 w-9 items-center justify-center rounded-[133.33px] border"
+              >
+                {user.email.charAt(0).toUpperCase()}
+              </div>
+              <div class="flex flex-col text-left">
+                <span class="text-fs-ds-14 text-neutral-50">{user.name}</span>
+                <span class="text-fs-ds-12 text-neutral-400">{user.email}</span>
+              </div>
+            </div>
+          </button>
+        {/each}
+      {/if}
+
+      <!-- Show input value as last item only if there's input and no exact match -->
+      {#if inputValue !== '' && !filteredUsers.some((user) => user.email.toLowerCase() === inputValue.toLowerCase())}
+        <button
+          class="hover:bg-surface-200 flex w-full cursor-pointer items-center gap-2 px-3 py-2"
+          on:click|stopPropagation={() => addEmail()}
+        >
+          <div class="flex flex-row gap-3">
+            <div
+              class="border-surface-50 flex h-9 w-9 items-center justify-center rounded-[133.33px] border"
+            >
+              {inputValue?.charAt(0).toUpperCase()}
+            </div>
+            <div class="flex flex-col text-left">
+              <span class="text-fs-ds-14 text-neutral-50">{inputValue}</span>
+              <span class="text-fs-ds-12 text-neutral-400">{inputValue}</span>
+            </div>
+          </div>
+        </button>
+      {:else if (inputValue == '' && emails.length < 1 && filteredUsers?.length < 1) || (emails.length > 0 && filteredUsers?.length < 1 && inputValue === '')}
+        <button
+          class="hover:bg-surface-200 flex w-full cursor-pointer items-center gap-2 px-3 py-2"
+          on:click|stopPropagation={() => addEmail()}
+        >
+          <div class="flex flex-row">
+            <div class="flex flex-col text-left">
+              <span class="text-fs-ds-14 text-neutral-50">No members found!</span>
+              <span class="text-fs-ds-12 text-neutral-400"></span>
+            </div>
+          </div>
+        </button>
+      {/if}
+    </div>
+  {/if}
 
   {#if hasError && errorMessage}
     <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-1 text-red-300">{errorMessage}</p>

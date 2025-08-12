@@ -28,11 +28,11 @@
   export let link: string;
   export let options: Array<{ label: string; id: string }>;
   export let placeholder: string;
-  export let pathMatcher: (path: string, dropdownOptions: any[]) => { selectOption: Team | null };
+  export let pathMatcher: (path: any, dropdownOptions: any) => any;
   export let selectOption: Team | null = null;
   export let isDropdownRequired = true;
   export let startTrial: () => void = () => {};
-  export let isTrialExhausted;
+  export let isTrialExhausted: boolean = true;
   let dropdownOpen = false;
   let dropdownOptions: Array<any> = [];
   const location = useLocation();
@@ -50,9 +50,9 @@
   $: if ($data?.data?.length) {
     dropdownOptions = $data.data.map((team) => ({
       id: team.teamId,
-      label: team.teamName || '',
+      label: team?.teamName || '',
       value: team,
-      plan: null,
+      plan: team?.plan || null,
     }));
   } else {
     dropdownOptions = [];
@@ -126,7 +126,7 @@
           options={dropdownOptions}
           onSelect={handleSelection}
           selected={{
-            label: selectOption?.teamName,
+            label: selectOption?.teamName || '',
             id: selectOption?.teamId || '',
           }}
         />

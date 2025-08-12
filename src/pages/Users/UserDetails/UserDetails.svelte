@@ -196,7 +196,6 @@
 
   function handleRowClick(event) {
     const rowData = event.detail;
-    console.log('Row clicked:', rowData);
   }
   $: breadcrumbItems = [
     { label: 'Users', path: `/users/users-overview` },
@@ -281,7 +280,7 @@
         {#if modalVariants.changeRole}
           <ChangeUserRole
             onClose={closePopups}
-            data={teamsData.find((data) => data.id.toString() === modalData?.data?.id.toString())}
+            data={modalData?.data}
             removeUserPopupOpen={() => {
               modalVariants.changeRole = false;
               modalVariants.removeUser = true;

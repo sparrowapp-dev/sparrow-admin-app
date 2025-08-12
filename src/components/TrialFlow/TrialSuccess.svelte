@@ -71,7 +71,7 @@
           <CheckmarkStarburst />
           <div class="text-fs-ds-16">Congratulations! Your {capitalizedFlow} Trial is Unlocked</div>
           <div class="text-fs-ds-14 mx-auto max-w-xl break-words">
-            You’ve successfully activated the {capitalizedFlow} Trial for ‘{hub}’ Hub. All premium
+            You’ve successfully activated the {capitalizedFlow} Trial for <span class="font-fw-ds-600">‘{hub}’</span> Hub. All premium
             features are now available, start exploring, collaborating, and building with your team. {#if billingCycles && promoDiscountValue > 0}
               You’ll get
               {promoDiscountType === 'percentage'

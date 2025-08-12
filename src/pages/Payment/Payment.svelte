@@ -108,10 +108,12 @@
     const paymentRouteMatch = pathname.match(/\/billing\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?/);
 
     if (paymentRouteMatch) {
-      const [, section, subsection, teamId] = paymentRouteMatch;
+      const [_, section, subsection, teamId] = paymentRouteMatch;
 
       // Handle nested routes like addPaymentDetails or selectPaymentMethod
-      const isNestedRoute = ['addPaymentDetails', 'selectPaymentMethod'].includes(subsection);
+      const isNestedRoute = ['addPaymentDetails', 'changePlan', 'selectPaymentMethod'].includes(
+        subsection,
+      );
       const actualTeamId = isNestedRoute ? teamId : subsection;
 
       if (actualTeamId) {
@@ -122,8 +124,6 @@
 
           // Store current team ID to check user role
           currentTeamId = actualTeamId;
-        } else {
-
         }
       }
       // Handle root sections
@@ -184,10 +184,7 @@
     <!-- Sidebar with slide-in animation -->
     <div
       class="max-w-[266px] min-w-[266px]"
-      style="
-      transform: translateX({$sidebarTranslateX}px);
-      opacity: {$sidebarOpacity};
-    "
+      style="transform: translateX({$sidebarTranslateX}px); opacity: {$sidebarOpacity};"
     >
       <ReusableSideNav
         link={'/billing'}

@@ -321,7 +321,7 @@
   const handleRedirect = () => {
     captureUserClickUpgrade();
     if (isOwner) {
-      navigate(`/billing/billingOverview/${params}`);
+      navigate(`/billing/billingOverview/${params}?redirectTo=changePlan`);
     } else {
       window.open(`mailto:${owner?.email}`);
     }

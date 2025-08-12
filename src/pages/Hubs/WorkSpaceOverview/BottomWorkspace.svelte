@@ -321,7 +321,6 @@
         pageSize={pagination.pageSize}
         {totalItems}
         on:sortingChange={handleSortingChange}
-        on:rowClick={(e) => console.log('Row clicked:', e.detail)}
       />
 
       <TablePagination

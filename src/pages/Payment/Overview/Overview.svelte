@@ -68,6 +68,10 @@
 
   // UI state
   let isLoadingSubscription = false;
+  let hasRedirected = false; // Prevent multiple redirects
+  let isRedirecting = false; // Track redirect loading state
+  let isLoading = false; // Debounced loading state
+  let loadingTimeout = null;
 
   // Cancel subscription state
   let showCancelConfirmModal = false;
@@ -86,7 +90,11 @@
 
   // ===== API QUERIES =====
   // Fetch customer ID
-  const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
+  const {
+    data: customerData,
+    refetch: refetchCustomer,
+    isFetching: isFetchingCustomer,
+  } = createQuery(async () => {
     return billingService.fetchCustomerId(hubId);
   });
 
@@ -110,12 +118,41 @@
   });
 
   // ===== REACTIVE STATEMENTS =====
-  // Extract hubId from URL
+  // Extract hubId from URL and check for redirect parameter
   $: {
     const url = $location?.pathname || '';
     const matches = url.match(/\/([a-f0-9]{24})(?:\/|$)/i); // Match MongoDB ObjectId format
     if (matches && matches[1]) {
       hubId = matches[1];
+    }
+  }
+
+  // Check for redirect parameter to show loading state when coming from main app
+  $: {
+    if ($location?.search && hubId) {
+      const urlParams = new URLSearchParams($location.search);
+      const shouldRedirect = urlParams.get('redirectTo');
+      if (shouldRedirect === 'changePlan') {
+        isRedirecting = true;
+      }
+    }
+  }
+
+  // Execute redirect when data is ready
+  $: {
+    if (
+      isRedirecting &&
+      hubId &&
+      !$isFetchingSubscription &&
+      !$isFetchingHub &&
+      $hubData?.data &&
+      !hasRedirected
+    ) {
+      hasRedirected = true;
+      // Small delay to ensure all data is loaded
+      setTimeout(() => {
+        handleUpgradeClick();
+      }, 500);
     }
   }
 
@@ -238,7 +275,12 @@
   function handleUpgradeClick() {
     captureUserClickUpgradePlan();
     if (planStatus === 'payment_failed' || planStatus === 'action_required') {
-      notification.error('Please resolve the payment issue before changing your plan.');
+      if (isRedirecting) {
+        isRedirecting = false;
+        return;
+      } else {
+        notification.error('Please resolve the payment issue before changing your plan.');
+      }
       return;
     }
     // Navigate directly to the change plan page with subscription ID
@@ -338,13 +380,60 @@
     };
     captureEvent('admin_upgrade_intent', eventProperties);
   };
+
+  // Debounced loading state to prevent glitch effect
+  $: {
+    const shouldBeLoading = $isFetchingHub || $isFetchingCustomer || $isFetchingSubscription;
+
+    if (shouldBeLoading && !isLoading) {
+      // Show loading immediately when it should be loading
+      isLoading = true;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+    } else if (!shouldBeLoading && isLoading) {
+      // Delay hiding the loader to prevent flickering
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      loadingTimeout = setTimeout(() => {
+        isLoading = false;
+        loadingTimeout = null;
+      }, 1500);
+    }
+  }
+
+  // Cleanup timeout on component destroy
+  onDestroy(() => {
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+  });
 </script>
 
-{#if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}
+{#if isRedirecting}
+  <div class="flex h-[calc(100vh-4rem)] w-full flex-col items-center justify-center">
+    <div class="flex flex-col items-center">
+      <!-- Spinner Animation -->
+      <div
+        class="h-12 w-12 animate-spin rounded-full border-4 border-solid border-current border-t-transparent text-blue-300"
+      ></div>
+
+      <!-- Text below spinner -->
+      <p class="font-fw-ds-400 mt-4 text-neutral-400">
+        {'Redirecting...'}
+      </p>
+    </div>
+  </div>
+{/if}
+{#if isLoading}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
-{:else}
+{/if}
+
+{#if $hubData?.data}
   <section class="payment-information text-white">
     <div class="mb-6 flex items-end justify-between">
       <div>
@@ -575,51 +664,62 @@
             Quick access to commonly used features.
           </p>
           <ul class="flex flex-col gap-5">
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/members/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Manage Users
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/workspace/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Open Hub
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
 
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInvoices/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Invoice History
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInformation/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Payment Information
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/settings/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Settings
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
           </ul>
         </div>
@@ -672,3 +772,16 @@
     {/if}
   </section>
 {/if}
+
+<style>
+  /* Fallback animation if Tailwind's animate-spin is not available */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>
