@@ -97,7 +97,7 @@
         // Promo applied value
         if (promoDiscountType && promoDiscountValue > 0) {
           if (promoDiscountType === 'percentage') {
-            const discountValue = Math.floor(((price * promoDiscountValue) / 100) * 100) / 100;
+            const discountValue = Math.round(((price * promoDiscountValue) / 100) * 100) / 100;
             promoAppliedValue = `$${discountValue.toFixed(2)}/user/${intervalLabel}`;
           } else if (promoDiscountType === 'amount') {
             promoAppliedValue = `$${promoDiscountValue}/${intervalLabel}`;
