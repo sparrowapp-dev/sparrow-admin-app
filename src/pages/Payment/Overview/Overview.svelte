@@ -140,16 +140,19 @@
 
   // Execute redirect when data is ready
   $: {
+    const planName = currentHubData?.plan?.name;
+    const needsSubscription = planName && planName !== 'Community';
+
     if (
       isRedirecting &&
       hubId &&
-      !$isFetchingSubscription &&
       !$isFetchingHub &&
       $hubData?.data &&
-      !hasRedirected
+      !hasRedirected &&
+      (!needsSubscription || // If not a paid plan, don't wait for subscription
+        $subscriptionApiData?.subscriptions?.[0]) // If paid, wait for subscription data
     ) {
       hasRedirected = true;
-      // Small delay to ensure all data is loaded
       setTimeout(() => {
         handleUpgradeClick();
       }, 500);
