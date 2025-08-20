@@ -131,6 +131,31 @@ export class UserService {
 
     return res?.data;
   }
+
+   /**
+   * Gets the trial exhausted status for a user by email.
+   *
+   * @param email - The email address of the user.
+   * @returns A promise that resolves to the server's response.
+   */
+  public async getUserTrialExhaustedStatus(email: string): Promise<any> {
+  const url = `/api/user/trial-exhausted/${email}`;
+  const res = await makeRequest('GET', url
+  );
+  return res;
+  }
+
+  /**
+   * Creates a user from admin panel.
+   * @param payload - The user data to create.
+   * @returns A promise that resolves to the server's response.
+   */
+  public async createUser(payload: any): Promise<any> {
+    const url = '/api/admin/auth/create-user';
+    const res = await makeRequest('POST', url, payload);
+    return res?.data;
+  }
 }
+
 
 export const userService = new UserService();
