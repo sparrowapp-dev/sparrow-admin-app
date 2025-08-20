@@ -227,8 +227,7 @@
   :global(.create-user-modal) {
     width: 380px;
     max-width: calc(100vw - 32px);
-    /* use same surface token as RemoveUserPopup */
-    background-color: var(--surface-600, #0f1113);
+    background-color: var(--surface-600, #101318);
     border-radius: 0.5rem; /* rounded-lg */
     padding: 1.5rem; /* p-6 */
     color: var(--white-color, #fff);
@@ -387,9 +386,8 @@
     font-weight: 600;
   }
   .field-error {
-    color: var(--error--color, #fe8c98);
+    color: var(--error--color, #EB5651);
     font-size: 12px;
-    margin-top: 6px;
   }
 
   .link {
