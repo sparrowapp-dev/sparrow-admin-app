@@ -11,7 +11,11 @@
   import { hubsService } from '@/services/hubs.service';
 
   // Utils
-  import { processSubscriptionData, DEFAULT_PLAN_DETAILS } from '@/utils/pricing';
+  import {
+    processSubscriptionData,
+    getCurrentPlanDetails,
+    initializePlanDetails,
+  } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import { captureEvent } from '@/utils/posthogConfig';
 
@@ -33,6 +37,7 @@
   import CrownIcon from '@/assets/icons/CrownIcon.svelte';
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
+  import GreenCheckIconFill from '@/assets/icons/GreenCheckIconFill.svelte';
 
   // ===== CONSTANTS =====
   const location = useLocation();
@@ -59,9 +64,14 @@
   let subscriptionStatus = '';
   let invoiceUrl = '';
   let isScheduledDowngrade = false;
+  let promoDiscount = null;
 
   // UI state
   let isLoadingSubscription = false;
+  let hasRedirected = false; // Prevent multiple redirects
+  let isRedirecting = false; // Track redirect loading state
+  let isLoading = false; // Debounced loading state
+  let loadingTimeout = null;
 
   // Cancel subscription state
   let showCancelConfirmModal = false;
@@ -78,19 +88,13 @@
     easing: cubicOut,
   });
 
-  const cardTranslateY = tweened(20, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
-  const cardBlur = tweened(4, {
-    duration: 600,
-    easing: cubicOut,
-  });
-
   // ===== API QUERIES =====
   // Fetch customer ID
-  const { data: customerData, refetch: refetchCustomer } = createQuery(async () => {
+  const {
+    data: customerData,
+    refetch: refetchCustomer,
+    isFetching: isFetchingCustomer,
+  } = createQuery(async () => {
     return billingService.fetchCustomerId(hubId);
   });
 
@@ -114,7 +118,7 @@
   });
 
   // ===== REACTIVE STATEMENTS =====
-  // Extract hubId from URL
+  // Extract hubId from URL and check for redirect parameter
   $: {
     const url = $location?.pathname || '';
     const matches = url.match(/\/([a-f0-9]{24})(?:\/|$)/i); // Match MongoDB ObjectId format
@@ -123,11 +127,41 @@
     }
   }
 
+  // Check for redirect parameter to show loading state when coming from main app
+  $: {
+    if ($location?.search && hubId) {
+      const urlParams = new URLSearchParams($location.search);
+      const shouldRedirect = urlParams.get('redirectTo');
+      if (shouldRedirect === 'changePlan') {
+        isRedirecting = true;
+      }
+    }
+  }
+
+  // Execute redirect when data is ready
+  $: {
+    if (
+      isRedirecting &&
+      hubId &&
+      !$isFetchingSubscription &&
+      !$isFetchingHub &&
+      $hubData?.data &&
+      !hasRedirected
+    ) {
+      hasRedirected = true;
+      // Small delay to ensure all data is loaded
+      setTimeout(() => {
+        handleUpgradeClick();
+      }, 500);
+    }
+  }
+
   // Re-fetch when hubId changes
   $: {
     if (hubId) {
       refetchCustomer();
       refetchHub();
+      initializePlanDetails();
     }
   }
 
@@ -183,10 +217,25 @@
       totalPaidAmount = processedData.totalPaidAmount;
       userCount = userCount;
       subscriptionStatus = processedData.subscriptionStatus;
+
+      // Extract promo discount information
+      if (subscriptionData?.discounts?.length > 0) {
+        const discount = subscriptionData?.discounts[0];
+        const coupon = discount?.coupon?.metadata;
+        if (coupon) {
+          promoDiscount = {
+            type: coupon.type === 'percentage' ? 'percentage' : 'amount',
+            value: coupon.value ? Number(coupon.value) : 0,
+          };
+        }
+      } else {
+        promoDiscount = null;
+      }
     } else {
       // If subscription is canceled or inactive, use default values
       // Keep the plan name from the database, but reset other subscription details
       subscriptionId = null;
+      promoDiscount = null;
 
       // For free Community plan
       if (currentPlan === 'Community') {
@@ -198,8 +247,9 @@
       } else {
         // For paid plans that are canceled, show default pricing based on plan name
         const planKey = currentPlan.toLowerCase();
-        if (DEFAULT_PLAN_DETAILS[planKey]) {
-          currentPrice = DEFAULT_PLAN_DETAILS[planKey].monthly.price;
+        const planDetails = getCurrentPlanDetails();
+        if (planDetails[planKey]) {
+          currentPrice = planDetails[planKey].monthly.price;
           currentBillingCycle = 'monthly';
           // Clear dates and amounts since the subscription is inactive
           nextBillingDate = '';
@@ -217,8 +267,6 @@
   $: if (!$isFetchingSubscription && !$isFetchingHub && $hubData?.data) {
     setTimeout(() => {
       cardOpacity.set(1);
-      cardTranslateY.set(0);
-      cardBlur.set(0);
     }, 100);
   }
 
@@ -227,7 +275,12 @@
   function handleUpgradeClick() {
     captureUserClickUpgradePlan();
     if (planStatus === 'payment_failed' || planStatus === 'action_required') {
-      notification.error('Please resolve the payment issue before changing your plan.');
+      if (isRedirecting) {
+        isRedirecting = false;
+        return;
+      } else {
+        notification.error('Please resolve the payment issue before changing your plan.');
+      }
       return;
     }
     // Navigate directly to the change plan page with subscription ID
@@ -327,13 +380,60 @@
     };
     captureEvent('admin_upgrade_intent', eventProperties);
   };
+
+  // Debounced loading state to prevent glitch effect
+  $: {
+    const shouldBeLoading = $isFetchingHub || $isFetchingCustomer || $isFetchingSubscription;
+
+    if (shouldBeLoading && !isLoading) {
+      // Show loading immediately when it should be loading
+      isLoading = true;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
+    } else if (!shouldBeLoading && isLoading) {
+      // Delay hiding the loader to prevent flickering
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+      loadingTimeout = setTimeout(() => {
+        isLoading = false;
+        loadingTimeout = null;
+      }, 1500);
+    }
+  }
+
+  // Cleanup timeout on component destroy
+  onDestroy(() => {
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+  });
 </script>
 
-{#if $isFetchingSubscription || $isFetchingHub || !$hubData?.data}
+{#if isRedirecting}
+  <div class="flex h-[calc(100vh-4rem)] w-full flex-col items-center justify-center">
+    <div class="flex flex-col items-center">
+      <!-- Spinner Animation -->
+      <div
+        class="h-12 w-12 animate-spin rounded-full border-4 border-solid border-current border-t-transparent text-blue-300"
+      ></div>
+
+      <!-- Text below spinner -->
+      <p class="font-fw-ds-400 mt-4 text-neutral-400">
+        {'Redirecting...'}
+      </p>
+    </div>
+  </div>
+{/if}
+{#if isLoading}
   <div class="flex h-[calc(100vh-4rem)] w-full items-center justify-center">
     <CircularLoader />
   </div>
-{:else}
+{/if}
+
+{#if $hubData?.data}
   <section class="payment-information text-white">
     <div class="mb-6 flex items-end justify-between">
       <div>
@@ -397,7 +497,7 @@
       <!-- Current Plan Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-1">
           <div class="flex w-full items-center justify-between">
@@ -456,6 +556,19 @@
           </div>
           <div class="pt-0">
             <div class="flex flex-col gap-1">
+              {#if promoDiscount}
+                <div class="flex items-center gap-1">
+                  <GreenCheckIconFill />
+                  <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
+                    Promo applied:
+                    {#if promoDiscount?.type === 'percentage'}
+                      {promoDiscount?.value}%/user/month discount
+                    {:else}
+                      ${promoDiscount?.value.toFixed(2)}/month discount
+                    {/if}
+                  </p>
+                </div>
+              {/if}
               {#if subscriptionId && subscriptionData?.cancel_at_period_end}
                 <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
                   Next billing date: –
@@ -468,7 +581,9 @@
               {/if}
 
               <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
-                Last paid amount: {lastInvoiceAmount}{currentBillingCycle === 'monthly'
+                Last paid amount: {$hubData?.data?.billing?.in_trial
+                  ? '$0.00'
+                  : lastInvoiceAmount}{currentBillingCycle === 'monthly'
                   ? '/user/month'
                   : '/user/year'}
               </p>
@@ -517,7 +632,7 @@
       <!-- Need Help Card -->
       <div
         class="bg-surface-600 flex flex-col justify-between rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
+        style="opacity: {$cardOpacity};"
       >
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">
@@ -542,61 +657,69 @@
       </div>
 
       <!-- Quick Links Card -->
-      <div
-        class="bg-surface-600 rounded-lg p-6"
-        style="opacity: {$cardOpacity}; transform: translateY({$cardTranslateY}px); filter: blur({$cardBlur}px);"
-      >
+      <div class="bg-surface-600 rounded-lg p-6" style="opacity: {$cardOpacity};">
         <div class="flex flex-col gap-4">
           <h2 class="text-fs-ds-16 font-inter font-fw-ds-400 text-neutral-50">Quick Links</h2>
           <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-200">
             Quick access to commonly used features.
           </p>
           <ul class="flex flex-col gap-5">
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/members/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Manage Users
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/workspace/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Open Hub
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
 
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInvoices/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Invoice History
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/billing/billingInformation/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 View Payment Information
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
-            <li class="flex cursor-pointer items-center gap-2">
+            <li class="group flex cursor-pointer items-center gap-2">
               <a
                 on:click={() => navigate(`/hubs/settings/${hubId}`)}
                 class="text-fs-ds-12 font-inter font-fw-ds-400 flex items-center gap-2 text-blue-300 underline"
               >
                 Settings
               </a>
-              <RedirectIcon />
+              <RedirectIcon
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
             </li>
           </ul>
         </div>
@@ -649,3 +772,16 @@
     {/if}
   </section>
 {/if}
+
+<style>
+  /* Fallback animation if Tailwind's animate-spin is not available */
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+</style>

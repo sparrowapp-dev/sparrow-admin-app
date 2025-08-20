@@ -83,9 +83,9 @@
 
   const captureBillingButtonClick = () => {
     const eventProperties = {
-      button_name:"biling_Icon"
+      button_name: 'biling_Icon',
     };
-    captureEvent("admin_billing_page_viewed", eventProperties);
+    captureEvent('admin_billing_page_viewed', eventProperties);
   };
 
   const appEdition = import.meta.env.VITE_APP_EDITION;

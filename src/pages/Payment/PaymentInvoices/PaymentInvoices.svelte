@@ -46,7 +46,6 @@
     return hubsService.getHubDetails(hubId);
   });
 
-  $: console.log($hubData);
 
   // Combined query for customer data and invoices
   const {
@@ -185,19 +184,6 @@
       cell: ({ getValue }) => {
         const amount = getValue();
         return amount ? `$${amount}` : '-';
-      },
-    },
-    {
-      id: 'paymentMethod',
-      header: 'Payment Method',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const brand = row.original.cardBrand;
-        const last4 = row.original.cardLast4;
-        if (brand && last4) {
-          return `<div class='flex flex-col'><span>${brand}</span><span class='text-xs text-neutral-400'>Ending with ${last4}</span></div>`;
-        }
-        return '-';
       },
     },
     {

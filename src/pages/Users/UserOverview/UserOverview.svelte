@@ -128,18 +128,20 @@
     }
   }
 
-  const captureUserClickUpgrade = () => {
-    const eventProperties = {
-      event_source: 'admin',
-      cta_location: 'limit_exceeded_modal',
-    };
-    captureEvent('admin_upgrade_intent', eventProperties);
-  };
+  const captureUserClickUpgrade =() =>{
+    const eventProperties ={
+      event_source : "admin",
+      cta_location:"limit_exceeded_modal"
+    }
+    captureEvent("admin_upgrade_intent",eventProperties)
+  }
+  
 
   // Redirect handler for upgrade popup
   function handleRedirect() {
+    captureUserClickUpgrade();
     if (isOwner) {
-      navigate(`/billing/billingOverview/${hubId}`);
+      navigate(`/billing/billingOverview/${hubId}redirectTo=changePlan`);
     } else {
       window.open(`mailto:${owner?.email}`);
     }

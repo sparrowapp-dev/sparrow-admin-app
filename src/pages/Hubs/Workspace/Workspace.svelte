@@ -24,6 +24,7 @@
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
   import { userId } from '@/store/auth';
   import { userService } from '@/services/users.service';
+  import { captureEvent } from '@/utils/posthogConfig';
   const location = useLocation();
   let workspaceExhausted = false;
   // State management
@@ -249,12 +250,21 @@
 
   $: isOwner = user?.role === 'owner';
   const handleRedirect = () => {
+    captureUserClickUpgrade();
     if (isOwner) {
-      navigate(`/billing/billingOverview/${params}`);
+      navigate(`/billing/billingOverview/${params}?redirectTo=changePlan`);
     } else {
       window.open(`mailto:${owner?.email}`);
     }
   };
+
+  const captureUserClickUpgrade =() =>{
+    const eventProperties ={
+      event_source : "admin",
+      cta_location:"limit_exceeded_modal"
+    }
+    captureEvent("admin_upgrade_intent",eventProperties)
+  }
 </script>
 
 <section class="w-full">

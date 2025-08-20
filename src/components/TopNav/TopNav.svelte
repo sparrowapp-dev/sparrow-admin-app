@@ -3,7 +3,6 @@
   import Navbarbg1 from '../../assets/images/NavbarBg1.png';
   import Sparrowadmin from '@/assets/icons/Sparrowadmin.svelte';
   import LaunchSparrow from '@/assets/icons/LaunchSparrow.svelte';
-  import LaunchSparrow2 from '@/assets/icons/LaunchSparrow2.svelte';
   import BellIcon from '@/assets/icons/BellIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { userName, userEmail, clearTokens } from '@/store/auth';
@@ -19,17 +18,18 @@
   import { initPostHog } from '@/utils/posthogConfig';
   import { identifyUser } from '@/utils/posthogConfig';
   import { get } from 'svelte/store';
+  import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   let focusedPath: string | null = null;
   let hoveredPath: string | null = null;
   let isPressed: string | null = null;
   function launchSparrow() {
-    captureUserClickTopbar("launch_web_app", true);
-    window.open(`${SPARROW_LAUNCH_URL}app/collections`, '_blank');
+    captureUserClickTopbar('launch_web_app', true);
+    window.open(`${SPARROW_LAUNCH_URL}/app/collections`, '_blank');
   }
 
   const docsUrl = SPARROW_DOCS_URL;
   function navigateToSparrowDocs() {
-    captureUserClickTopbar("launch_documentation", false);
+    captureUserClickTopbar('launch_documentation', false);
     window.open(docsUrl, '_blank');
   }
   onMount(() => {
@@ -50,14 +50,12 @@
   }
   let isProfileDropdownOpen = false;
   let profileDropdownEl: HTMLDivElement;
-  async function handleLogout() {
+  function handleLogout() {
     try {
       isProfileDropdownOpen = false;
       captureUserSignOutClick();
+      clearTokens();
       navigate(LOGIN_REDIRECT_URL);
-      setTimeout(async () => {
-        await clearTokens();
-      }, 300);
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -77,29 +75,25 @@
     isProfileDropdownOpen = !isProfileDropdownOpen;
   }
 
-  const captureUserClickTopbar = (
-    captureName: string,
-    resourceContent: boolean
-  ) => {
+  const captureUserClickTopbar = (captureName: string, resourceContent: boolean) => {
     const eventProperties = {
-      event_source: "admin_panel",
-      cta: "top_bar",
-      ...(resourceContent ? { resource:"worksapce" } : {}),
+      event_source: 'admin_panel',
+      cta: 'top_bar',
+      ...(resourceContent ? { resource: 'worksapce' } : {}),
     };
 
     captureEvent(captureName, eventProperties);
   };
 
-  const captureUserSignOutClick = () =>{
+  const captureUserSignOutClick = () => {
     const eventProperties = {
-      event_source : "admin_panel",
-      button_name:"Sign Out"
-    }
-    captureEvent("admin_sign_out",eventProperties);
-  }
+      event_source: 'admin_panel',
+      button_name: 'Sign Out',
+    };
+    captureEvent('admin_sign_out', eventProperties);
+  };
 
   onMount(() => {
-    console.log("---------------we are calling it.------>");
     initPostHog();
     const email = get(userEmail);
     if (email) {
@@ -126,11 +120,11 @@
       <!-- Profile button -->
       <button
         on:click={launchSparrow}
-        class="flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
+        class="group flex min-h-7 min-w-fit cursor-pointer items-center gap-1 rounded px-2 py-1 focus-visible:outline-2 focus-visible:outline-blue-300"
         ><span><LaunchSparrow /> </span>
         <p class="font-inter text-fs-ds-12 leading-lh-ds-130 font-fw-ds-400">Launch Sparrow</p>
-        <span><LaunchSparrow2 /> </span></button
-      >
+        <RedirectIcon className="transition-transform duration-300 group-hover:-translate-y-0.5" />
+      </button>
       <a
         href="https://sparrowapp.canny.io/feedback"
         target="_blank"
@@ -141,9 +135,10 @@
 
       <button
         on:click={navigateToSparrowDocs}
-        class="flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
-        ><p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130">Documentation</p>
-        <span><LaunchSparrow2 /> </span>
+        class="group flex min-h-[28px] cursor-pointer items-center gap-0.5 rounded py-1 pr-[6px] pl-2 focus-visible:outline-2 focus-visible:outline-blue-300"
+      >
+        <p class="font-inter font-fw-ds-400 text-fs-ds-12 leading-lh-ds-130">Documentation</p>
+        <RedirectIcon className="transition-transform duration-300 group-hover:-translate-y-0.5" />
       </button>
 
       <!-- <Tooltip

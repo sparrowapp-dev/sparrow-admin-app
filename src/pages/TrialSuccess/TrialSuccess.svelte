@@ -20,6 +20,10 @@
   let accessToken;
   let refreshToken;
   let response;
+  let promoDiscountType = '';
+  let promoDiscountValue = 0;
+  let billingCycles;
+
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     hub = params.get('hub');
@@ -32,6 +36,9 @@
     refreshToken = params.get('refreshToken');
     response = params.get('response');
     trialFrequency = params.get('trialFrequency') || 'monthly'; // Use query param or default to monthly
+    promoDiscountType = params.get('promoType') || '';
+    promoDiscountValue = Number(params.get('promoValue')) || 0;
+    billingCycles = params.get('billingCycles');
 
     // Convert Unix timestamp (seconds) to Date string
     if (trialstart) {
@@ -50,18 +57,36 @@
         day: 'numeric',
       });
     }
+    // Get pricing details and calculate discounted amount
     const pricingResponse = await _viewModel.getPricingDetails();
     if (pricingResponse.isSuccessful && pricingResponse.data?.data) {
       pricingDetails = pricingResponse.data.data;
-      // Find the plan by tier
       const selectedPlan = pricingDetails.plans.find((p) => p.tier.toLowerCase() === flow);
-
-      // Find billing interval by trialFrequency (monthly/annual)
       billing = selectedPlan?.billing.find(
         (b) => b.interval.toLowerCase() === (trialFrequency?.toLowerCase() || 'monthly'),
       );
     }
-    amount = users ? parseInt(users) * billing?.price : 9.99; // Assuming $9.99 per user
+
+    if (billing) {
+      let price = Number(billing.price);
+      let finalPrice = price;
+
+      if (promoDiscountType && promoDiscountValue > 0) {
+        if (promoDiscountType === 'percentage') {
+          finalPrice = price - (price * promoDiscountValue) / 100;
+          amount = users ? parseInt(users) * finalPrice : finalPrice;
+        } else if (promoDiscountType === 'amount') {
+          // Discount applied once to the total, not per user
+          amount = users
+            ? parseInt(users) * price - promoDiscountValue
+            : price - promoDiscountValue;
+          if (amount < 0) amount = 0;
+        }
+      } else {
+        amount = users ? parseInt(users) * price : price;
+      }
+      amount = Math.round(amount * 100) / 100;
+    }
   });
   $: capitalizedFlow = flow ? flow.charAt(0).toUpperCase() + flow.slice(1) : '';
 </script>
@@ -90,6 +115,9 @@
         {accessToken}
         {refreshToken}
         {response}
+        {billingCycles}
+        {promoDiscountType}
+        {promoDiscountValue}
       />
     </div>
   </div>

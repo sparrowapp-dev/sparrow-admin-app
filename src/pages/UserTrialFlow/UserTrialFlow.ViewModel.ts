@@ -99,16 +99,30 @@ class TrialFlowViewModel {
     hubId: string,
     trailFlow: string,
     trialFrequency: string,
+    promoDiscountType?: string,
+    promoDiscountValue?: number,
   ): Promise<ResponseInterface<any>> {
     try {
       const response = await this.hubService.sendUserConfirmationMail(hubId, {
         trailFlow: trailFlow,
         trialFrequency: trialFrequency,
+        promoDiscountType: promoDiscountType,
+        promoDiscountValue: promoDiscountValue,
       });
       return successResponse(response);
     } catch (error) {
       console.error('Error sending confirmation email:', error);
       return errorResponse(error?.message || 'Failed to send confirmation email', null);
+    }
+  }
+
+   public async validatePromoCode(promocode: string, priceId: string): Promise<ResponseInterface<any>> {
+    try {
+      const response = await this.trialService.validatePromoCode(promocode, priceId);
+      return successResponse(response);
+    } catch (error) {
+      console.error('Error validating promo code:', error);
+      return errorResponse(error?.message || 'Failed to validate promo code', null);
     }
   }
 }

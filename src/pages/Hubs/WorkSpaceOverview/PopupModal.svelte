@@ -16,6 +16,7 @@
   import { userId } from '@/store/auth';
   import { navigate } from 'svelte-routing';
   import { captureEvent } from '@/utils/posthogConfig';
+  import { triggerHubRefetch } from '@/store/hubRefetch';
 
   // ─── PROPS ────────────────────────────────────────────
   export let onClose: () => void;
@@ -214,12 +215,20 @@
           params: { workspaceId: params, hubId: hubId },
           data: { name: formData.workspaceName.trim(), description: formData.summary.trim() },
         });
-        captureWorkspaceUpdatedDetails("Save",formData.workspaceName.trim(),formData.summary.trim());
+        captureWorkspaceUpdatedDetails(
+          'Save',
+          formData.workspaceName.trim(),
+          formData.summary.trim(),
+        );
         const updatedName = response?.data?.name ?? formData.workspaceName.trim();
         notification.success(`"${updatedName}" Workspace updated successfully.`);
       } else if (modalVariants.isMakeItPublicModalOpen) {
         // Handle making workspace public
-        captureWorkspacePublish("Publish",data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE', `${baseUrl}/hubs/workspace-details/${hubId}/${params}`);
+        captureWorkspacePublish(
+          'Publish',
+          data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE',
+          `${baseUrl}/hubs/workspace-details/${hubId}/${params}`,
+        );
         const response = await hubsService.makeitpublic({
           params: { workspaceId: params, hubId: hubId },
           data: { workspaceType: data?.WorkspaceType === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' },
@@ -267,6 +276,9 @@
           `Failed to delete "${formData.workspaceName}" workspace. Please try again.`,
         );
       } else if (modalVariants.isInviteModal) {
+        // Trigger BaseLayout's hub data refetch when invite fails
+        triggerHubRefetch();
+
         if (error.message === 'An invite has already been sent to this email.') {
           notification.error('An invite has already been sent to this email.');
         } else if (error.message === 'Hub Member already Exist.') {
@@ -318,33 +330,45 @@
     errors.roleError = '';
   }
 
-  const captureWorkspaceUpdatedDetails = (buttonName:string, updatedName:string, updatedSummary:string) =>{
+  const captureWorkspaceUpdatedDetails = (
+    buttonName: string,
+    updatedName: string,
+    updatedSummary: string,
+  ) => {
     const eventProperties = {
-      button_name:buttonName,
-      name:updatedName,
-      summary:updatedSummary
-    }
-    captureEvent("admin_workspace_edit_saved", eventProperties);
-  }
+      button_name: buttonName,
+      name: updatedName,
+      summary: updatedSummary,
+    };
+    captureEvent('admin_workspace_edit_saved', eventProperties);
+  };
 
-  const captureWorkspacePublish = (buttonName:string, workspaceType:string, location:string) =>{
+  const captureWorkspacePublish = (buttonName: string, workspaceType: string, location: string) => {
     const eventProperties = {
-      event_source : "admin_panel",
-      button_name:buttonName,
-      new_visibility:workspaceType,
-      source_Location:location
-    }
-    captureEvent("admin_workspace_edit_saved", eventProperties);
-  }
+      event_source: 'admin_panel',
+      button_name: buttonName,
+      new_visibility: workspaceType,
+      source_Location: location,
+    };
+    captureEvent('admin_publish_workspace', eventProperties);
+  };
 
-  const captureWorkspaceDelete = (workspaceId:string)=>{
+  const captureWorkspaceDelete = (workspaceId: string) => {
     const eventProperties = {
-      event_source:"admin_panel",
-      button_name:"Delete Workspace",
-      workspace_id:workspaceId
-    }
-    captureEvent("admin_workspace_deleted", eventProperties);
-  } 
+      event_source: 'admin_panel',
+      button_name: 'Delete Workspace',
+      workspace_id: workspaceId,
+    };
+    captureEvent('admin_workspace_deleted', eventProperties);
+  };
+
+  const captureUserClickUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'limit_exceeded_modal',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 </script>
 
 <div class="bg-surface-600 rounded-md p-6">
@@ -563,6 +587,8 @@
           hasError={!!errors.emailError}
           errorMessage={errors.emailError}
           placeholder="Enter email ID"
+          IsWorkspaceInvite={true}
+          UserDetails={data?.nonWorkspaceHubMembers}
         />
       </div>
 
@@ -586,11 +612,18 @@
 
       <div class="text-fs-ds-12 font-fw-ds-300 text-neutral-400">
         You can invite hub members or external collaborators to this workspace. Invited people will
-        have access to only the <span class="w-[10rem] truncate text-neutral-50">{data?.title}</span
-        > workspace.
+        have access to only the
+        <span class="text-neutral-50">
+          {typeof data?.title === 'string'
+            ? data.title.length > 10
+              ? `${data.title.slice(0, 10)}...`
+              : data.title
+            : ''}
+        </span>
+        workspace.
       </div>
 
-      {#if hubDetails?.data?.plan?.name !== 'Community'}
+      {#if data?.plan?.name !== 'Community'}
         <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
           Note: Inviting a user reserves a license and may trigger a charge, unless an unused
           license is available.
@@ -637,8 +670,9 @@
       userRole={user?.role}
       {isOwner}
       reDirect={() => {
+        captureUserClickUpgrade();
         if (isOwner) {
-          navigate(`/billing/billingOverview/${hubId}`);
+          navigate(`/billing/billingOverview/${hubId}?redirectTo=changePlan`);
         } else {
           window.open(`mailto:${owner?.email}`);
         }

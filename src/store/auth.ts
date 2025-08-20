@@ -27,9 +27,6 @@ export const setTokens = (tokens: { accessToken: string; refreshToken: string })
 
 // Function to clear both tokens and remove them from localStorage (useful for logout)
 export const clearTokens = () => {
-  accessToken.set(null);
-  refreshToken.set(null);
-
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
 };
