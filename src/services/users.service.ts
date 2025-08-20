@@ -143,7 +143,19 @@ export class UserService {
   const res = await makeRequest('GET', url
   );
   return res;
+  }
+
+  /**
+   * Creates a user from admin panel.
+   * @param payload - The user data to create.
+   * @returns A promise that resolves to the server's response.
+   */
+  public async createUser(payload: any): Promise<any> {
+    const url = '/api/admin/auth/create-user';
+    const res = await makeRequest('POST', url, payload);
+    return res?.data;
+  }
 }
-}
+
 
 export const userService = new UserService();

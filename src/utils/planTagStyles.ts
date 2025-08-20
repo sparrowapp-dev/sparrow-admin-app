@@ -31,6 +31,12 @@ export function getDynamicCssClasses(plan: string) {
         borderColor: 'border-orange-700',
         textColor: 'text-orange-300',
       };
+    case 'SelfHost(Community)':
+      return {
+        bgColor: 'bg-cyan-900',
+        borderColor: 'border-cyan-700',
+        textColor: 'text-cyan-300',
+      }
 
     default:
       return {

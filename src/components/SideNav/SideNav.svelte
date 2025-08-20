@@ -87,6 +87,8 @@
     };
     captureEvent('admin_billing_page_viewed', eventProperties);
   };
+
+  const appEdition = import.meta.env.VITE_APP_EDITION;
 </script>
 
 <div
@@ -252,6 +254,7 @@
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/billing')}
+        disabled={appEdition === 'SELFHOSTED'}
         on:click={() => {
           captureBillingButtonClick();
           navigate('/billing');
@@ -264,13 +267,15 @@
       >
         <div class="pointer-events-none rounded px-3 py-3">
           <BillingIcon
-            variant={hoveredPath === '/billing' &&
-            !isPathActive('/billing') &&
-            pressedPath !== '/billing'
-              ? 'hover'
-              : pressedPath === '/billing'
-                ? 'selected'
-                : billingVariant}
+            variant={appEdition === 'SELFHOSTED'
+              ? 'disabled'
+              : hoveredPath === '/billing' &&
+                  !isPathActive('/billing') &&
+                  pressedPath !== '/billing'
+                ? 'hover'
+                : pressedPath === '/billing'
+                  ? 'selected'
+                  : billingVariant}
           />
         </div>
         <div
