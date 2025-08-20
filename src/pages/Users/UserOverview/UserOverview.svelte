@@ -354,10 +354,10 @@
           <div class="flex gap-2">
             <Tooltip
               text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
-              position={'top'}
+              position={'bottom'}
               mode="hover"
               size="xs"
-              offset={4}
+              offset={-10}
             >
               <Button
                 variant="filled-secondary"

@@ -106,7 +106,7 @@
         </div>
         <h1 class="title" style="font-size: 24px;">Sparrow</h1>
       </div>
-      <h1 class="title" style="margin-bottom: 8px;">Create Profile</h1>
+      <h1 class="title" style="margin-bottom: 8px; font-size: 24px;">Create Profile</h1>
       <p class="subtitle">Let's create new user profile</p>
     </div>
   </header>
@@ -227,14 +227,10 @@
   :global(.create-user-modal) {
     width: 380px;
     max-width: calc(100vw - 32px);
-    /* use same surface token as RemoveUserPopup */
-    background-color: var(--surface-600, #0f1113);
+    background-color: var(--surface-600, #101318);
     border-radius: 0.5rem; /* rounded-lg */
     padding: 1.5rem; /* p-6 */
     color: var(--white-color, #fff);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* subtle, optional */
     font-family: 'Roboto', sans-serif;
   }
 
@@ -276,8 +272,8 @@
 
   .titles .subtitle {
     margin: 0;
-    font-size: 13px;
-    color: var(--labelColor, #bfc3c8);
+    font-size: 14px;
+    color: var(--labelColor, #9B9DA1);
   }
 
   .logo-wrap {
@@ -300,7 +296,7 @@
     margin-top: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .field-label {
@@ -387,9 +383,8 @@
     font-weight: 600;
   }
   .field-error {
-    color: var(--error--color, #fe8c98);
+    color: var(--error--color, #EB5651);
     font-size: 12px;
-    margin-top: 6px;
   }
 
   .link {
