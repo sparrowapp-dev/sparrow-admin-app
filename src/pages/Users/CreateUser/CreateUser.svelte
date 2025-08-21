@@ -87,10 +87,20 @@
           notification.success('User created!');
           onClose();
         } else {
-          notification.error(res?.message || 'Failed to create user.');
+          notification.error(res?.message);
         }
       } catch (err) {
-        notification.error('Failed to create user.');
+        if (
+							err.message ===
+							'The account with the provided email currently exists. Please choose another one.'
+						) {
+							isDuplicateEmail = true;
+							notification.error(
+								'This email is already registered. Please use a different email address.'
+							);
+						} else {
+							notification.error(err.message);
+						}
       }
       registerLoader = false;
     }
