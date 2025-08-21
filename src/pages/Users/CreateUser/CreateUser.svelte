@@ -436,4 +436,8 @@
       font-size: 20px;
     }
   }
+  input[type='password']::-ms-reveal,
+  input[type='password']::-webkit-credentials-auto-fill-button {
+    display: none !important;
+  }
 </style>
