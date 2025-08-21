@@ -5,6 +5,7 @@
   import vector1 from '@/assets/Vector1.svg';
   import vector2 from '@/assets/Vector2.svg';
   import vector3 from '@/assets/Vector3.svg';
+  import BlurEffect from '@/assets/images/BgCard.png';
   import Button from '@/ui/Button/Button.svelte';
   import { notification } from '@/components/Toast';
   import { userService } from '@/services/users.service';
@@ -91,16 +92,16 @@
         }
       } catch (err) {
         if (
-							err.message ===
-							'The account with the provided email currently exists. Please choose another one.'
-						) {
-							isDuplicateEmail = true;
-							notification.error(
-								'This email is already registered. Please use a different email address.'
-							);
-						} else {
-							notification.error(err.message);
-						}
+          err.message ===
+          'The account with the provided email currently exists. Please choose another one.'
+        ) {
+          isDuplicateEmail = true;
+          notification.error(
+            'This email is already registered. Please use a different email address.',
+          );
+        } else {
+          notification.error(err.message);
+        }
       }
       registerLoader = false;
     }
@@ -237,9 +238,12 @@
   :global(.create-user-modal) {
     width: 380px;
     max-width: calc(100vw - 32px);
-    background-color: var(--surface-600, #101318);
-    border-radius: 0.5rem; /* rounded-lg */
-    padding: 1.5rem; /* p-6 */
+    background:
+      url('@/assets/images/BgCard.png') center top no-repeat,
+      var(--surface-600, #101318);
+    background-size: cover;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
     color: var(--white-color, #fff);
     font-family: 'Roboto', sans-serif;
   }
@@ -283,7 +287,7 @@
   .titles .subtitle {
     margin: 0;
     font-size: 14px;
-    color: var(--labelColor, #9B9DA1);
+    color: var(--labelColor, #9b9da1);
   }
 
   .logo-wrap {
@@ -393,7 +397,7 @@
     font-weight: 600;
   }
   .field-error {
-    color: var(--error--color, #EB5651);
+    color: var(--error--color, #eb5651);
     font-size: 12px;
   }
 
