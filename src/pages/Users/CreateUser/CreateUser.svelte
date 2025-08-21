@@ -235,7 +235,7 @@
 
 <style>
   /* Modal container: more opaque background, no backdrop blur, subtle shadow */
-  :global(.create-user-modal) {
+  .create-user-modal {
     width: 380px;
     max-width: calc(100vw - 32px);
     background:
@@ -323,7 +323,7 @@
   .required {
     color: var(--error--color, #eb5651);
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .input {
@@ -385,7 +385,7 @@
     align-items: center;
     gap: 10px;
     color: var(--labelColor, #bfc3c8);
-    font-size: 13px;
+    font-size: 12px;
   }
   .password-rules img {
     width: 16px;
@@ -401,12 +401,6 @@
     font-size: 12px;
   }
 
-  .link {
-    color: var(--sparrow-primary-color, #3670f7);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
   .action-row {
     margin-top: 10px;
   }
@@ -416,25 +410,9 @@
     font-weight: 600;
   }
 
-  .support-links {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 12px;
-    color: var(--labelColor, #bfc3c8);
-    font-size: 12px;
-  }
-  .help-link {
-    color: var(--labelColor, #bfc3c8);
-    text-decoration: none;
-  }
-  .sep {
-    opacity: 0.3;
-  }
-
   /* Small screens: keep modal centered and responsive */
   @media (max-width: 420px) {
-    :global(.create-user-modal) {
+    .create-user-modal {
       padding: 20px;
       width: calc(100vw - 24px);
     }
