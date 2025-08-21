@@ -437,10 +437,7 @@
     }
   }
   input[type='password']::-ms-reveal,
-  input[type='password']::-ms-clear,
-  input[type='password']::-webkit-credentials-auto-fill-button,
-  input[type='password']::-webkit-input-decoration,
-  input[type='password']::-webkit-textfield-decoration-container {
+  input[type='password']::-webkit-credentials-auto-fill-button {
     display: none !important;
   }
 </style>
