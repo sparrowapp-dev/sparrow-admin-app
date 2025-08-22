@@ -32,6 +32,7 @@
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import { AVAILABLE_PLANS } from '@/utils/pricing';
   import HubsDropdownIcon from '@/assets/icons/HubsDropdownIcon.svelte';
+  import { APP_EDITION } from '@/constants/environment';
   // State
   let pagination = { pageIndex: 0, pageSize: 10 };
   let filters = { searchTerm: '' };
@@ -312,13 +313,15 @@
               isLoading={$isFetching}
               placeholder={'Search hubs'}
             />
-            <DropdownNoSearch
-              width={'min-w-[151px]'}
-              bind:selected
-              {options}
-              leftIcon={HubsDropdownIcon}
-              on:select={handleSelect}
-            />
+            {#if APP_EDITION !== 'SELFHOSTED'}
+              <DropdownNoSearch
+                width={'min-w-[151px]'}
+                bind:selected
+                {options}
+                leftIcon={HubsDropdownIcon}
+                on:select={handleSelect}
+              />
+            {/if}
           </div>
           <Button
             variant="filled-primary"
