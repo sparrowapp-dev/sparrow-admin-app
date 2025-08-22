@@ -7,3 +7,4 @@ export const SPARROW_DOCS_URL = runtimeConfig.VITE_SPARROW_DOCS_URL ?? import.me
 export const APP_ENVIRONMENT = runtimeConfig.VITE_ENVIRONMENT ?? import.meta.env.VITE_ENVIRONMENT;
 export const POSTHOG_API_KEY = runtimeConfig.VITE_POSTHOG_CONNECTION_API_KEY ?? import.meta.env.VITE_POSTHOG_CONNECTION_API_KEY;
 export const APP_EDITION = runtimeConfig.VITE_APP_EDITION ?? import.meta.env.VITE_APP_EDITION;
+export const SPARROW_MARKETING_URL = runtimeConfig.VITE_SPARROW_MARKETING_URL ?? import.meta.env.VITE_SPARROW_MARKETING_URL;

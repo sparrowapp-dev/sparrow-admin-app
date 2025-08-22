@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { writable } from 'svelte/store';
 import { setTokens } from '@/store/auth';
+import { API_BASE_URL } from '@/constants/environment';
 
 // Response interface - matches AxiosResponse but with isSuccess added
 export interface HttpClientResponseInterface<T = any> extends Omit<AxiosResponse<T>, 'data'> {
@@ -18,7 +19,7 @@ export interface HttpClientErrorInterface {
 // Default config for axios
 const DEFAULT_CONFIG: AxiosRequestConfig = {
   // Vite environment variable access
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: API_BASE_URL || 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
