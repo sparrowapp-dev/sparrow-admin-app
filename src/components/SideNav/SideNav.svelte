@@ -14,6 +14,7 @@
   import SettingsIcon from '@/assets/icons/SettingsIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { captureEvent } from '@/utils/posthogConfig';
+    import { APP_EDITION } from '@/constants/environment';
 
   const currentPath = writable(window.location.pathname);
   let hoveredPath: string | null = null;
@@ -88,7 +89,7 @@
     captureEvent('admin_billing_page_viewed', eventProperties);
   };
 
-  const appEdition = import.meta.env.VITE_APP_EDITION;
+  const appEdition = APP_EDITION
 </script>
 
 <div
