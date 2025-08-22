@@ -17,7 +17,7 @@
   import InviteDropdown from '@/components/TableComponents/InviteDropdown.svelte';
   import ChangeUserRole from '@/components/ChangeUserRole/ChangeUserRole.svelte';
   import RemoveuserPopup from '@/components/RemoveUserPopup/RemoveuserPopup.svelte';
-  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { userService } from '@/services/users.service';
   import UpgradeHubPopup from '@/components/UpgradeHubPopup/UpgradeHubPopup.svelte';
