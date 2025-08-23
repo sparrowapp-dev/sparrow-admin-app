@@ -2,6 +2,7 @@
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
   import { onMount } from 'svelte';
+  import { APP_EDITION } from '@/constants/environment';
 
   interface Point {
     value: string;
@@ -62,14 +63,16 @@
       <div class="flex flex-row gap-1">
         {#if points.length > 0}
           {#each points as point, i}
-            <div
-              class="font-roboto text-fs-ds-12 inline-flex items-center leading-4 font-light text-neutral-300"
-            >
-              <span>{point.value}: {point.count}</span>
-              {#if i !== points.length - 1}
-                <div class="ml-1 h-[60%] border-r border-r-neutral-300" />
-              {/if}
-            </div>
+            {#if !(APP_EDITION === 'SELFHOSTED' && (point?.value === 'Community' || point?.value === 'Standard' || point?.value === 'Professional'))}
+              <div
+                class="font-roboto text-fs-ds-12 inline-flex items-center leading-4 font-light text-neutral-300"
+              >
+                <span>{point.value}: {point.count}</span>
+                {#if i !== points.length - 1}
+                  <div class="ml-1 h-[60%] border-r border-r-neutral-300" />
+                {/if}
+              </div>
+            {/if}
           {/each}
         {/if}
 
