@@ -37,7 +37,6 @@
       opacity.set(1);
       translateY.set(0);
       contentBlur.set(0);
-      console.log('points:---------->', points);
     }, 100);
   });
 </script>
@@ -65,8 +64,6 @@
         {#if points.length > 0}
           {#each points as point, i}
             {#if !(APP_EDITION === 'SELFHOSTED' && (point?.value === 'Community' || point?.value === 'Standard' || point?.value === 'Professional'))}
-              <!-- only show points in cloud edition -->
-              <!-- Show divider if not the last point -->
               <div
                 class="font-roboto text-fs-ds-12 inline-flex items-center leading-4 font-light text-neutral-300"
               >
