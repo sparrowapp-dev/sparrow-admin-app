@@ -18,7 +18,7 @@
   import { userService } from '@/services/users.service';
   import { userId } from '@/store/auth';
   import Button from '@/ui/Button/Button.svelte';
-  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
