@@ -20,7 +20,7 @@
     tnsCheckbox: false,
     marketingUpdates: false,
   };
-  let isDuplicateEmail = false;
+
   let validationErrors: any = {};
 
   let isPasswordValid1 = false;
@@ -69,11 +69,6 @@
     isPasswordTouched = true;
     validationErrors = await handleRegisterValidation(userData);
 
-    if (isDuplicateEmail) {
-      notification.error('Email ID already exists.');
-      return;
-    }
-
     if (isFormValid) {
       registerLoader = true;
       try {
@@ -95,7 +90,6 @@
           err.message ===
           'The account with the provided email currently exists. Please choose another one.'
         ) {
-          isDuplicateEmail = true;
           notification.error(
             'This email is already registered. Please use a different email address.',
           );
@@ -129,6 +123,7 @@
       type="text"
       class="input"
       placeholder="Enter user full name"
+      maxlength="100"
       bind:value={userData.fullName}
       on:blur={async () => {
         isFullNameTouched = true;
