@@ -12,4 +12,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // Alias @ to the src directory
     },
   },
+  // server: {
+  //   allowedHosts: true
+  // }
+  server: {
+		port: 5173,
+		strictPort: true
+	},
 });
