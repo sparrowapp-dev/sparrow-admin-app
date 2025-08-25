@@ -5,6 +5,7 @@
   import { onMount } from 'svelte';
   import PlansViewModel from './Plans.ViewModel';
   import { notification } from '@/components/Toast';
+    import { SPARROW_MARKETING_URL } from '@/constants/environment';
   const location = useLocation();
   $: params = new URLSearchParams($location.search);
   $: accessToken = params.get('accessToken');
@@ -72,7 +73,7 @@
     },
   ];
 
-  const marketingUrl = import.meta.env.VITE_SPARROW_MARKETING_URL;
+  const marketingUrl = SPARROW_MARKETING_URL;
 
   $: pricingPlans = billingPeriod === 'monthly' ? monthlyPlans : annualPlans;
 

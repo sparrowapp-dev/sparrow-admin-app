@@ -12,6 +12,7 @@
   import TrialSuccess from '@/pages/TrialSuccess/TrialSuccess.svelte';
   import UserTrialFlow from '@/pages/UserTrialFlow/UserTrialFlow.svelte';
   import Plans from '@/pages/Plans/Plans.svelte';
+  import { APP_EDITION } from '@/constants/environment';
 
   // URL passed from parent component
   export let url: string = '';
@@ -26,7 +27,9 @@
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
   <PrivateRoute path="/hubs/*" component={Hubs} />
   <PrivateRoute path="/users/*" component={Users} />
-  <PrivateRoute path="/billing/*" component={Payment} />
+  {#if APP_EDITION !== 'SELFHOSTED'}
+    <PrivateRoute path="/billing/*" component={Payment} />
+  {/if}
 
   <!-- Trail Flow -->
   <Route path="/trial" component={TrialFlow} />
