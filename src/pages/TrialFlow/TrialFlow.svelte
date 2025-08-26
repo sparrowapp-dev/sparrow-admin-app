@@ -97,6 +97,7 @@
   let trialPeriod;
   let name;
   let teamDetailsComponent;
+  let trialType = 'invited';
 
   const formatHubUrl = (value) => {
     return value ? `https://${value}.sparrowhub.net` : '';
@@ -138,6 +139,7 @@
   let trialend = '';
   let isPaymentProcessing = false;
   let pricingDetails;
+  let flowName;
 
   function handleCardViewChange(event) {
     cardDetailsView = event.detail;
@@ -273,7 +275,7 @@
           };
           await _viewModel.sendConfirmationEmail(trailData?.data?._id, formatTeamData.length + 1);
           navigate(
-            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}`,
+            `/trialsuccess?hub=${team?.name}&users=${userCount}&trialstart=${trialstart}&trialend=${trialend}&flow=${flowName.toLowerCase()}`,
             { replace: true },
           );
         }, 5000);
@@ -322,6 +324,7 @@
       paymentMethodId: paymentMethodId,
       metadata,
       trialPeriodDays: trailData?.data?.trialPeriod || 0,
+      trialType: trialType,
       seats: triggerPoint === 'finish' ? teamdata.length : 1,
     });
     console.log('Subscription result:', result);
@@ -404,6 +407,7 @@
       trialPeriod = Math.round(trailData?.data?.trialPeriod / 30);
       isHubCreated = trailData?.data?.isHubCreated || false;
       createdHubId = trailData?.data?.createdHubId || '';
+      flowName = trailData?.data?.trialPlan
       if (isHubCreated) {
         const hubDetails = await _viewModel.getHubDetails(createdHubId);
         if (hubDetails?.isSuccessful) {
@@ -489,6 +493,10 @@
           bind:customerId
           {paymentMethodId}
           {isCardDetailsAdded}
+          {isPaymentProcessing}
+          {cardDetailsView}
+          {nextStep}
+          {prevStep}
         />
       {:else if currentStep === 3}
         <TeamDetails
@@ -508,30 +516,6 @@
         <div class="mr-40 ml-25 flex-1">
           <Button variant="filled-primary" size="medium" className="w-full" on:click={nextStep}>
             Continue
-          </Button>
-        </div>
-      </div>
-    {:else if currentStep === 2}
-      <!-- Step 2: Previous + Next/Continue -->
-      <div class="-mt-14 mb-8 flex gap-3">
-        <div class="flex-1">
-          <Button variant="filled-secondary" size="medium" className="w-full" on:click={prevStep}>
-            Previous
-          </Button>
-        </div>
-        <div class="flex-1">
-          <Button
-            disabled={isPaymentProcessing}
-            variant="filled-primary"
-            size="medium"
-            className="w-full"
-            on:click={async () => {
-              isPaymentProcessing = true;
-              await nextStep();
-              isPaymentProcessing = false;
-            }}
-          >
-            {cardDetailsView === 'cardDetails' ? 'Next' : 'Continue'}
           </Button>
         </div>
       </div>
