@@ -10,7 +10,7 @@
   import { ModalData, UserDetailsResponse } from '@/interface/Users';
   import { createQuery } from '@/services/api.common';
   import { userService } from '@/services/users.service';
-  import ChangingRolesPopup from '@/ui/ChangingRolesPopup.svelte/ChangingRolesPopup.svelte';
+  import ChangingRolesPopup from '@/ui/ChangingRolesPopup/ChangingRolesPopup.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
 
   import { getRelativeTime } from '@/utils/TimeFunction';
