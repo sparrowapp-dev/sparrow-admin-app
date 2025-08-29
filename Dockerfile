@@ -3,6 +3,22 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_SPARROW_LAUNCH_URL
+ARG VITE_API_BASE_URL
+ARG VITE_LOGIN_REDIRECT
+ARG VITE_SPARROW_DOCS_URL
+ARG VITE_ENVIRONMENT
+ARG VITE_POSTHOG_CONNECTION_API_KEY
+ARG VITE_SPARROW_MARKETING_URL
+
+ENV VITE_SPARROW_LAUNCH_URL=$VITE_SPARROW_LAUNCH_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_LOGIN_REDIRECT=$VITE_LOGIN_REDIRECT
+ENV VITE_SPARROW_DOCS_URL=$VITE_SPARROW_DOCS_URL
+ENV VITE_ENVIRONMENT=$VITE_ENVIRONMENT
+ENV VITE_POSTHOG_CONNECTION_API_KEY=$VITE_POSTHOG_CONNECTION_API_KEY
+ENV VITE_SPARROW_MARKETING_URL=$VITE_SPARROW_MARKETING_URL
+
 COPY package*.json ./
 RUN npm install
 
@@ -16,16 +32,6 @@ FROM nginx:alpine
 COPY default.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Create entrypoint directory if it doesn't exist
-RUN mkdir -p /docker-entrypoint.d
-
-# Copy and convert shell script to Unix format
-COPY docker-entrypoint.d/10-runtime-rewrite.sh /docker-entrypoint.d/10-runtime-rewrite.sh
-
-# Convert line endings to Unix format and make executable
-RUN dos2unix /docker-entrypoint.d/10-runtime-rewrite.sh && \
-    chmod +x /docker-entrypoint.d/10-runtime-rewrite.sh
 
 EXPOSE 80
 
