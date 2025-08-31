@@ -20,7 +20,6 @@ interface CreateSubscriptionParams {
   paymentMethodId: string;
   metadata?: any;
   trialPeriodDays?: number;
-  trialType?: string;
   seats?: number;
   promoCodeId?: string; // Optional promo code ID
 }
