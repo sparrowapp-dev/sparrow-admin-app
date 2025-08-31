@@ -241,7 +241,6 @@
   let name;
   let teamDetailsComponent;
   let showPromoCode;
-  let trialType = 'standard';
 
   const formatHubUrl = (value) => {
     return value ? `https://${value}.sparrowhub.net` : '';
@@ -499,7 +498,6 @@
       paymentMethodId: paymentMethodId,
       metadata,
       trialPeriodDays: trialPeriod || 0,
-      trialType: trialType,
       seats: triggerPoint === 'finish' ? hubUserCount : 1,
       promoCodeId,
     });
