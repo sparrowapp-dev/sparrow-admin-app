@@ -14,6 +14,7 @@
   import SettingsIcon from '@/assets/icons/SettingsIcon.svelte';
   import Tooltip from '../Tooltip/Tooltip.svelte';
   import { captureEvent } from '@/utils/posthogConfig';
+    import { APP_EDITION } from '@/constants/environment';
 
   const currentPath = writable(window.location.pathname);
   let hoveredPath: string | null = null;
@@ -87,6 +88,8 @@
     };
     captureEvent('admin_billing_page_viewed', eventProperties);
   };
+
+  const appEdition = APP_EDITION
 </script>
 
 <div
@@ -252,6 +255,7 @@
       <button
         class="group hover:bg-surface-500 active:bg-surface-400 relative cursor-pointer rounded focus-visible:outline-2 focus-visible:outline-blue-300"
         class:active={isPathActive('/billing')}
+        disabled={appEdition === 'SELFHOSTED'}
         on:click={() => {
           captureBillingButtonClick();
           navigate('/billing');
@@ -264,13 +268,15 @@
       >
         <div class="pointer-events-none rounded px-3 py-3">
           <BillingIcon
-            variant={hoveredPath === '/billing' &&
-            !isPathActive('/billing') &&
-            pressedPath !== '/billing'
-              ? 'hover'
-              : pressedPath === '/billing'
-                ? 'selected'
-                : billingVariant}
+            variant={appEdition === 'SELFHOSTED'
+              ? 'disabled'
+              : hoveredPath === '/billing' &&
+                  !isPathActive('/billing') &&
+                  pressedPath !== '/billing'
+                ? 'hover'
+                : pressedPath === '/billing'
+                  ? 'selected'
+                  : billingVariant}
           />
         </div>
         <div
