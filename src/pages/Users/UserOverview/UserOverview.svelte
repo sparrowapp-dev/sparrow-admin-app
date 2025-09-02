@@ -353,7 +353,7 @@
           </div>
           <div class="flex gap-2">
             {#if APP_EDITION !== 'MANAGED'}
-              <!-- <Tooltip
+              <Tooltip
                 text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
                 position={'bottom'}
                 mode="hover"
@@ -380,7 +380,7 @@
                   </svelte:fragment>
                   Create User
                 </Button>
-              </Tooltip> -->
+              </Tooltip>
             {/if}
             <Button
               variant="filled-primary"
