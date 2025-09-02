@@ -27,7 +27,7 @@
   import PersonAdd from '@/assets/icons/PersonAdd.svelte';
   import Tooltip from '@/components/Tooltip/Tooltip.svelte';
   import CreateUser from '../CreateUser/CreateUser.svelte';
-    import { APP_EDITION } from '@/constants/environment';
+  import { APP_EDITION } from '@/constants/environment';
 
   const id = userId;
 
@@ -129,14 +129,13 @@
     }
   }
 
-  const captureUserClickUpgrade =() =>{
-    const eventProperties ={
-      event_source : "admin",
-      cta_location:"limit_exceeded_modal"
-    }
-    captureEvent("admin_upgrade_intent",eventProperties)
-  }
-  
+  const captureUserClickUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'limit_exceeded_modal',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 
   // Redirect handler for upgrade popup
   function handleRedirect() {
@@ -354,34 +353,34 @@
           </div>
           <div class="flex gap-2">
             {#if APP_EDITION !== 'MANAGED'}
-            <Tooltip
-              text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
-              position={'bottom'}
-              mode="hover"
-              size="xs"
-              offset={-10}
-            >
-              <Button
-                variant="filled-secondary"
-                size="small"
-                iconLeft={true}
-                on:click={() => {
-                  showModal = true;
-                  modalVariants = {
-                    createUser: true,
-                    changeRole: false,
-                    removeUser: false,
-                    changingRole: false,
-                  };
-                  captureCreateUser('Create User');
-                }}
+              <Tooltip
+                text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
+                position={'bottom'}
+                mode="hover"
+                size="xs"
+                offset={-10}
               >
-                <svelte:fragment slot="iconLeft">
-                  <PersonAdd />
-                </svelte:fragment>
-                Create User
-              </Button>
-            </Tooltip>
+                <Button
+                  variant="filled-secondary"
+                  size="small"
+                  iconLeft={true}
+                  on:click={() => {
+                    showModal = true;
+                    modalVariants = {
+                      createUser: true,
+                      changeRole: false,
+                      removeUser: false,
+                      changingRole: false,
+                    };
+                    captureCreateUser('Create User');
+                  }}
+                >
+                  <svelte:fragment slot="iconLeft">
+                    <PersonAdd />
+                  </svelte:fragment>
+                  Create User
+                </Button>
+              </Tooltip>
             {/if}
             <Button
               variant="filled-primary"
