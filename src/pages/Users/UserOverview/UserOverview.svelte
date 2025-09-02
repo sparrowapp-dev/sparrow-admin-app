@@ -27,6 +27,7 @@
   import PersonAdd from '@/assets/icons/PersonAdd.svelte';
   import Tooltip from '@/components/Tooltip/Tooltip.svelte';
   import CreateUser from '../CreateUser/CreateUser.svelte';
+    import { APP_EDITION } from '@/constants/environment';
 
   const id = userId;
 
@@ -352,6 +353,7 @@
             </h2>
           </div>
           <div class="flex gap-2">
+            {#if APP_EDITION !== 'MANAGED'}
             <Tooltip
               text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
               position={'bottom'}
@@ -380,6 +382,7 @@
                 Create User
               </Button>
             </Tooltip>
+            {/if}
             <Button
               variant="filled-primary"
               size="small"
