@@ -40,6 +40,6 @@ jobs:
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg GITHUB_TOKEN=${{ secrets.SPARROW_GITHUB_TOKEN }} \
-            -t sparrowapi/sparrow-admin:self-host-${DOCKER_IMAGE_VERSION} \
+            -t sparrowapi/sparrow-admin:${DOCKER_IMAGE_VERSION} \
             -t sparrowapi/sparrow-admin:latest \
             --push .
