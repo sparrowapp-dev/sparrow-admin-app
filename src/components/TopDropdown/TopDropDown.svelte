@@ -4,6 +4,7 @@
   import { navigate } from 'svelte-routing';
   import { onMount, onDestroy } from 'svelte';
   import { captureEvent } from '@/utils/posthogConfig';
+    import { SPARROW_LAUNCH_URL } from '@/constants/environment';
 
   export let row;
 
@@ -55,7 +56,7 @@
   onDestroy(() => {
     window.removeEventListener('close-all-dropdowns', closeDropdown);
   });
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
+  const launchUrl = SPARROW_LAUNCH_URL;
   function handleLaunch() {
     window.open(`${launchUrl}`, '_blank');
   }

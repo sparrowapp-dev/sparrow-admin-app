@@ -23,7 +23,11 @@
   import { getRelativeTime } from '@/utils/TimeFunction';
   import type { SortingState } from '@tanstack/svelte-table';
   import { navigate } from 'svelte-routing';
-    import { captureEvent } from '@/utils/posthogConfig';
+  import { captureEvent } from '@/utils/posthogConfig';
+  import PersonAdd from '@/assets/icons/PersonAdd.svelte';
+  import Tooltip from '@/components/Tooltip/Tooltip.svelte';
+  import CreateUser from '../CreateUser/CreateUser.svelte';
+  import { APP_EDITION } from '@/constants/environment';
 
   const id = userId;
 
@@ -125,14 +129,13 @@
     }
   }
 
-  const captureUserClickUpgrade =() =>{
-    const eventProperties ={
-      event_source : "admin",
-      cta_location:"limit_exceeded_modal"
-    }
-    captureEvent("admin_upgrade_intent",eventProperties)
-  }
-  
+  const captureUserClickUpgrade = () => {
+    const eventProperties = {
+      event_source: 'admin',
+      cta_location: 'limit_exceeded_modal',
+    };
+    captureEvent('admin_upgrade_intent', eventProperties);
+  };
 
   // Redirect handler for upgrade popup
   function handleRedirect() {
@@ -164,7 +167,7 @@
   function handleSelect(event: CustomEvent<{ value: string; label: string }>) {
     selected = event.detail;
     pagination.pageIndex = 0;
-    captureDropdownSelect(selected.label, "All Hubs");
+    captureDropdownSelect(selected.label, 'All Hubs');
     hubId = selected?.value !== 'all' ? selected.value : null;
     if (hubId) {
       refetchMembers();
@@ -175,7 +178,12 @@
 
   let showModal = false;
   let modalData: ModalData = { data: null };
-  let modalVariants = { changeRole: false, removeUser: false, changingRole: false };
+  let modalVariants = {
+    createUser: false,
+    changeRole: false,
+    removeUser: false,
+    changingRole: false,
+  };
 
   function onClick({ data, click }) {
     handleShowModal(data);
@@ -192,6 +200,7 @@
     modalVariants.changeRole = false;
     modalVariants.removeUser = false;
     modalVariants.changingRole = false;
+    modalVariants.createUser = false;
     showModal = false;
     modalData.data = null;
   }
@@ -305,20 +314,24 @@
     navigate(`/users/users-overview/${userId}`);
   }
 
-  const captureDropdownSelect = (selectName:string,buttonName:string) =>{
+  const captureDropdownSelect = (selectName: string, buttonName: string) => {
     const eventProperties = {
       button_name: buttonName,
-      select_type: selectName
-    }
-    captureEvent("admin_hub_filter_applied", eventProperties);
-  }
+      select_type: selectName,
+    };
+    captureEvent('admin_hub_filter_applied', eventProperties);
+  };
 
-  const captureInviteCollaborator = (buttonName:string) =>{
+  const captureInviteCollaborator = (buttonName: string) => {
     const eventProperties = {
       button_name: buttonName,
-    }
-    captureEvent("admin_invite_collaborator_clicked", eventProperties);
-  }
+    };
+    captureEvent('admin_invite_collaborator_clicked', eventProperties);
+  };
+  const captureCreateUser = (buttonName: string) => {
+    const eventProperties = { button_name: buttonName };
+    captureEvent('admin_create_user_clicked', eventProperties);
+  };
 </script>
 
 <section>
@@ -338,21 +351,53 @@
               Manage users and their access rights
             </h2>
           </div>
-          <Button
-            variant="filled-primary"
-            size="small"
-            iconLeft={true}
-            on:click={() => {
-              (showModal = true) 
-              captureInviteCollaborator("Invite Collaborators")
-            }}
-            disabled={selected.value === 'all'}
-          >
-            <svelte:fragment slot="iconLeft">
-              <ManageMembersIcon />
-            </svelte:fragment>
-            Invite Collaborators
-          </Button>
+          <div class="flex gap-2">
+            {#if APP_EDITION !== 'MANAGED'}
+              <Tooltip
+                text={'Instantly creates a new user account and sends them an email with their login ID and Password. The user can log in immediately.'}
+                position={'bottom'}
+                mode="hover"
+                size="xs"
+                offset={-10}
+              >
+                <Button
+                  variant="filled-secondary"
+                  size="small"
+                  iconLeft={true}
+                  on:click={() => {
+                    showModal = true;
+                    modalVariants = {
+                      createUser: true,
+                      changeRole: false,
+                      removeUser: false,
+                      changingRole: false,
+                    };
+                    captureCreateUser('Create User');
+                  }}
+                >
+                  <svelte:fragment slot="iconLeft">
+                    <PersonAdd />
+                  </svelte:fragment>
+                  Create User
+                </Button>
+              </Tooltip>
+            {/if}
+            <Button
+              variant="filled-primary"
+              size="small"
+              iconLeft={true}
+              on:click={() => {
+                showModal = true;
+                captureInviteCollaborator('Invite Collaborators');
+              }}
+              disabled={selected.value === 'all'}
+            >
+              <svelte:fragment slot="iconLeft">
+                <ManageMembersIcon />
+              </svelte:fragment>
+              Invite Collaborators
+            </Button>
+          </div>
         </div>
 
         <div class="bg-surface-900">
@@ -407,7 +452,14 @@
 
     {#if showModal}
       <Modal on:close={closePopups}>
-        {#if modalVariants.changeRole}
+        {#if modalVariants.createUser}
+          <CreateUser
+            onClose={() => {
+              modalVariants.createUser = false;
+              showModal = false;
+            }}
+          />
+        {:else if modalVariants.changeRole}
           <ChangeUserRole
             onClose={closePopups}
             data={$membersData.data?.members?.find(

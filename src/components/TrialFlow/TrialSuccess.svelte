@@ -4,6 +4,7 @@
   import Button from '@/ui/Button/Button.svelte';
   import { navigate } from 'svelte-routing';
   import { onMount } from 'svelte';
+    import { SPARROW_LAUNCH_URL } from '@/constants/environment';
   export let hub = '';
   export let users = '';
 
@@ -20,7 +21,7 @@
   export let promoDiscountType;
   export let promoDiscountValue;
 
-  const launchUrl = import.meta.env.VITE_SPARROW_LAUNCH_URL;
+  const launchUrl = SPARROW_LAUNCH_URL;
   function handleLaunch() {
     const sparrowWebRedirect = `${launchUrl}?accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&event=register&method=email`;
     const sparrowRedirect = `sparrow://?accessToken=${accessToken}&refreshToken=${refreshToken}&response=${response}&event=register&method=email`;
