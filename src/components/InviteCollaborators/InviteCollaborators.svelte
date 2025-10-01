@@ -10,6 +10,8 @@
   import ProfileIcon from '@/assets/icons/ProfileIcon.svelte';
   import { captureEvent } from '@/utils/posthogConfig';
   import { triggerHubRefetch } from '@/store/hubRefetch';
+  import { APP_EDITION } from '@/constants/environment';
+  const appEdition = APP_EDITION
   const dispatch = createEventDispatcher();
   export let onClose: () => void;
   export let hubId: any;
@@ -245,10 +247,12 @@
       </div>
     {/if}
     {#if hubPlan !== 'Community'}
-      <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
-        Note: Inviting a user reserves a license and may trigger a charge, unless an unused license
-        is available.
-      </div>
+      {#if appEdition !== 'SELFHOSTED'}
+        <div class="text-fs-ds-12 font-fw-ds-300 mt-2 text-neutral-400">
+          Note: Inviting a user reserves a license and may trigger a charge, unless an unused license
+          is available.
+        </div>
+      {/if}
     {/if}
     <!-- Hub display -->
     <div class="border-surface-500 mt-6 flex items-center">
