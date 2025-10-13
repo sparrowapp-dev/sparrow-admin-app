@@ -76,7 +76,7 @@
   let selectedPlan: string = '';
   let hubName: string = '';
   let hubWorkspaces: [];
-  let mode: string = 'upgrade-only';
+  let mode: string = 'change-plan';
   let createdAt: string;
   let hubUsers:[];
   let downgradeFlow = {
@@ -96,8 +96,14 @@
 
   $: {
     const searchParams = new URLSearchParams($location?.search || '');
-    mode = searchParams.get('mode') || 'upgrade-only';
+    mode = searchParams.get('mode') || 'change-plan';
   }
+
+  $: pageHeading = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Your Plan';
+  $: pageDescription =
+    mode === 'upgrade'
+      ? "You're ready for the next level. Upgrade to access more and features. You can switch plans at any time."
+      : 'Select a different plan that fits your needs. Your current plan is highlighted below. The new plan will take effect immediately or at the start of your next billing cycle depending on your billing terms.';
 
   // URL parsing
   $: {
@@ -227,20 +233,7 @@
   }
 
   function isPlanSelectable(plan) {
-    const canSelect = checkPlanSelectable(
-      currentPlanLower,
-      plan,
-      billingCycle,
-      currentBillingCycle,
-    );
-
-    // If mode = 'full-access', allow all plans
-    if (mode === 'full-access') return true;
-
-    // If mode = 'upgrade-only', disallow downgrades
-    const currentValue = getPlanValue(currentPlanLower, currentBillingCycle);
-    const targetValue = getPlanValue(plan, billingCycle);
-    return targetValue > currentValue; // only higher plans allowed
+    return true;
   }
   // console.log('mode:', mode, 'plan:', plan, 'selectable:', isPlanSelectable(plan));
 
@@ -269,10 +262,10 @@
     }
   }
 
-  // Prepare breadcrumb navigation
+  $: breadcrumbLabel = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Plan';
   $: breadcrumbItems = [
     { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
-    { label: 'Change Plan', path: '' },
+    { label: breadcrumbLabel, path: '' },
   ];
 
   // Make plan values reactive
@@ -364,11 +357,8 @@
   <Breadcrumbs items={breadcrumbItems} />
 
   <div class="mt-6">
-    <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-white">Upgrade Plan</h1>
-    <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
-      You're ready for the next level. Upgrade to access more and features. You can switch plans at
-      any time.
-    </p>
+    <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-white">{pageHeading}</h1>
+    <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">{pageDescription}</p>
 
     <div class="mt-6">
       <!-- Billing toggle with smooth sliding animation -->
@@ -590,9 +580,9 @@
     }}
     on:next={(e) => {
       downgradeData.selectedWorkspaces = e.detail.selected;
+      downgradeData.unselectedWorkspaces = e.detail.unselected;
       downgradeFlow.chooseWorkspaceModal = false;
 
-      // Skip Active Members step for Standard downgrade
       if (selectedPlan?.toLowerCase() === 'standard') {
         downgradeFlow.reviewModal = true;
       } else {
@@ -636,9 +626,8 @@
       selectedMembers={downgradeData.selectedMembers}
       on:close={() => {
         downgradeFlow.reviewModal = false;
-        // Backtrack logic
         if (selectedPlan?.toLowerCase() === 'standard') {
-          downgradeFlow.chooseWorkspaceModal = true; // skip members
+          downgradeFlow.chooseWorkspaceModal = true;
         } else {
           downgradeFlow.chooseMembersModal = true;
         }

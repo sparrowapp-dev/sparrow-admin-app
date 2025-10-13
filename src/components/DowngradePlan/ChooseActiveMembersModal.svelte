@@ -11,7 +11,6 @@
     const dispatch = createEventDispatcher();
     let selected = new Set();
   
-    // ✅ Filter out hub owner
     $: filteredUsers = Array.isArray(users)
       ? users.filter((u) => (u.id || u._id) !== (hubOwner?.id || hubOwner?._id))
       : [];
@@ -46,7 +45,6 @@
       }
     };
   
-    // ✅ Helper: Extract only first name
     function getFirstName(fullNameOrEmail: string): string {
       if (!fullNameOrEmail) return '';
       if (fullNameOrEmail.includes('@')) {

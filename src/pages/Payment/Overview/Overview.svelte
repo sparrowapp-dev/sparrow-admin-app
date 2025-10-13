@@ -82,6 +82,7 @@
   let showResubscribeModal = false;
   let resubscribeInProgress = false;
 
+
   // Animation stores for cards
   const cardOpacity = tweened(0, {
     duration: 600,
@@ -294,13 +295,23 @@
       status: subscriptionStatus,
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
-      mode: 'upgrade-only',
+      mode: 'upgrade',
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
   }
 
   function handleChangePlanClick() {
+    captureUserClickUpgradePlan();
+    if (planStatus === 'payment_failed' || planStatus === 'action_required') {
+      if (isRedirecting) {
+        isRedirecting = false;
+        return;
+      } else {
+        notification.error('Please resolve the payment issue before changing your plan.');
+      }
+      return; 
+    }
     const searchParams = new URLSearchParams({
       currentPlan,
       currentBillingCycle,
@@ -308,7 +319,7 @@
       status: subscriptionStatus,
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
-      mode: 'full-access',
+      mode: 'change-plan',
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -640,11 +651,6 @@
             on:click={handleUpgradeClick}
             disabled={isScheduledDowngrade ||
               (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
-            tooltipText={isScheduledDowngrade
-              ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
-              : ''}
-            tooltipPosition="bottom"
-            tooltipDelay={100}
           >
             Upgrade
           </Button>

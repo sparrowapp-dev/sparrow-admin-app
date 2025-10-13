@@ -59,7 +59,6 @@
   }
 
   function handleContinueDowngrade() {
-    // Simply dispatch 'continue' - let the parent handle opening the next modal
     dispatch('continue');
   }
 </script>

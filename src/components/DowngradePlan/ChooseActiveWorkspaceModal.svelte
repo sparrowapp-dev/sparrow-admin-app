@@ -51,8 +51,13 @@
         id: ws.id,
         name: ws.name,
       }));
-
-    dispatch('next', { selected: selectedWorkspaces });
+    const unselectedWorkspaces = workspaces
+      .filter((ws) => !selected.has(ws.id))
+      .map((ws) => ({
+        id: ws.id,
+        name: ws.name,
+      }));
+    dispatch('next', { selected: selectedWorkspaces, unselected: unselectedWorkspaces });
   };
 
 
