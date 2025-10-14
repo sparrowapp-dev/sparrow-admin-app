@@ -111,7 +111,7 @@
           teamName: 'Members',
           workspaces: data?.users || [],
         };
-
+  console.log(processedData);
   $: columns =
     selectedTab === 'resources'
       ? [

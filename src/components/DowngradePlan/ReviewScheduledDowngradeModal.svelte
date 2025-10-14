@@ -23,13 +23,12 @@
   function handleConfirm() {
     dispatch('confirm', { feedback });
   }
-  $: modalHeight =
-    selectedPlan?.toLowerCase() === 'community' ? 'h-[555px]' : 'h-[485px]';
+  $: modalHeight = selectedPlan?.toLowerCase() === 'community' ? 'h-[555px]' : 'h-[485px]';
 </script>
 
 {#if isOpen}
   <div
-    class="bg-[#181C26] w-[533px] ${modalHeight} flex flex-col gap-4 rounded-md p-6 text-white shadow-2xl"
+    class="w-[533px] bg-[#181C26] ${modalHeight} flex flex-col gap-4 rounded-md p-6 text-white shadow-2xl"
   >
     <!-- Header -->
     <div class="flex items-start justify-between">
@@ -37,7 +36,7 @@
         Please Review Your Scheduled Downgrade
       </h2>
       <button
-        class="cursor-pointer text-fs-ds-20 h-[11px] w-[11px] mt-1 leading-none text-neutral-400 hover:text-neutral-200"
+        class="text-fs-ds-20 mt-1 h-[11px] w-[11px] cursor-pointer leading-none text-neutral-400 hover:text-neutral-200"
         on:click={handleCancel}
       >
         ✕
@@ -49,14 +48,14 @@
       You are about to schedule your downgrade plan from
       <span>{currentPlan}</span> edition to
       <span>{selectedPlan}</span> edition for
-      <span>{expiryDate}</span>.
-      Please review the changes below before you confirm. You can go back to make changes.
+      <span>{expiryDate}</span>. Please review the changes below before you confirm. You can go back
+      to make changes.
     </p>
 
     <!-- Active Workspaces -->
     <div class="mt-2">
       <p class="font-inter text-fs-ds-14 font-medium text-neutral-100">Active Workspaces</p>
-      <div class="mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-fs-ds-12 text-neutral-300">
+      <div class="text-fs-ds-12 mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-neutral-300">
         {#each selectedWorkspaces as ws}
           <span>• {ws.name || ws}</span>
         {/each}
@@ -67,22 +66,29 @@
     {#if selectedPlan?.toLowerCase() === 'community'}
       <div class="mt-3">
         <p class="font-inter text-fs-ds-14 font-medium text-neutral-100">Active Members</p>
-        <div class="mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-fs-ds-12 text-neutral-300">
-          {#each selectedMembers as member}
-            <span>• {member.email || member}</span>
-          {/each}
-        </div>
+
+        {#if selectedMembers.length === 0}
+          <p class="text-fs-ds-12 mt-2 ml-2 text-neutral-400 italic">
+            No active members for selected workspaces
+          </p>
+        {:else}
+          <div class="text-fs-ds-12 mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-neutral-300">
+            {#each selectedMembers as member}
+              <span>• {member.email || member}</span>
+            {/each}
+          </div>
+        {/if}
       </div>
     {/if}
 
     <!-- Feedback -->
     <div class="mt-4">
-      <p class="font-inter text-fs-ds-14 font-medium text-neutral-100 mb-1">Share Feedback</p>
+      <p class="font-inter text-fs-ds-14 mb-1 font-medium text-neutral-100">Share Feedback</p>
       <textarea
         bind:value={feedback}
         maxlength={maxChars}
         placeholder="We're always looking to improve. We'd be grateful to know the main reason for your downgrade."
-        class="w-full resize-none rounded-md bg-[#222630] p-3 text-fs-ds-14 text-neutral-100 outline-none  focus:ring-neutral-500"
+        class="text-fs-ds-14 w-full resize-none rounded-md bg-[#222630] p-3 text-neutral-100 outline-none focus:ring-neutral-500"
         rows="4"
       ></textarea>
       <p class="text-right text-[11px] text-neutral-500">{feedback.length}/{maxChars}</p>

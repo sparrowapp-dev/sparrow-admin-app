@@ -31,7 +31,7 @@
   import DowngradePlanModal from '@/components/DowngradePlan/DowngradePlanModal.svelte';
   import ChooseActiveWorkspaceModal from '@/components/DowngradePlan/ChooseActiveWorkspaceModal.svelte';
   import ChooseActiveMembersModal from '@/components/DowngradePlan/ChooseActiveMembersModal.svelte';
-    import ReviewScheduledDowngradeModal from '@/components/DowngradePlan/ReviewScheduledDowngradeModal.svelte';
+  import ReviewScheduledDowngradeModal from '@/components/DowngradePlan/ReviewScheduledDowngradeModal.svelte';
 
   const location = useLocation();
 
@@ -78,7 +78,7 @@
   let hubWorkspaces: [];
   let mode: string = 'change-plan';
   let createdAt: string;
-  let hubUsers:[];
+  let hubUsers: [];
   let downgradeFlow = {
     downgradeModal: false,
     chooseWorkspaceModal: false,
@@ -86,13 +86,14 @@
     reviewModal: false,
   };
 
-
   let downgradeData = {
     selectedWorkspaces: [],
     unselectedWorkspaces: [],
     selectedMembers: [],
     feedback: '',
+    members: [],
   };
+  let planLimits: [];
 
   $: {
     const searchParams = new URLSearchParams($location?.search || '');
@@ -128,10 +129,11 @@
     inTrial = searchParams.get('inTrial') === 'true';
   }
 
+  console.log(currentPlan);
+
   // Plan details for comparison
   let planDetails = getCurrentPlanDetails();
 
-  // Initialize plan details with API data
   onMount(async () => {
     await initializePlanDetails();
     planDetails = getCurrentPlanDetails();
@@ -143,12 +145,11 @@
       const response = await hubsService.getHubDetails(hubId);
       if (response?.data) {
         const data = response.data;
-        console.log(data);
         hubName = data.name || ' ';
         hubWorkspaces = data.workspaces;
         hubUsers = data.users;
         createdAt = data.createdAt;
-        console.log(hubUsers);
+        currentPlan = data.plan.name;
       }
     } catch (error) {
       console.log(error);
@@ -177,22 +178,24 @@
   // Handle plan selection
   function selectPlan(plan) {
     selectedPlan = plan;
+    const selectedPlanLimits = planDetails?.[plan]?.[billingCycle] ?? {};
+    planLimits = {
+      workspacesPerHub: { value: selectedPlanLimits.workspaces },
+      usersPerHub: { value: selectedPlanLimits.collaborators},
+    };
+    console.log(planLimits);
     if (plan === 'enterprise') {
       captureUserPlanUpgradeClick(currentPlan, plan);
-      // Open contact form in a new tab
       window.open('mailto:contactus@sparrowapp.dev', '_blank');
     } else {
       const targetPlanId = getPlanId(plan, billingCycle);
 
-      // Don't allow selecting the current plan
       if (targetPlanId !== currentPlanId) {
-        // Get the price ID based on billing cycle
         const priceId =
           billingCycle === 'monthly'
             ? planDetails[plan].monthly.priceId
             : planDetails[plan].annual.priceId;
 
-        // Determine if this is a downgrade
         const isDowngradeChange = isDowngrade(
           currentPlanLower,
           plan,
@@ -207,13 +210,11 @@
           captureUserPlanUpgradeClick(currentPlan, plan);
         }
 
-        // Store current Change Plan page URL in session storage
         const url = new URL(window.location.href);
         const searchParamsChangePlan = new URLSearchParams(url.search);
         const updatedUrl = url.pathname + '?' + searchParamsChangePlan.toString();
         sessionStorage.setItem('changePlanPageUrl', updatedUrl);
 
-        // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
           billingCycle: billingCycle,
@@ -237,7 +238,6 @@
   }
   // console.log('mode:', mode, 'plan:', plan, 'selectable:', isPlanSelectable(plan));
 
-  // Get button text for a plan
   function getButtonText(plan) {
     const isCurrentPlan = plan === currentPlanLower && billingCycle === currentBillingCycle;
 
@@ -397,9 +397,9 @@
         {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }, index}
           <div
             class={`overflow-hidden rounded-[10px] border-2 transition-all duration-200 
-            ${isCurrentPlan ? 'border-neutral-50' : 'border-surface-500'}
-            ${!isPlanSelectable(plan) && !isCurrentPlan ? 'cursor-not-allowed opacity-40' : 'hover:bg-surface-600 hover:border-surface-50'}
-          `}
+              ${isCurrentPlan ? 'border-neutral-50' : 'border-surface-500'}
+              ${!isPlanSelectable(plan) && !isCurrentPlan ? 'cursor-not-allowed opacity-40' : 'hover:bg-surface-600 hover:border-surface-50'}
+            `}
             style="transform: scale({hoveredCardIndex === index ? $cardScale : 1});"
             on:mouseenter={() => isPlanSelectable(plan) && handleCardHover(index, true)}
             on:mouseleave={() => handleCardHover(index, false)}
@@ -452,7 +452,8 @@
                     </Button>
                   {:else}
                     <Button
-                      variant="filled-primary"
+                      variant={buttonText === 'Upgrade' ? 'filled-primary' : 'outline-primary'}
+                      class={buttonText !== 'Upgrade' ? '!text-white' : ''}
                       on:click={() => isPlanSelectable(plan) && selectPlan(plan)}
                       disabled={!isPlanSelectable(plan) ||
                         (inTrial && buttonText === 'Select Plan')}
@@ -556,7 +557,8 @@
       {selectedPlan}
       {hubName}
       {hubWorkspaces}
-      expiryDate={expiryDate}
+      {planLimits}
+      {expiryDate}
       on:close={() => (downgradeFlow.downgradeModal = false)}
       on:cancel={() => (downgradeFlow.downgradeModal = false)}
       on:continue={() => {
@@ -572,6 +574,7 @@
     {hubId}
     {currentPlan}
     {selectedPlan}
+    {planLimits}
     isOpen={downgradeFlow.chooseWorkspaceModal}
     workspaces={hubWorkspaces}
     on:close={() => {
@@ -581,12 +584,16 @@
     on:next={(e) => {
       downgradeData.selectedWorkspaces = e.detail.selected;
       downgradeData.unselectedWorkspaces = e.detail.unselected;
+
       downgradeFlow.chooseWorkspaceModal = false;
 
-      if (selectedPlan?.toLowerCase() === 'standard') {
-        downgradeFlow.reviewModal = true;
-      } else {
+      const isDowngradeToCommunity = selectedPlan?.toLowerCase() === 'community';
+      if (isDowngradeToCommunity) {
+        // Pass fetched members to ChooseActiveMembersModal
+        downgradeData.members = e.detail.members || [];
         downgradeFlow.chooseMembersModal = true;
+      } else if (selectedPlan?.toLowerCase() === 'standard') {
+        downgradeFlow.reviewModal = true;
       }
     }}
   />
@@ -597,13 +604,15 @@
     {hubId}
     {currentPlan}
     {selectedPlan}
+    {planLimits}
+    {expiryDate}
     isOpen={downgradeFlow.chooseMembersModal}
     maxSelectable={4}
-    hubOwner={hubUsers.find(u => u.role === 'owner')}
-    users={hubUsers}
+    hubOwner={hubUsers.find((u) => u.role === 'owner')}
+    users={downgradeData.members}
     on:close={() => {
       downgradeFlow.chooseMembersModal = false;
-      downgradeFlow.chooseWorkspaceModal = true; // go back to workspace selection
+      downgradeFlow.chooseWorkspaceModal = true;
     }}
     on:next={(e) => {
       downgradeData.selectedMembers = e.detail.selected;
@@ -621,7 +630,7 @@
       {hubWorkspaces}
       {currentPlan}
       {selectedPlan}
-      expiryDate={expiryDate}
+      {expiryDate}
       selectedWorkspaces={downgradeData.selectedWorkspaces}
       selectedMembers={downgradeData.selectedMembers}
       on:close={() => {
@@ -634,13 +643,28 @@
       }}
       on:confirm={(e) => {
         downgradeData.feedback = e.detail.feedback;
-        console.log('Final downgrade data:', downgradeData);
+        const payload = {
+          hubId,
+          currentPlan,
+          selectedPlan,
+          selectedWorkspaces: downgradeData.selectedWorkspaces.map((ws) => ({
+            id: ws._id || ws.id,
+            name: ws.name,
+          })),
+          selectedMembers: downgradeData.selectedMembers.map((member) => ({
+            id: member._id || member.id,
+            email: member.email,
+          })),
+          feedback: downgradeData.feedback,
+        };
+      
+        console.log('Final downgrade payload:', payload);
+      
         downgradeFlow.reviewModal = false;
-      }}
+      }}      
     />
   </Modal>
 {/if}
-
 
 <style>
   @keyframes cardSlideIn {

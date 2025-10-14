@@ -9,46 +9,59 @@
   export let hubWorkspaces: [];
   export let hubId: string;
   export let expiryDate: string;
+  export let planLimits:[];
 
   const dispatch = createEventDispatcher();
 
-  function getDowngradeLimitations(currentPlan, selectedPlan) {
-    currentPlan = currentPlan.toLowerCase();
-    selectedPlan = selectedPlan.toLowerCase();
+  function getDowngradeLimitations(currentPlan: string, selectedPlan: string) {
+  const curr = currentPlan?.trim()?.toLowerCase();
+  const next = selectedPlan?.trim()?.toLowerCase();
+  const { usersPerHub, workspacesPerHub } = planLimits || {};
+  const usersLimit = usersPerHub?.value ?? 'N/A';
+  const workspaceLimit = workspacesPerHub?.value ?? 'N/A';
 
-    if (currentPlan === 'standard') {
-      return [
-        'Collaborators: Limited to 5 active collaborators',
-        'Workspaces: Limited to 3 workspaces',
-        'Test Flows: Limited to 3 per workspace',
-        'AI Models: All model access will be limited to Deepseek',
-        'Support: Support will change to our basic community support',
-      ];
-    }
-
-    if (currentPlan === 'professional' && selectedPlan === 'standard') {
-      return [
-        'No Private hubs',
-        'Up to 10 test flows',
-        'No AI-powered mock server',
-        'No Env Vault for secure environment variable management',
-        'No Active sync',
-      ];
-    }
-
-    if (currentPlan === 'professional' && selectedPlan === 'community') {
-      return [
-        'No Private hubs',
-        'No AI-powered mock server',
-        'No Env Vault for secure environment variable management',
-        'No Active sync',
-        'Reduced collaborators and workspace limit',
-        'Limited collections',
-      ];
-    }
-
-    return ['Feature details not available for this downgrade.'];
+  if (curr === 'standard') {
+    return [
+      `Collaborators: Limited to ${usersLimit} active collaborators`,
+      `Workspaces: Limited to ${workspaceLimit} workspaces`,
+      `Test Flows: Limited to 3 per workspace`,
+      'AI Models: All model access will be limited to Deepseek',
+      'Support: Support will change to our basic community support',
+    ];
   }
+
+  if (curr === 'professional' && next === 'standard') {
+    return [
+      'No Private hubs',
+      'Up to 10 test flows',
+      'No AI-powered mock server',
+      'No Env Vault for secure environment variable management',
+      'No Active sync',
+    ];
+  }
+
+  if (curr === 'professional' && next === 'community') {
+    return [
+      'No Private hubs',
+      'No AI-powered mock server',
+      'No Env Vault for secure environment variable management',
+      'No Active sync',
+      'Reduced collaborators and workspace limit',
+      'Limited collections',
+    ];
+  }
+
+  if (curr === 'enterprise' && ['standard', 'professional', 'community'].includes(next)) {
+    return [
+      'No Unlimited Private hubs',
+      'No Unlimited test flows',
+      'No Hub-level access management',
+      'No Service Level Agreement (SLA) support',
+    ];
+  }
+
+  return ['Feature details not available for this downgrade.'];
+}
 
   function handleCancel() {
     dispatch('cancel');
