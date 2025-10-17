@@ -17,9 +17,7 @@
   const dispatch = createEventDispatcher();
   let selected = new Set();
   $: maxSelectable = planLimits?.usersPerHub?.value;
-  $: filteredUsers = Array.isArray(users)
-    ? users.filter((u) => (u.id || u._id) !== (hubOwner?.id || hubOwner?._id))
-    : [];
+  $: filteredUsers = Array.isArray(users) ? users : [];
 
   const toggleMember = (id: string) => {
     if (selected.has(id)) {

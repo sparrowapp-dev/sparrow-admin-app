@@ -55,21 +55,26 @@
     <!-- Active Workspaces -->
     <div class="mt-2">
       <p class="font-inter text-fs-ds-14 font-medium text-neutral-100">Active Workspaces</p>
-      <div class="text-fs-ds-12 mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-neutral-300">
-        {#each selectedWorkspaces as ws}
-          <span>• {ws.name || ws}</span>
-        {/each}
-      </div>
+      {#if selectedWorkspaces.length === 0}
+        <p class="text-fs-ds-12 mt-2 ml-2 text-neutral-400 italic">
+          No active workspaces for this hub
+        </p>
+      {:else}
+        <div class="text-fs-ds-12 mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-neutral-300">
+          {#each selectedWorkspaces as ws}
+            <span>• {ws.name || ws}</span>
+          {/each}
+        </div>
+      {/if}
     </div>
 
-    <!-- Active Members (only for Community downgrade) -->
     {#if selectedPlan?.toLowerCase() === 'community'}
       <div class="mt-3">
         <p class="font-inter text-fs-ds-14 font-medium text-neutral-100">Active Members</p>
 
         {#if selectedMembers.length === 0}
           <p class="text-fs-ds-12 mt-2 ml-2 text-neutral-400 italic">
-            No active members for selected workspaces
+            No active members for this hub
           </p>
         {:else}
           <div class="text-fs-ds-12 mt-2 ml-2 flex flex-wrap gap-x-4 gap-y-2 text-neutral-300">

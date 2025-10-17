@@ -25,56 +25,57 @@
   };
 
   const handleNext = async () => {
-  const selectedWorkspaces = workspaces.filter((ws) => selected.has(ws.id));
-  const unselected = workspaces.filter((ws) => !selected.has(ws.id));
+    const selectedWorkspaces = workspaces.filter((ws) => selected.has(ws.id));
+    const unselected = workspaces.filter((ws) => !selected.has(ws.id));
 
-  const isDowngradeToCommunity = selectedPlan?.toLowerCase?.() === 'community';
-  let allMembers: any[] = [];
+    const isDowngradeToCommunity = selectedPlan?.toLowerCase?.() === 'community';
+    let allMembers: any[] = [];
 
-  if (isDowngradeToCommunity && selectedWorkspaces.length) {
-    try {
-      const results = await Promise.all(
-        selectedWorkspaces.map(async (ws) => {
-          const res = await hubsService.getWorkspaceDetails({
-            workspaceId: ws.id,
-            hubId,
-            tab: 'members',
-            page: 1,
-            limit: 50,
-            sortBy: 'updatedAt',
-            sortOrder: 'desc',
-          });
+    if (isDowngradeToCommunity && selectedWorkspaces.length) {
+      try {
+        const results = await Promise.all(
+          selectedWorkspaces.map(async (ws) => {
+            const res = await hubsService.getWorkspaceDetails({
+              workspaceId: ws.id,
+              hubId,
+              tab: 'members',
+              page: 1,
+              limit: 50,
+              sortBy: 'updatedAt',
+              sortOrder: 'desc',
+            });
 
-          const members = res?.data?.users || [];
-          return members.map((m) => ({
-            id: m._id,
-            email: m.email,
-            name: m.name || m.user || '',
-            role: m.role || 'member',
-            // lastActiveAt: m.lastActiveAt || m.updatedAt || '',
-          }));
-        }),
-      );
+            const members = res?.data?.users || [];
+            return members.map((m) => ({
+              id: m._id,
+              email: m.email,
+              name: m.name || m.user || '',
+              role: m.role || 'member',
+            }));
+          }),
+        );
 
-      const flattened = results.flat();
-      allMembers = flattened.filter(
-        (user, i, self) =>
-          i ===
-          self.findIndex((u) => u.email === user.email || u.id === user.id)
-      );
+        const flattened = results.flat();
+        const uniqueMembers = flattened.filter(
+          (user, i, self) =>
+            i ===
+            self.findIndex((u) => u.email === user.email || u.id === user.id)
+        );
+    
+        allMembers = uniqueMembers.filter((u) => (u.role || '').toLowerCase() !== 'owner');
 
-      console.log('All unique workspace members:', allMembers);
-    } catch (error) {
-      console.error('Error fetching workspace members:', error);
+        console.log('All unique workspace members:', allMembers);
+      } catch (error) {
+        console.error('Error fetching workspace members:', error);
+      }
     }
-  }
 
-  dispatch('next', {
-    selected: selectedWorkspaces,
-    unselected,
-    members: allMembers,
-  });
-};
+    dispatch('next', {
+      selected: selectedWorkspaces,
+      unselected,
+      members: allMembers,
+    });
+  };
 
 
   function getTimeDifference(updatedAt) {

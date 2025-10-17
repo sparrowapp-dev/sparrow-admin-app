@@ -210,7 +210,6 @@
     ) {
       // Process subscription data using the utility function
       const processedData = processSubscriptionData(subscriptionData, currentPlan);
-
       // Update all subscription-related variables
       subscriptionId = processedData.subscriptionId;
       // Don't override currentPlan from the database
@@ -263,6 +262,7 @@
       }
 
       // Set subscription status
+  
       subscriptionStatus = subscriptionData?.status || '';
     }
   }
@@ -342,6 +342,7 @@
     cancelInProgress = true;
     try {
       // Call the cancel subscription API
+      
       await billingService.cancelSubscription({ subscriptionId });
 
       // Close confirmation modal and show success modal

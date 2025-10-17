@@ -223,9 +223,11 @@ export class HttpClient {
 
   public async delete<T = any>(
     url: string,
+    data?: any,
     config?: AxiosRequestConfig,
   ): Promise<HttpClientResponseInterface<T>> {
-    const response = await this.instance.delete<T>(url, config);
+    console.log(url, data, config);
+    const response = await this.instance.delete<T>(url, data, config);
     return this.handleSuccess(response);
   }
 
@@ -266,7 +268,7 @@ export const makeRequest = async (
     case 'PUT':
       return httpClient.put(endpoint, data, requestConfig);
     case 'DELETE':
-      return httpClient.delete(endpoint, requestConfig);
+      return httpClient.delete(endpoint, data, requestConfig);
     case 'PATCH':
       return httpClient.patch(endpoint, data, requestConfig);
     default:
