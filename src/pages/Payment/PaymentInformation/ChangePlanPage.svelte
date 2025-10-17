@@ -357,7 +357,7 @@
       hour12: true,
       timeZone: 'UTC',
     };
-    
+
     // Calculate days left
     const now = new Date();
     const diffInMs = expiry.getTime() - now.getTime();
@@ -367,6 +367,37 @@
     return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
   }
   $: expiryDate = getExpiryDate(createdAt);
+
+  function filterOutOwners(users) {
+    return (users || []).filter((u) => (u.role || '').toLowerCase() !== 'owner');
+  }
+
+  function getDowngradeConstraints() {
+    const workspaceCount = hubWorkspaces?.length || 0;
+    const memberCount = hubUsers?.length || 0;
+    const maxWorkspaces = planLimits?.workspacesPerHub?.value || 0;
+    const maxUsers = planLimits?.usersPerHub?.value || 0;
+
+    const withinWorkspaceLimit = workspaceCount <= maxWorkspaces;
+    const withinUserLimit = memberCount <= maxUsers;
+    const isCommunity = selectedPlan?.toLowerCase() === 'community';
+    const isStandard = selectedPlan?.toLowerCase() === 'standard';
+    const hasWorkspaces = workspaceCount > 0;
+    const hasMembers = memberCount > 0;
+
+    return {
+      workspaceCount,
+      memberCount,
+      maxWorkspaces,
+      maxUsers,
+      withinWorkspaceLimit,
+      withinUserLimit,
+      isCommunity,
+      isStandard,
+      hasWorkspaces,
+      hasMembers,
+    };
+  }
 </script>
 
 <div
@@ -582,34 +613,28 @@
       on:cancel={() => (downgradeFlow.downgradeModal = false)}
       on:continue={() => {
         downgradeFlow.downgradeModal = false;
-        const workspaceCount = hubWorkspaces?.length || 0;
-        const memberCount = hubUsers?.length || 0;
-        const maxWorkspaces = planLimits?.workspacesPerHub?.value || 0;
-        const maxUsers = planLimits?.usersPerHub?.value || 0;
-        const withinWorkspaceLimit = workspaceCount <= maxWorkspaces;
-        const withinUserLimit = memberCount <= maxUsers;
-        const isDowngradeToCommunity = selectedPlan?.toLowerCase() === 'community';
-        const isDowngradeToStandard = selectedPlan?.toLowerCase() === 'standard';
+        const c = getDowngradeConstraints();
 
         // Handle workspaces
-        if (withinWorkspaceLimit) {
+        if (c.withinWorkspaceLimit) {
           downgradeData.selectedWorkspaces = hubWorkspaces || [];
-          downgradeData.members = hubUsers || []; // Set members to all hubUsers when within workspace limit
+          downgradeData.members = filterOutOwners(hubUsers) || [];
         } else {
           downgradeFlow.chooseWorkspaceModal = true;
           return;
         }
 
-        // Handle members and determine next modal
-        if (isDowngradeToCommunity) {
-          if (withinUserLimit) {
-            downgradeData.selectedMembers = hubUsers || [];
+        // Handle members
+        if (c.isCommunity) {
+          if (c.withinUserLimit) {
+            downgradeData.selectedMembers = filterOutOwners(hubUsers) || [];
             downgradeFlow.reviewModal = true;
           } else {
             downgradeFlow.chooseMembersModal = true;
           }
-        } else if (isDowngradeToStandard) {
-          downgradeData.selectedMembers = workspaceCount > 0 ? [] : hubUsers || [];
+        } else if (c.isStandard) {
+          downgradeData.selectedMembers =
+            c.workspaceCount > 0 ? [] : filterOutOwners(hubUsers) || [];
           downgradeFlow.reviewModal = true;
         }
       }}
@@ -632,15 +657,14 @@
     on:next={(e) => {
       downgradeData.selectedWorkspaces = e.detail.selected;
       downgradeData.unselectedWorkspaces = e.detail.unselected;
-      downgradeData.members = e.detail.members || [];
-
+      downgradeData.members = filterOutOwners(e.detail.members) || [];
       downgradeFlow.chooseWorkspaceModal = false;
 
-      const isDowngradeToCommunity = selectedPlan?.toLowerCase() === 'community';
-      if (isDowngradeToCommunity) {
+      const c = getDowngradeConstraints();
+
+      if (c.isCommunity) {
         const workspaceMemberCount = downgradeData.members?.length || 0;
-        const maxUsers = planLimits?.usersPerHub?.value || 0;
-        const withinUserLimit = workspaceMemberCount <= maxUsers;
+        const withinUserLimit = workspaceMemberCount <= c.maxUsers;
 
         if (workspaceMemberCount === 0) {
           downgradeData.selectedMembers = [];
@@ -651,7 +675,7 @@
         } else {
           downgradeFlow.chooseMembersModal = true;
         }
-      } else if (selectedPlan?.toLowerCase() === 'standard') {
+      } else if (c.isStandard) {
         downgradeFlow.reviewModal = true;
       }
     }}
@@ -668,14 +692,14 @@
     isOpen={downgradeFlow.chooseMembersModal}
     hubOwner={hubUsers.find((u) => u.role === 'owner')}
     users={downgradeData.members.length > 0
-      ? downgradeData.members.filter((u) => (u.role || '').toLowerCase() !== 'owner')
-      : hubUsers.filter((u) => (u.role || '').toLowerCase() !== 'owner')}
+      ? filterOutOwners(downgradeData.members)
+      : filterOutOwners(hubUsers)}
     on:close={() => {
       downgradeFlow.chooseMembersModal = false;
       downgradeFlow.chooseWorkspaceModal = true;
     }}
     on:next={(e) => {
-      downgradeData.selectedMembers = e.detail.selected;
+      downgradeData.selectedMembers = filterOutOwners(e.detail.selected);
       downgradeFlow.chooseMembersModal = false;
       downgradeFlow.reviewModal = true;
     }}
@@ -697,21 +721,15 @@
       )}
       on:close={() => {
         downgradeFlow.reviewModal = false;
+        const c = getDowngradeConstraints();
 
-        if (selectedPlan?.toLowerCase() === 'standard') {
-          if (hubWorkspaces?.length > planLimits?.workspacesPerHub?.value) {
-            downgradeFlow.chooseWorkspaceModal = true;
-          } else {
-            downgradeFlow.downgradeModal = true;
-          }
-        } else if (selectedPlan?.toLowerCase() === 'community') {
-          if (downgradeData.members?.length > planLimits?.usersPerHub?.value) {
-            downgradeFlow.chooseMembersModal = true;
-          } else if (hubWorkspaces?.length > planLimits?.workspacesPerHub?.value) {
-            downgradeFlow.chooseWorkspaceModal = true;
-          } else {
-            downgradeFlow.downgradeModal = true;
-          }
+        if (c.isStandard) {
+          if (c.workspaceCount > c.maxWorkspaces) downgradeFlow.chooseWorkspaceModal = true;
+          else downgradeFlow.downgradeModal = true;
+        } else if (c.isCommunity) {
+          if (downgradeData.members?.length > c.maxUsers) downgradeFlow.chooseMembersModal = true;
+          else if (c.workspaceCount > c.maxWorkspaces) downgradeFlow.chooseWorkspaceModal = true;
+          else downgradeFlow.downgradeModal = true;
         }
       }}
       on:confirm={async (e) => {
@@ -729,13 +747,11 @@
             workspaceId: ws._id || ws.id,
             name: ws.name,
           })),
-          users: downgradeData.selectedMembers
-            .filter(user => user.role !== 'owner')
-            .map(user => ({
-              id: user._id || user.id,
-              email: user.email,
-            })),
-          };
+          users: filterOutOwners(downgradeData.selectedMembers).map((user) => ({
+            id: user._id || user.id,
+            email: user.email,
+          })),
+        };
 
         try {
           if (selectedPlan?.toLowerCase() === 'community') {
@@ -747,7 +763,7 @@
             downgradeFlow.reviewModal = false;
             notification.success('Your subscription has been downgraded to the Community plan.');
           } else if (selectedPlan?.toLowerCase() === 'standard') {
-            debugger
+            debugger;
             await billingService.updateSubscription({
               priceId,
               subscriptionId,
