@@ -223,10 +223,9 @@ export class HttpClient {
 
   public async delete<T = any>(
     url: string,
-    data?: any,
     config?: AxiosRequestConfig,
   ): Promise<HttpClientResponseInterface<T>> {
-    const response = await this.instance.delete<T>(url, data, config);
+    const response = await this.instance.delete<T>(url, config);
     return this.handleSuccess(response);
   }
 
