@@ -131,8 +131,6 @@
     inTrial = searchParams.get('inTrial') === 'true';
   }
 
-  console.log(currentPlan);
-
   // Plan details for comparison
   let planDetails = getCurrentPlanDetails();
 
@@ -185,7 +183,6 @@
       workspacesPerHub: { value: selectedPlanLimits.workspaces },
       usersPerHub: { value: selectedPlanLimits.collaborators },
     };
-    console.log(planLimits);
     if (plan === 'enterprise') {
       captureUserPlanUpgradeClick(currentPlan, plan);
       window.open('mailto:contactus@sparrowapp.dev', '_blank');
@@ -255,7 +252,6 @@
   function isPlanSelectable(plan) {
     return true;
   }
-  // console.log('mode:', mode, 'plan:', plan, 'selectable:', isPlanSelectable(plan));
 
   function getButtonText(plan) {
     const isCurrentPlan = plan === currentPlanLower && billingCycle === currentBillingCycle;
@@ -759,7 +755,6 @@
               subscriptionId,
               ...downgradePayload,
             });
-            console.log('Subscription canceled successfully.');
             downgradeFlow.reviewModal = false;
             notification.success('Your subscription has been downgraded to the Community plan.');
           } else if (selectedPlan?.toLowerCase() === 'standard') {
@@ -771,12 +766,10 @@
               isDowngrade: true,
               ...downgradePayload,
             });
-            console.log('Downgrade to Standard scheduled:', downgradePayload);
             downgradeFlow.reviewModal = false;
             notification.success('Your downgrade to Standard plan is scheduled.');
           }
         } catch (error) {
-          console.error('Downgrade failed:', error);
           notification.error('Failed to process downgrade. Please try again.');
         }
       }}

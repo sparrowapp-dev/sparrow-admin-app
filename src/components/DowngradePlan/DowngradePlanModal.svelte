@@ -155,7 +155,6 @@
     primaryVariant="filled-primary"
     on:cancel={handleCancel}
     on:confirm={handleContinueDowngrade}
-    on:support={() => console.log('Support clicked')}
     class="mt-3"
   />
 </div>

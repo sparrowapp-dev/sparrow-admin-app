@@ -31,7 +31,6 @@
   const getLastActive = async () => {
   try {
     const res = await userService.getUsers();
-    console.log('Fetched users:', res);
     if (res?.data?.users?.length) {
       users = users.map((u) => {
         const match = res.data.users.find(
@@ -59,7 +58,6 @@
         id: ws.id,
         email: ws.email,
       }));
-    console.log(selectedMembers);
     dispatch('next', { selected: selectedMembers });
   };
 

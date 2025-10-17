@@ -226,7 +226,6 @@ export class HttpClient {
     data?: any,
     config?: AxiosRequestConfig,
   ): Promise<HttpClientResponseInterface<T>> {
-    console.log(url, data, config);
     const response = await this.instance.delete<T>(url, data, config);
     return this.handleSuccess(response);
   }

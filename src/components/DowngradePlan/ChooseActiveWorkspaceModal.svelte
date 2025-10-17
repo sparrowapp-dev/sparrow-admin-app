@@ -17,7 +17,6 @@
 
   $: maxSelectable = planLimits?.workspacesPerHub?.value;
   
-  console.log(currentPlan);
   const toggleWorkspace = (id) => {
     if (selected.has(id)) selected.delete(id);
     else if (selected.size < maxSelectable) selected.add(id);
@@ -64,7 +63,6 @@
     
         allMembers = uniqueMembers.filter((u) => (u.role || '').toLowerCase() !== 'owner');
 
-        console.log('All unique workspace members:', allMembers);
       } catch (error) {
         console.error('Error fetching workspace members:', error);
       }
@@ -92,8 +90,6 @@
         const res = await hubsService.getWorkspaceDetails({
           workspaceId: ws.id,
         });
-
-        console.log('Workspace Details Response:', res);
       } catch (error) {
         console.error('Error fetching workspace details:', error);
       }
