@@ -730,10 +730,14 @@
       }}
       on:confirm={async (e) => {
         downgradeData.feedback = e.detail.feedback;
+        let updatePlanName;
+        if(selectedPlan?.toLowerCase() === 'standard'){
+          updatePlanName = "Standard"
+        }
         const metadata = {
           hubId,
           userCount: userCount.toString(),
-          selectedPlan,
+          planName: updatePlanName,
           trial_period_days: 0,
           trial_end_date: null,
         };
@@ -758,7 +762,6 @@
             downgradeFlow.reviewModal = false;
             notification.success('Your subscription has been downgraded to the Community plan.');
           } else if (selectedPlan?.toLowerCase() === 'standard') {
-            debugger;
             await billingService.updateSubscription({
               priceId,
               subscriptionId,
