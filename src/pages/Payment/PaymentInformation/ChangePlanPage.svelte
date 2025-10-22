@@ -740,7 +740,7 @@
         const downgradePayload = {
           teamId: hubId,
           workspaces: downgradeData.selectedWorkspaces.map((ws) => ({
-            workspaceId: ws._id || ws.id,
+            id: ws._id || ws.id,
             name: ws.name,
           })),
           users: filterOutOwners(downgradeData.selectedMembers).map((user) => ({
