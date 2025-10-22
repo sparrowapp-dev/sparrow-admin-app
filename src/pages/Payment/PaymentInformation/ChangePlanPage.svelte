@@ -7,9 +7,10 @@
 
   // Components
   import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs.svelte';
+  import { hubsService } from '@/services/hubs.service';
   import Tag from '@/ui/Tag/Tag.svelte';
   import Button from '@/ui/Button/Button.svelte';
-
+  import Modal from '@/components/Modal/Modal.svelte';
   // Icons
   import CheckIcon from '@/assets/icons/Check.svelte';
 
@@ -25,6 +26,14 @@
     type BillingCycleType,
   } from '@/utils/pricing';
   import { captureEvent } from '@/utils/posthogConfig';
+  import DowngradePlan from '@/components/DowngradePlan/DowngradePlanModal.svelte';
+  import { createQuery } from '@/services/api.common';
+  import DowngradePlanModal from '@/components/DowngradePlan/DowngradePlanModal.svelte';
+  import ChooseActiveWorkspaceModal from '@/components/DowngradePlan/ChooseActiveWorkspaceModal.svelte';
+  import ChooseActiveMembersModal from '@/components/DowngradePlan/ChooseActiveMembersModal.svelte';
+  import ReviewScheduledDowngradeModal from '@/components/DowngradePlan/ReviewScheduledDowngradeModal.svelte';
+  import { billingService } from '@/services/billing.service';
+  import { notification } from '@/components/Toast';
 
   const location = useLocation();
 
@@ -64,6 +73,40 @@
   let subscriptionStatus: string = '';
   let userCount: number = 1;
   let inTrial: boolean = false;
+  let downgradeModal: boolean = false;
+  let allowDowngrade: boolean = false;
+  let selectedPlan: string = '';
+  let hubName: string = '';
+  let hubWorkspaces: [];
+  let mode: string = 'change-plan';
+  let createdAt: string;
+  let hubUsers: [];
+  let downgradeFlow = {
+    downgradeModal: false,
+    chooseWorkspaceModal: false,
+    chooseMembersModal: false,
+    reviewModal: false,
+  };
+  let priceId: string;
+  let downgradeData = {
+    selectedWorkspaces: [],
+    unselectedWorkspaces: [],
+    selectedMembers: [],
+    feedback: '',
+    members: [],
+  };
+  let planLimits: [];
+
+  $: {
+    const searchParams = new URLSearchParams($location?.search || '');
+    mode = searchParams.get('mode') || 'change-plan';
+  }
+
+  $: pageHeading = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Your Plan';
+  $: pageDescription =
+    mode === 'upgrade'
+      ? "You're ready for the next level. Upgrade to access more and features. You can switch plans at any time."
+      : 'Select a different plan that fits your needs. Your current plan is highlighted below. The new plan will take effect immediately or at the start of your next billing cycle depending on your billing terms.';
 
   // URL parsing
   $: {
@@ -91,11 +134,27 @@
   // Plan details for comparison
   let planDetails = getCurrentPlanDetails();
 
-  // Initialize plan details with API data
   onMount(async () => {
     await initializePlanDetails();
     planDetails = getCurrentPlanDetails();
+    if (hubId) await getHubName(hubId);
   });
+
+  async function getHubName(hubId: string) {
+    try {
+      const response = await hubsService.getHubDetails(hubId);
+      if (response?.data) {
+        const data = response.data;
+        hubName = data.name || ' ';
+        hubWorkspaces = data.workspaces;
+        hubUsers = (data.users || []).filter((u) => (u.role || '').toLowerCase() !== 'owner');
+        createdAt = data.createdAt;
+        currentPlan = data.plan.name;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   // State
   let billingCycle: BillingCycleType = currentBillingCycle;
@@ -118,22 +177,24 @@
 
   // Handle plan selection
   function selectPlan(plan) {
+    selectedPlan = plan;
+    const selectedPlanLimits = planDetails?.[plan]?.[billingCycle] ?? {};
+    planLimits = {
+      workspacesPerHub: { value: selectedPlanLimits.workspaces },
+      usersPerHub: { value: selectedPlanLimits.collaborators },
+    };
     if (plan === 'enterprise') {
       captureUserPlanUpgradeClick(currentPlan, plan);
-      // Open contact form in a new tab
       window.open('mailto:contactus@sparrowapp.dev', '_blank');
     } else {
       const targetPlanId = getPlanId(plan, billingCycle);
 
-      // Don't allow selecting the current plan
       if (targetPlanId !== currentPlanId) {
-        // Get the price ID based on billing cycle
-        const priceId =
+        priceId =
           billingCycle === 'monthly'
             ? planDetails[plan].monthly.priceId
             : planDetails[plan].annual.priceId;
 
-        // Determine if this is a downgrade
         const isDowngradeChange = isDowngrade(
           currentPlanLower,
           plan,
@@ -141,17 +202,35 @@
           billingCycle,
         );
 
-        if (!isDowngradeChange) {
+        if (isDowngradeChange) {
+          const selectedPlanLimits = planDetails?.[plan]?.[billingCycle] ?? {};
+          const maxWorkspaces = selectedPlanLimits.workspaces ?? 0;
+          const maxUsers = selectedPlanLimits.collaborators ?? 0;
+
+          const currentWorkspaceCount = hubWorkspaces?.length || 0;
+          const currentUserCount = hubUsers?.length || 0;
+
+          const hasWorkspaces = currentWorkspaceCount > 0;
+          const hasMembers = currentUserCount > 0;
+          downgradeFlow.downgradeModal = true;
+          downgradeData.selectedWorkspaces = [];
+          downgradeData.selectedMembers = [];
+          if (!hasWorkspaces && !hasMembers) {
+            downgradeFlow.downgradeModal = false;
+            downgradeFlow.reviewModal = true;
+            return;
+          }
+
+          return;
+        } else {
           captureUserPlanUpgradeClick(currentPlan, plan);
         }
 
-        // Store current Change Plan page URL in session storage
         const url = new URL(window.location.href);
         const searchParamsChangePlan = new URLSearchParams(url.search);
         const updatedUrl = url.pathname + '?' + searchParamsChangePlan.toString();
         sessionStorage.setItem('changePlanPageUrl', updatedUrl);
 
-        // Navigate to payment method selection page
         const searchParams = new URLSearchParams({
           plan: capitalizeFirstLetter(plan),
           billingCycle: billingCycle,
@@ -170,12 +249,10 @@
     }
   }
 
-  // Check if a plan is selectable based on current plan and billing cycle
   function isPlanSelectable(plan) {
-    return checkPlanSelectable(currentPlanLower, plan, billingCycle, currentBillingCycle);
+    return true;
   }
 
-  // Get button text for a plan
   function getButtonText(plan) {
     const isCurrentPlan = plan === currentPlanLower && billingCycle === currentBillingCycle;
 
@@ -194,16 +271,16 @@
     if (targetPlanValue > currentPlanValue) {
       return 'Upgrade';
     } else if (targetPlanValue < currentPlanValue) {
-      return 'Downgrade';
+      return 'Select Plan';
     } else {
       return 'Your plan';
     }
   }
 
-  // Prepare breadcrumb navigation
+  $: breadcrumbLabel = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Plan';
   $: breadcrumbItems = [
     { label: 'Billing', path: `/billing/billingOverview/${hubId}` },
-    { label: 'Change Plan', path: '' },
+    { label: breadcrumbLabel, path: '' },
   ];
 
   // Make plan values reactive
@@ -259,6 +336,64 @@
     };
     captureEvent('admin_plan_upgraded', eventProperties);
   };
+
+  function getExpiryDate(createdAt: string): string {
+    if (!createdAt) return '-';
+    const created = new Date(createdAt);
+    const expiry = new Date(created);
+    expiry.setDate(expiry.getDate() + 30);
+
+    // Format like "28 Aug 2025, 10:00 AM UTC"
+    const options: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC',
+    };
+
+    // Calculate days left
+    const now = new Date();
+    const diffInMs = expiry.getTime() - now.getTime();
+    const daysLeft = Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0); // avoid negative
+
+    const formattedExpiry = expiry.toLocaleString('en-GB', options) + ' UTC';
+    return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
+  }
+  $: expiryDate = getExpiryDate(createdAt);
+
+  function filterOutOwners(users) {
+    return (users || []).filter((u) => (u.role || '').toLowerCase() !== 'owner');
+  }
+
+  function getDowngradeConstraints() {
+    const workspaceCount = hubWorkspaces?.length || 0;
+    const memberCount = hubUsers?.length || 0;
+    const maxWorkspaces = planLimits?.workspacesPerHub?.value || 0;
+    const maxUsers = planLimits?.usersPerHub?.value || 0;
+
+    const withinWorkspaceLimit = workspaceCount <= maxWorkspaces;
+    const withinUserLimit = memberCount <= maxUsers;
+    const isCommunity = selectedPlan?.toLowerCase() === 'community';
+    const isStandard = selectedPlan?.toLowerCase() === 'standard';
+    const hasWorkspaces = workspaceCount > 0;
+    const hasMembers = memberCount > 0;
+
+    return {
+      workspaceCount,
+      memberCount,
+      maxWorkspaces,
+      maxUsers,
+      withinWorkspaceLimit,
+      withinUserLimit,
+      isCommunity,
+      isStandard,
+      hasWorkspaces,
+      hasMembers,
+    };
+  }
 </script>
 
 <div
@@ -268,11 +403,8 @@
   <Breadcrumbs items={breadcrumbItems} />
 
   <div class="mt-6">
-    <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-white">Upgrade Plan</h1>
-    <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">
-      You're ready for the next level. Upgrade to access more and features. You can switch plans at
-      any time.
-    </p>
+    <h1 class="text-fs-ds-20 font-inter font-fw-ds-500 text-white">{pageHeading}</h1>
+    <p class="text-fs-ds-14 font-inter font-fw-ds-300 text-neutral-400">{pageDescription}</p>
 
     <div class="mt-6">
       <!-- Billing toggle with smooth sliding animation -->
@@ -310,12 +442,12 @@
       >
         {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }, index}
           <div
-            class={`hover:bg-surface-600 hover:border-surface-50 overflow-hidden rounded-[10px] transition-all duration-200 ${isCurrentPlan ? 'border-2 border-neutral-50' : 'border-surface-500 border-2'}`}
-            style="
-              transform: scale({hoveredCardIndex === index ? $cardScale : 1});
-              animation: cardSlideIn 300ms ease-out forwards {index * 100}ms;
-            "
-            on:mouseenter={() => handleCardHover(index, true)}
+            class={`overflow-hidden rounded-[10px] border-2 transition-all duration-200 
+                ${isCurrentPlan ? 'border-neutral-50' : 'border-surface-500'}
+                ${!isPlanSelectable(plan) && !isCurrentPlan ? 'cursor-not-allowed opacity-40' : 'hover:bg-surface-600 hover:border-surface-50'}
+              `}
+            style="transform: scale({hoveredCardIndex === index ? $cardScale : 1});"
+            on:mouseenter={() => isPlanSelectable(plan) && handleCardHover(index, true)}
             on:mouseleave={() => handleCardHover(index, false)}
           >
             <!-- Plan Header -->
@@ -366,9 +498,16 @@
                     </Button>
                   {:else}
                     <Button
-                      variant="filled-primary"
-                      on:click={() => selectPlan(plan)}
-                      disabled={plan === 'community' || (inTrial && buttonText === 'Downgrade')}
+                      variant={buttonText === 'Upgrade' ? 'filled-primary' : 'outline-primary'}
+                      class={buttonText !== 'Upgrade' ? '!text-white' : ''}
+                      on:click={() => isPlanSelectable(plan) && selectPlan(plan)}
+                      disabled={!isPlanSelectable(plan) ||
+                        (inTrial && buttonText === 'Select Plan')}
+                      tooltipText={!isPlanSelectable(plan) && mode === 'upgrade-only'
+                        ? 'Downgrade not allowed in Upgrade mode'
+                        : ''}
+                      tooltipPosition="bottom"
+                      tooltipDelay={100}
                     >
                       {buttonText}
                     </Button>
@@ -455,6 +594,188 @@
     </div>
   </div>
 </div>
+
+{#if downgradeFlow.downgradeModal}
+  <Modal on:close={() => (downgradeFlow.downgradeModal = false)}>
+    <DowngradePlanModal
+      {hubId}
+      {currentPlan}
+      {selectedPlan}
+      {hubName}
+      {hubWorkspaces}
+      {planLimits}
+      {expiryDate}
+      on:close={() => (downgradeFlow.downgradeModal = false)}
+      on:cancel={() => (downgradeFlow.downgradeModal = false)}
+      on:continue={() => {
+        downgradeFlow.downgradeModal = false;
+        const c = getDowngradeConstraints();
+
+        // Handle workspaces
+        if (c.withinWorkspaceLimit) {
+          downgradeData.selectedWorkspaces = hubWorkspaces || [];
+          downgradeData.members = filterOutOwners(hubUsers) || [];
+        } else {
+          downgradeFlow.chooseWorkspaceModal = true;
+          return;
+        }
+
+        // Handle members
+        if (c.isCommunity) {
+          if (c.withinUserLimit) {
+            downgradeData.selectedMembers = filterOutOwners(hubUsers) || [];
+            downgradeFlow.reviewModal = true;
+          } else {
+            downgradeFlow.chooseMembersModal = true;
+          }
+        } else if (c.isStandard) {
+          downgradeData.selectedMembers =
+            c.workspaceCount > 0 ? [] : filterOutOwners(hubUsers) || [];
+          downgradeFlow.reviewModal = true;
+        }
+      }}
+    />
+  </Modal>
+{/if}
+
+{#if downgradeFlow.chooseWorkspaceModal}
+  <ChooseActiveWorkspaceModal
+    {hubId}
+    {currentPlan}
+    {selectedPlan}
+    {planLimits}
+    isOpen={downgradeFlow.chooseWorkspaceModal}
+    workspaces={hubWorkspaces}
+    on:close={() => {
+      downgradeFlow.chooseWorkspaceModal = false;
+      downgradeFlow.downgradeModal = true;
+    }}
+    on:next={(e) => {
+      downgradeData.selectedWorkspaces = e.detail.selected;
+      downgradeData.unselectedWorkspaces = e.detail.unselected;
+      downgradeData.members = filterOutOwners(e.detail.members) || [];
+      downgradeFlow.chooseWorkspaceModal = false;
+
+      const c = getDowngradeConstraints();
+
+      if (c.isCommunity) {
+        const workspaceMemberCount = downgradeData.members?.length || 0;
+        const withinUserLimit = workspaceMemberCount <= c.maxUsers;
+
+        if (workspaceMemberCount === 0) {
+          downgradeData.selectedMembers = [];
+          downgradeFlow.reviewModal = true;
+        } else if (withinUserLimit) {
+          downgradeData.selectedMembers = downgradeData.members;
+          downgradeFlow.reviewModal = true;
+        } else {
+          downgradeFlow.chooseMembersModal = true;
+        }
+      } else if (c.isStandard) {
+        downgradeFlow.reviewModal = true;
+      }
+    }}
+  />
+{/if}
+
+{#if downgradeFlow.chooseMembersModal}
+  <ChooseActiveMembersModal
+    {hubId}
+    {currentPlan}
+    {selectedPlan}
+    {planLimits}
+    {expiryDate}
+    isOpen={downgradeFlow.chooseMembersModal}
+    hubOwner={hubUsers.find((u) => u.role === 'owner')}
+    users={downgradeData.members.length > 0
+      ? filterOutOwners(downgradeData.members)
+      : filterOutOwners(hubUsers)}
+    on:close={() => {
+      downgradeFlow.chooseMembersModal = false;
+      downgradeFlow.chooseWorkspaceModal = true;
+    }}
+    on:next={(e) => {
+      downgradeData.selectedMembers = filterOutOwners(e.detail.selected);
+      downgradeFlow.chooseMembersModal = false;
+      downgradeFlow.reviewModal = true;
+    }}
+  />
+{/if}
+
+{#if downgradeFlow.reviewModal}
+  <Modal on:close={() => (downgradeFlow.reviewModal = false)}>
+    <ReviewScheduledDowngradeModal
+      isOpen={downgradeFlow.reviewModal}
+      {hubName}
+      {hubWorkspaces}
+      {currentPlan}
+      {selectedPlan}
+      {expiryDate}
+      selectedWorkspaces={downgradeData.selectedWorkspaces}
+      selectedMembers={downgradeData.selectedMembers.filter(
+        (m) => (m.role || '').toLowerCase() !== 'owner',
+      )}
+      on:close={() => {
+        downgradeFlow.reviewModal = false;
+        const c = getDowngradeConstraints();
+
+        if (c.isStandard) {
+          if (c.workspaceCount > c.maxWorkspaces) downgradeFlow.chooseWorkspaceModal = true;
+          else downgradeFlow.downgradeModal = true;
+        } else if (c.isCommunity) {
+          if (downgradeData.members?.length > c.maxUsers) downgradeFlow.chooseMembersModal = true;
+          else if (c.workspaceCount > c.maxWorkspaces) downgradeFlow.chooseWorkspaceModal = true;
+          else downgradeFlow.downgradeModal = true;
+        }
+      }}
+      on:confirm={async (e) => {
+        downgradeData.feedback = e.detail.feedback;
+        const metadata = {
+          hubId,
+          userCount: userCount.toString(),
+          selectedPlan,
+          trial_period_days: 0,
+          trial_end_date: null,
+        };
+        const downgradePayload = {
+          teamId: hubId,
+          workspaces: downgradeData.selectedWorkspaces.map((ws) => ({
+            workspaceId: ws._id || ws.id,
+            name: ws.name,
+          })),
+          users: filterOutOwners(downgradeData.selectedMembers).map((user) => ({
+            id: user._id || user.id,
+            email: user.email,
+          })),
+        };
+
+        try {
+          if (selectedPlan?.toLowerCase() === 'community') {
+            await billingService.cancelSubscription({
+              subscriptionId,
+              ...downgradePayload,
+            });
+            downgradeFlow.reviewModal = false;
+            notification.success('Your subscription has been downgraded to the Community plan.');
+          } else if (selectedPlan?.toLowerCase() === 'standard') {
+            debugger;
+            await billingService.updateSubscription({
+              priceId,
+              subscriptionId,
+              metadata,
+              isDowngrade: true,
+              ...downgradePayload,
+            });
+            downgradeFlow.reviewModal = false;
+            notification.success('Your downgrade to Standard plan is scheduled.');
+          }
+        } catch (error) {
+          notification.error('Failed to process downgrade. Please try again.');
+        }
+      }}
+    />
+  </Modal>
+{/if}
 
 <style>
   @keyframes cardSlideIn {

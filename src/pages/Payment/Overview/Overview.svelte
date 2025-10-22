@@ -82,6 +82,7 @@
   let showResubscribeModal = false;
   let resubscribeInProgress = false;
 
+
   // Animation stores for cards
   const cardOpacity = tweened(0, {
     duration: 600,
@@ -209,7 +210,6 @@
     ) {
       // Process subscription data using the utility function
       const processedData = processSubscriptionData(subscriptionData, currentPlan);
-
       // Update all subscription-related variables
       subscriptionId = processedData.subscriptionId;
       // Don't override currentPlan from the database
@@ -262,6 +262,7 @@
       }
 
       // Set subscription status
+  
       subscriptionStatus = subscriptionData?.status || '';
     }
   }
@@ -294,6 +295,31 @@
       status: subscriptionStatus,
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
+      mode: 'upgrade',
+    });
+
+    navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
+  }
+
+  function handleChangePlanClick() {
+    captureUserClickUpgradePlan();
+    if (planStatus === 'payment_failed' || planStatus === 'action_required') {
+      if (isRedirecting) {
+        isRedirecting = false;
+        return;
+      } else {
+        notification.error('Please resolve the payment issue before changing your plan.');
+      }
+      return; 
+    }
+    const searchParams = new URLSearchParams({
+      currentPlan,
+      currentBillingCycle,
+      subscriptionId: subscriptionId || '',
+      status: subscriptionStatus,
+      userCount: userCount.toString(),
+      inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
+      mode: 'change-plan',
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -316,6 +342,7 @@
     cancelInProgress = true;
     try {
       // Call the cancel subscription API
+      
       await billingService.cancelSubscription({ subscriptionId });
 
       // Close confirmation modal and show success modal
@@ -436,7 +463,7 @@
   </div>
 {/if}
 
-{#if $hubData?.data}
+{#if $hubData?.data && currentHubData}
   <section class="payment-information text-white">
     <div class="mb-6 flex items-end justify-between">
       <div>
@@ -530,21 +557,27 @@
             </div>
 
             {#if !isScheduledDowngrade}
-              {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
-                <button
-                  class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
-                  on:click={openCancelModal}
-                >
-                  Cancel Subscription
-                </button>
-              {/if}
-              {#if subscriptionId && subscriptionData?.cancel_at_period_end}
-                <button
-                  class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
-                  on:click={openResubscribeModal}
-                >
-                  Resubscribe
-                </button>
+              {#if currentPlan !== 'Community'}
+                {#if subscriptionId && subscriptionData?.status === 'active' && !subscriptionData?.cancel_at_period_end}
+                  <button
+                    class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
+                    on:click={openCancelModal}
+                  >
+                    Cancel Subscription
+                  </button>
+                {/if}
+                {#if subscriptionId && subscriptionData?.cancel_at_period_end}
+                  <button
+                    class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-neutral-200 underline"
+                    on:click={openResubscribeModal}
+                  >
+                    Resubscribe
+                  </button>
+                {/if}
+              {:else}
+                <span class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-400 italic">
+                  Community plan — upgrade to unlock premium features
+                </span>
               {/if}
             {/if}
           </div>
@@ -592,14 +625,12 @@
               </p>
             </div>
             <div class="mt-2 flex items-center gap-4">
-              {#if !isScheduledDowngrade && subscriptionData?.cancel_at_period_end && subscriptionData?.status === 'canceled'}
-                <button
-                  class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
-                  on:click={handleUpgradeClick}
-                >
-                  Change plan
-                </button>
-              {/if}
+              <button
+                class="text-fs-ds-12 font-inter font-fw-ds-400 cursor-pointer text-blue-300"
+                on:click={handleChangePlanClick}
+              >
+                Change plan
+              </button>
             </div>
           </div>
         </div>
@@ -621,11 +652,6 @@
             on:click={handleUpgradeClick}
             disabled={isScheduledDowngrade ||
               (subscriptionData?.cancel_at_period_end && subscriptionData?.status !== 'canceled')}
-            tooltipText={isScheduledDowngrade
-              ? `Scheduled plan change. Your subscription will downgrade on ${nextBillingDate}. Plan changes are locked until then.`
-              : ''}
-            tooltipPosition="bottom"
-            tooltipDelay={100}
           >
             Upgrade
           </Button>
