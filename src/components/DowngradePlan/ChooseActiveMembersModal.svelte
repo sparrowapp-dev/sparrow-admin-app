@@ -56,7 +56,6 @@
       }));
     dispatch('next', { selected: selectedMembers });
   };
-  console.log(filteredUsers);
   function getFirstName(fullNameOrEmail: string): string {
     if (!fullNameOrEmail) return '';
     if (fullNameOrEmail.includes('@')) {
