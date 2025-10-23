@@ -7,12 +7,11 @@
   import { createQuery } from '@/services/api.common';
 
   export let isOpen: boolean = false;
-  export let planLimits:[]
+  export let planLimits: [];
   export let users = [];
   export let hubId: string;
   export let hubOwner: any;
   export let expiryDate: string;
-
 
   const dispatch = createEventDispatcher();
   let selected = new Set();
@@ -29,27 +28,24 @@
   };
 
   const getLastActive = async () => {
-  try {
-    const res = await userService.getUsers();
-    if (res?.data?.users?.length) {
-      users = users.map((u) => {
-        const match = res.data.users.find(
-          (apiUser) =>
-            apiUser.id === u.id ||
-            apiUser._id === u._id ||
-            apiUser.email === u.email
-        );
+    try {
+      const res = await userService.getUsers();
+      if (res?.data?.users?.length) {
+        users = users.map((u) => {
+          const match = res.data.users.find(
+            (apiUser) => apiUser.id === u.id || apiUser._id === u._id || apiUser.email === u.email,
+          );
 
-        return {
-          ...u,
-          lastActiveAt: match?.lastActive || u.lastActiveAt || '',
-        };
-      });
+          return {
+            ...u,
+            lastActiveAt: match?.lastActive || u.lastActiveAt || '',
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching last active users:', err);
     }
-  } catch (err) {
-    console.error('Error fetching last active users:', err);
-  }
-};
+  };
 
   const handleNext = () => {
     const selectedMembers = filteredUsers
@@ -60,7 +56,7 @@
       }));
     dispatch('next', { selected: selectedMembers });
   };
-
+  console.log(filteredUsers);
   function getFirstName(fullNameOrEmail: string): string {
     if (!fullNameOrEmail) return '';
     if (fullNameOrEmail.includes('@')) {
@@ -95,7 +91,6 @@
 
   $: isConfirmEnabled = (() => {
     if (!filteredUsers.length) return true;
-
     if (filteredUsers.length <= maxSelectable) {
       return selected.size >= 1; // must select at least one
     }
@@ -103,9 +98,10 @@
     return selected.size === maxSelectable; // must select exactly 4
   })();
   $: confirmButtonText = filteredUsers.length === 0 ? 'Continue' : 'Confirm Selections';
-  onMount(()=>{
-    getLastActive()
-  })
+  onMount(() => {
+    getLastActive();
+  });
+
 </script>
 
 <TableModalCommonLayout
@@ -137,17 +133,31 @@
     {#if filteredUsers.length > 0}
       {#each filteredUsers as user}
         <div
-          class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-[#2A2F3A]"
+          class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-[#2A2F3A] text-left"
           on:click={() => toggleMember(user.id)}
         >
           <div class="flex items-center gap-3">
+            <label class="relative flex items-center justify-center">
             <input
               type="checkbox"
               checked={selected.has(user.id)}
               on:click|stopPropagation={() => toggleMember(user.id)}
               disabled={!selected.has(user.id) && selected.size >= maxSelectable}
-              class="peer h-4 w-4 rounded-sm border border-[#2A2F3A] bg-[#1E222C]"
+              class="peer h-4 w-4 cursor-pointer appearance-none rounded-sm border border-[#2A2F3A] bg-[#1E222C] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none"
             />
+            <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="pointer-events-none absolute h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </label>
             <div>
               <span class="text-[12px] font-medium text-white">
                 {getFirstName(user.name || user.email)}
@@ -156,16 +166,15 @@
               <div class="truncate text-[11px] text-gray-500">{user.email}</div>
             </div>
           </div>
-          <div class="text-[12px] text-gray-400">
+          <div class="text-[12px] text-gray-400 text-left">
             Last active: {getTimeDifference(user.lastActiveAt)}
           </div>
         </div>
       {/each}
     {:else}
-      <div class="flex items-center justify-center py-8 text-gray-400 text-sm italic">
+      <div class="flex items-center justify-center py-8 text-sm text-gray-400 italic">
         No active members present for the selected workspaces.
       </div>
     {/if}
   </div>
-  
 </TableModalCommonLayout>

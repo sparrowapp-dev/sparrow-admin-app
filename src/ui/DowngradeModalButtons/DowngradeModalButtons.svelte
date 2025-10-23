@@ -18,7 +18,10 @@
 
   const handleCancel = () => dispatch('cancel');
   const handleConfirm = () => dispatch('confirm');
-  const handleSupport = () => dispatch('support');
+  function handleSupport() {
+    if (disableSupport) return;
+    window.open("https://support.yourdomain.com", "_blank");
+  }
 </script>
 
 <!-- Footer layout -->

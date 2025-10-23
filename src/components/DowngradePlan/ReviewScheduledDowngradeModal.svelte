@@ -12,7 +12,7 @@
   export let isOpen: boolean = false;
 
   const dispatch = createEventDispatcher();
-
+  console.log(selectedMembers);
   let feedback = '';
   const maxChars = 3500;
 

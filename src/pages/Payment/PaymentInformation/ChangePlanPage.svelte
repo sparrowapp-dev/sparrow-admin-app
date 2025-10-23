@@ -34,6 +34,9 @@
   import ReviewScheduledDowngradeModal from '@/components/DowngradePlan/ReviewScheduledDowngradeModal.svelte';
   import { billingService } from '@/services/billing.service';
   import { notification } from '@/components/Toast';
+  import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
+  import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
+  import { PlanDowngradeFailed } from '@/components/PlanUpdateStatus';
 
   const location = useLocation();
 
@@ -86,6 +89,9 @@
     chooseWorkspaceModal: false,
     chooseMembersModal: false,
     reviewModal: false,
+    showProcessingModal: false,
+    showDowngradeConfirmModal: false,
+    showDowngradeFailedModal: false,
   };
   let priceId: string;
   let downgradeData = {
@@ -147,7 +153,7 @@
         const data = response.data;
         hubName = data.name || ' ';
         hubWorkspaces = data.workspaces;
-        hubUsers = (data.users || []).filter((u) => (u.role || '').toLowerCase() !== 'owner');
+        hubUsers = data.users;
         createdAt = data.createdAt;
         currentPlan = data.plan.name;
       }
@@ -363,6 +369,15 @@
     return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
   }
   $: expiryDate = getExpiryDate(createdAt);
+  $: hubOwner = hubUsers?.find((u) => u.role === 'owner') || null;
+  function removeAdminFromMembersList(hubOwner, members = []) {
+    if (!hubOwner || !hubOwner.email) return members;
+    return members.filter(
+      (member) =>
+        member.email?.toLowerCase() !== hubOwner.email.toLowerCase() &&
+        (member.role || '').toLowerCase() !== 'owner',
+    );
+  }
 
   function filterOutOwners(users) {
     return (users || []).filter((u) => (u.role || '').toLowerCase() !== 'owner');
@@ -648,12 +663,11 @@
     workspaces={hubWorkspaces}
     on:close={() => {
       downgradeFlow.chooseWorkspaceModal = false;
-      downgradeFlow.downgradeModal = true;
     }}
     on:next={(e) => {
       downgradeData.selectedWorkspaces = e.detail.selected;
       downgradeData.unselectedWorkspaces = e.detail.unselected;
-      downgradeData.members = filterOutOwners(e.detail.members) || [];
+      downgradeData.members = removeAdminFromMembersList(hubOwner, e.detail.members) || [];
       downgradeFlow.chooseWorkspaceModal = false;
 
       const c = getDowngradeConstraints();
@@ -695,7 +709,7 @@
       downgradeFlow.chooseWorkspaceModal = true;
     }}
     on:next={(e) => {
-      downgradeData.selectedMembers = filterOutOwners(e.detail.selected);
+      downgradeData.selectedMembers = e.detail.selected;
       downgradeFlow.chooseMembersModal = false;
       downgradeFlow.reviewModal = true;
     }}
@@ -712,9 +726,7 @@
       {selectedPlan}
       {expiryDate}
       selectedWorkspaces={downgradeData.selectedWorkspaces}
-      selectedMembers={downgradeData.selectedMembers.filter(
-        (m) => (m.role || '').toLowerCase() !== 'owner',
-      )}
+      selectedMembers={downgradeData.selectedMembers}
       on:close={() => {
         downgradeFlow.reviewModal = false;
         const c = getDowngradeConstraints();
@@ -752,15 +764,16 @@
             email: user.email,
           })),
         };
-
+        downgradeFlow.reviewModal = false;
+        downgradeFlow.showProcessingModal = true;
         try {
           if (selectedPlan?.toLowerCase() === 'community') {
             await billingService.cancelSubscription({
               subscriptionId,
               ...downgradePayload,
             });
-            downgradeFlow.reviewModal = false;
-            notification.success('Your subscription has been downgraded to the Community plan.');
+            downgradeFlow.showProcessingModal = false;
+            downgradeFlow.showDowngradeConfirmModal = true;
           } else if (selectedPlan?.toLowerCase() === 'standard') {
             await billingService.updateSubscription({
               priceId,
@@ -769,12 +782,77 @@
               isDowngrade: true,
               ...downgradePayload,
             });
-            downgradeFlow.reviewModal = false;
-            notification.success('Your downgrade to Standard plan is scheduled.');
+            downgradeFlow.showProcessingModal = false;
+            downgradeFlow.showDowngradeConfirmModal = true;
           }
         } catch (error) {
-          notification.error('Failed to process downgrade. Please try again.');
+          downgradeFlow.showProcessingModal = false;
+          downgradeFlow.showDowngradeFailedModal = true;
         }
+      }}
+    />
+  </Modal>
+{/if}
+
+{#if downgradeFlow.showProcessingModal}
+  <Modal width="max-w-xl" on:close={() => (downgradeFlow.showProcessingModal = false)}>
+    <PaymentProcessingModal
+      title="Finalizing Your Downgrade"
+      description="Please don't close this window, We're saving your selections and scheduling your plan change. This will only take a moment."
+      on:close={() => (downgradeFlow.showProcessingModal = false)}
+    />
+  </Modal>
+{/if}
+{#if downgradeFlow.showDowngradeConfirmModal}
+  <Modal
+    width="max-w-xl"
+    on:close={() => {
+      downgradeFlow.showDowngradeConfirmModal = false;
+      navigate(`/billing/billingOverview/${hubId}`);
+    }}
+  >
+    <PlanUpdateSuccess
+      {hubName}
+      {currentPlan}
+      nextBillingDate={expiryDate}
+      fromPlan={currentPlan}
+      toPlan={selectedPlan}
+      PlanUpdateTitle="Your Downgrade is Scheduled"
+      description={`You've successfully scheduled the ${hubName} to downgrade to the ${selectedPlan} edition. This change will take effect on ${expiryDate}.
+        You can upgrade anytime and continue with the features.`}
+      buttonText="Got it"
+      on:close={() => {
+        downgradeFlow.showDowngradeConfirmModal = false;
+        navigate(`/billing/billingOverview/${hubId}`);
+      }}
+      on:goToDashboard={() => {
+        downgradeFlow.showDowngradeConfirmModal = false;
+        navigate(`/billing/billingOverview/${hubId}`);
+      }}
+    />
+  </Modal>
+{/if}
+
+{#if downgradeFlow.showDowngradeFailedModal}
+  <Modal
+    width="max-w-xl"
+    on:close={() => {
+      downgradeFlow.showDowngradeFailedModal = false;
+      navigate(`/billing/billingOverview/${hubId}`);
+    }}
+  >
+    <PlanDowngradeFailed 
+      {hubName} 
+      on:close={() => {
+        downgradeFlow.showDowngradeFailedModal = false;
+        navigate(`/billing/billingOverview/${hubId}`);
+      }}
+      on:contactSupport={() => {
+        window.open('https://support.yourdomain.com', '_blank');
+      }}
+      on:tryAgain={() => {
+        downgradeFlow.showDowngradeFailedModal = false;
+        downgradeFlow.reviewModal = true;
       }}
     />
   </Modal>

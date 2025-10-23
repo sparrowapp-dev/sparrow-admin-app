@@ -589,6 +589,9 @@
         nextBillingDate={selectedPlanDetails.nextBilling}
         fromPlan={selectedPlanDetails.fromPlan}
         toPlan={selectedPlanDetails?.toPlan}
+        PlanUpdateTitle="Plan Updated"
+        isUpgrade
+        buttonText="Go to Dashboard"
         on:close={() => {
           showSubscriptionConfirmModal = false;
           navigate(`/billing/billingOverview/${hubId}`);
