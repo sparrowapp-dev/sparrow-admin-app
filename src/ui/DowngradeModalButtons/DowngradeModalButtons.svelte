@@ -20,7 +20,7 @@
   const handleConfirm = () => dispatch('confirm');
   function handleSupport() {
     if (disableSupport) return;
-    window.open("https://support.yourdomain.com", "_blank");
+    window.open("mailto:contactus@sparrowapp.dev", "_blank");
   }
 </script>
 

@@ -84,6 +84,7 @@
   let mode: string = 'change-plan';
   let createdAt: string;
   let hubUsers: [];
+  let hubOwner: string;
   let downgradeFlow = {
     downgradeModal: false,
     chooseWorkspaceModal: false,
@@ -151,6 +152,7 @@
       const response = await hubsService.getHubDetails(hubId);
       if (response?.data) {
         const data = response.data;
+        hubOwner = data.owner;
         hubName = data.name || ' ';
         hubWorkspaces = data.workspaces;
         hubUsers = data.users;
@@ -369,14 +371,9 @@
     return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
   }
   $: expiryDate = getExpiryDate(createdAt);
-  $: hubOwner = hubUsers?.find((u) => u.role === 'owner') || null;
   function removeAdminFromMembersList(hubOwner, members = []) {
-    if (!hubOwner || !hubOwner.email) return members;
-    return members.filter(
-      (member) =>
-        member.email?.toLowerCase() !== hubOwner.email.toLowerCase() &&
-        (member.role || '').toLowerCase() !== 'owner',
-    );
+    if (!hubOwner) return members;
+    return members.filter((member) => member.id !== hubOwner);
   }
 
   function filterOutOwners(users) {
@@ -848,7 +845,7 @@
         navigate(`/billing/billingOverview/${hubId}`);
       }}
       on:contactSupport={() => {
-        window.open('https://support.yourdomain.com', '_blank');
+        window.open('mailto:contactus@sparrowapp.dev', '_blank');
       }}
       on:tryAgain={() => {
         downgradeFlow.showDowngradeFailedModal = false;
