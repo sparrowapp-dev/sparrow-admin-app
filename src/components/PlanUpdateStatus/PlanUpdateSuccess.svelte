@@ -16,6 +16,10 @@
   export let nextBillingDate: string = '';
   export let fromPlan: string = '';
   export let toPlan: string = '';
+  export let PlanUpdateTitle: string = '';
+  export let description: string = '';
+  export let isUpgrade: boolean = false;
+  export let buttonText: string = '';
 
   function handleClose() {
     dispatch('close');
@@ -38,19 +42,23 @@
   <!-- Header with success -->
   <div class="mb-3 flex items-start justify-between">
     <div class="flex items-center gap-2">
-      <div class="h-5 w-5">
-        <SelectIcon />
-      </div>
-      <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">Plan Updated</h2>
+      {#if isUpgrade}
+        <div class="h-5 w-5">
+          <SelectIcon />
+        </div>
+      {/if}
+      <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">{PlanUpdateTitle}</h2>
     </div>
 
     <button class="cursor-pointer" on:click={handleClose}>
       <CloseIcon />
     </button>
   </div>
-  <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-2 mb-3 text-neutral-400">
-    You've successfully switched from the {fromPlan} to the {toPlan} plan.
-  </p>
+  {#if isUpgrade}
+    <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-2 mb-3 text-neutral-400">
+      You've successfully switched from the {fromPlan} to the {toPlan} plan.
+    </p>
+  {/if}
 
   <!-- Plan details -->
   <div class="mb-6 grid grid-cols-2 gap-y-4">
@@ -70,10 +78,16 @@
     </div>
   </div>
 
+  {#if description}
+    <p class="text-fs-ds-12 font-inter font-fw-ds-400 text-neutral-300 mb-4">
+      {description}
+    </p>
+  {/if}
+
   <!-- Action button -->
   <div class="flex items-center justify-end">
-    <Button variant="filled-primary" size="medium" on:click={handleGoToDashboard}
-      >Go to Dashboard</Button
-    >
+    <Button variant="filled-primary" size="medium" on:click={handleGoToDashboard}>
+      {buttonText}
+    </Button>
   </div>
 </div>

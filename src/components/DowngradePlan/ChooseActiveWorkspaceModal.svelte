@@ -60,14 +60,11 @@
             i ===
             self.findIndex((u) => u.email === user.email || u.id === user.id)
         );
-    
         allMembers = uniqueMembers.filter((u) => (u.role || '').toLowerCase() !== 'owner');
-
       } catch (error) {
         console.error('Error fetching workspace members:', error);
       }
     }
-
     dispatch('next', {
       selected: selectedWorkspaces,
       unselected,
@@ -166,7 +163,10 @@
                 <input
                   type="checkbox"
                   checked={selected.has(ws.id)}
-                  on:change={() => toggleWorkspace(ws.id)}
+                  on:change={() => {
+                    e.stopPropagation();
+                    toggleWorkspace(ws.id)
+                  }}
                   disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
                   class="peer h-4 w-4 cursor-pointer appearance-none rounded-sm border border-[#2A2F3A] bg-[#1E222C] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none"
                 />

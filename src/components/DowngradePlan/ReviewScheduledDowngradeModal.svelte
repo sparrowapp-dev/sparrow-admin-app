@@ -12,7 +12,6 @@
   export let isOpen: boolean = false;
 
   const dispatch = createEventDispatcher();
-
   let feedback = '';
   const maxChars = 3500;
 
