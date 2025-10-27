@@ -262,7 +262,6 @@
       }
 
       // Set subscription status
-  
       subscriptionStatus = subscriptionData?.status || '';
     }
   }
@@ -320,6 +319,8 @@
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'change-plan',
+      isScheduledDowngrade: isScheduledDowngrade ? 'true' : 'false',
+      isScheduledCancelled: subscriptionData?.cancel_at_period_end ? 'true' : 'false'
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);

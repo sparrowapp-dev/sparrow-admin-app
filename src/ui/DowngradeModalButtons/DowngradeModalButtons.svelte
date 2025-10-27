@@ -39,7 +39,7 @@
 
   <div class="ml-auto flex gap-3">
     <Button
-      variant="outlined-primary"
+      variant="filled-secondary"
       size="medium"
       on:click={handleCancel}
       class="bg-[#272935] !text-white hover:!bg-[#20242E]"
