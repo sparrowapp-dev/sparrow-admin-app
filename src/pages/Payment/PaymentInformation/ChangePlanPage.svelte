@@ -82,6 +82,8 @@
   let hubName: string = '';
   let hubWorkspaces: [];
   let mode: string = 'change-plan';
+  let isScheduledDowngrade: boolean = false;
+  let isScheduledCancelled: boolean = false;
   let createdAt: string;
   let hubUsers: [];
   let hubOwner: string;
@@ -104,17 +106,6 @@
   };
   let planLimits: [];
 
-  $: {
-    const searchParams = new URLSearchParams($location?.search || '');
-    mode = searchParams.get('mode') || 'change-plan';
-  }
-
-  $: pageHeading = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Your Plan';
-  $: pageDescription =
-    mode === 'upgrade'
-      ? "You're ready for the next level. Upgrade to access more and features. You can switch plans at any time."
-      : 'Select a different plan that fits your needs. Your current plan is highlighted below. The new plan will take effect immediately or at the start of your next billing cycle depending on your billing terms.';
-
   // URL parsing
   $: {
     const url = $location?.pathname || '';
@@ -136,7 +127,16 @@
     subscriptionStatus = searchParams.get('status') || '';
     userCount = parseInt(searchParams.get('userCount') || '1', 10);
     inTrial = searchParams.get('inTrial') === 'true';
+    mode = searchParams.get('mode') || 'change-plan';
+    isScheduledDowngrade = searchParams.get('isScheduledDowngrade') === 'true';
+    isScheduledCancelled = searchParams.get('isScheduledCancelled') === 'true';
   }
+
+  $: pageHeading = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Your Plan';
+  $: pageDescription =
+    mode === 'upgrade'
+      ? "You're ready for the next level. Upgrade to access more and features. You can switch plans at any time."
+      : 'Select a different plan that fits your needs. Your current plan is highlighted below. The new plan will take effect immediately or at the start of your next billing cycle depending on your billing terms.';
 
   // Plan details for comparison
   let planDetails = getCurrentPlanDetails();
@@ -257,7 +257,18 @@
     }
   }
 
-  function isPlanSelectable(plan) {
+  function isPlanSelectable(plan: string) {
+    if (isScheduledDowngrade) {
+      if (currentPlan === 'Professional' && (plan === 'community' || plan === 'standard')) {
+        return false;
+      }
+      return true;
+    } else if (isScheduledCancelled) {
+      if (plan === 'community') {
+        return false;
+      }
+      return true;
+    }
     return true;
   }
 
@@ -454,10 +465,10 @@
       >
         {#each planValues as { plan, planName, isCurrentPlan, planPrice, planUnit, buttonText, hasDiscount, discount }, index}
           <div
-            class={`overflow-hidden rounded-[10px] border-2 transition-all duration-200 
-                ${isCurrentPlan ? 'border-neutral-50' : 'border-surface-500'}
-                ${!isPlanSelectable(plan) && !isCurrentPlan ? 'cursor-not-allowed opacity-40' : 'hover:bg-surface-600 hover:border-surface-50'}
-              `}
+            class={`hover:border-surface-50 overflow-hidden rounded-[10px] border-2 transition-all duration-200
+          ${isCurrentPlan ? 'border-neutral-50' : 'border-surface-500'}
+          ${!isPlanSelectable(plan) && !isCurrentPlan ? 'opacity-70' : 'hover:bg-surface-600'}
+        `}
             style="transform: scale({hoveredCardIndex === index ? $cardScale : 1});"
             on:mouseenter={() => isPlanSelectable(plan) && handleCardHover(index, true)}
             on:mouseleave={() => handleCardHover(index, false)}
@@ -515,11 +526,6 @@
                       on:click={() => isPlanSelectable(plan) && selectPlan(plan)}
                       disabled={!isPlanSelectable(plan) ||
                         (inTrial && buttonText === 'Select Plan')}
-                      tooltipText={!isPlanSelectable(plan) && mode === 'upgrade-only'
-                        ? 'Downgrade not allowed in Upgrade mode'
-                        : ''}
-                      tooltipPosition="bottom"
-                      tooltipDelay={100}
                     >
                       {buttonText}
                     </Button>

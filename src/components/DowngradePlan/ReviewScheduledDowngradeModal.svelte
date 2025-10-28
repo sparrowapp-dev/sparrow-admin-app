@@ -95,7 +95,7 @@
         class="text-fs-ds-14 w-full resize-none rounded-md bg-[#222630] p-3 text-neutral-100 outline-none focus:ring-neutral-500"
         rows="4"
       ></textarea>
-      <p class="text-right text-[11px] text-neutral-500">{feedback.length}/{maxChars}</p>
+      <p class="text-right text-[11px] text-neutral-500 mt-1">{feedback.length}/{maxChars}</p>
     </div>
 
     <!-- Footer -->

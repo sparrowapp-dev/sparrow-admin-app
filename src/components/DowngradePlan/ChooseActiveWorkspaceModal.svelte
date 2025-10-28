@@ -9,14 +9,21 @@
   export let workspaces = [];
   export let hubId;
   export let planLimits:[];
-
+  let maxSelectable = 0
   const dispatch = createEventDispatcher();
   let selected = new Set();
   let workspaceDetails = new Map();
   let loading = false;
 
-  $: maxSelectable = planLimits?.workspacesPerHub?.value;
-  
+  $: {
+    if (typeof planLimits === 'number') {
+      maxSelectable = planLimits;
+    } else if (planLimits && typeof planLimits === 'object' && planLimits.workspacesPerHub) {
+      maxSelectable = planLimits?.workspacesPerHub?.value;
+    } else {
+      maxSelectable = 0;
+    }
+  }
   const toggleWorkspace = (id) => {
     if (selected.has(id)) selected.delete(id);
     else if (selected.size < maxSelectable) selected.add(id);
@@ -124,7 +131,7 @@
   stepIndicator={maxSelectable === 3 ? true : false}
   selectedCount={selected.size}
   isPrimaryDisabled={selected.size !== maxSelectable}
-  confirmText="Confirm Selection"
+  confirmText="Next: Choose Members"
   on:confirm={handleNext}
   on:close={() => dispatch('close')}
 >
@@ -145,11 +152,11 @@
     <table class="text-fs-ds-12 w-full border-collapse text-white">
       <thead class="sticky top-0 z-10 bg-[#181C26] text-left text-gray-400">
         <tr>
-          <th class="w-[20px] py-2"></th>
-          <th class="px-4 py-2">Workspaces</th>
-          <th class="px-4 py-2">Collections</th>
-          <th class="px-4 py-2">Contributors</th>
-          <th class="px-3 py-2">Last updated</th>
+          <th class="w-[20px] py-3"></th>
+          <th class="px-4 py-3">Workspaces</th>
+          <th class="px-4 py-3">Collections</th>
+          <th class="px-4 py-3">Contributors</th>
+          <th class="px-3 py-3">Last updated</th>
         </tr>
       </thead>
       <tbody>
@@ -163,17 +170,17 @@
                 <input
                   type="checkbox"
                   checked={selected.has(ws.id)}
-                  on:change={() => {
+                  on:change={(e) => {
                     e.stopPropagation();
                     toggleWorkspace(ws.id)
                   }}
                   disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
-                  class="peer h-4 w-4 cursor-pointer appearance-none rounded-sm border border-[#2A2F3A] bg-[#1E222C] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none"
+                  class="peer h-[13px] w-[13px] cursor-pointer appearance-none rounded-xs border border-neutral-400 bg-[#181C26] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none"
                 />
                 <!-- Checkmark icon -->
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="pointer-events-none absolute h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                  class="pointer-events-none absolute h-3 w-3 text-black opacity-0 transition-opacity peer-checked:opacity-100"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >

@@ -12,10 +12,19 @@
   export let hubId: string;
   export let hubOwner: any;
   export let expiryDate: string;
+  let maxSelectable = 0
 
   const dispatch = createEventDispatcher();
   let selected = new Set();
-  $: maxSelectable = planLimits?.usersPerHub?.value;
+  $: {
+    if (typeof planLimits === 'number') {
+      maxSelectable = planLimits;
+    } else if (planLimits && typeof planLimits === 'object' && planLimits?.usersPerHub) {
+      maxSelectable = planLimits?.usersPerHub?.value;
+    } else {
+      maxSelectable = 0;
+    }
+  }  
   $: filteredUsers = Array.isArray(users) ? users : [];
 
   const toggleMember = (id: string) => {
@@ -96,10 +105,6 @@
 
     return selected.size === maxSelectable; // must select exactly 4
   })();
-  $: confirmButtonText = filteredUsers.length === 0 ? 'Continue' : 'Confirm Selections';
-  onMount(() => {
-    getLastActive();
-  });
 
 </script>
 
@@ -112,7 +117,7 @@
   stepIndicator={true}
   selectedCount={selected.size}
   isPrimaryDisabled={!isConfirmEnabled}
-  confirmText={confirmButtonText}
+  confirmText="Confirm Selections"
   on:confirm={handleNext}
   on:close={() => dispatch('close')}
 >
@@ -146,7 +151,7 @@
             />
             <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="pointer-events-none absolute h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                  class="pointer-events-none absolute h-3 w-3 text-black opacity-0 transition-opacity peer-checked:opacity-100"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >

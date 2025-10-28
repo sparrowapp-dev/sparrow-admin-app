@@ -82,7 +82,7 @@
       Downgrade to {selectedPlan === 'community' ? 'Community Edition' : `${selectedPlan} Plan`}
     </h2>
     <button
-      class="cursor-pointer text-fs-ds-20 leading-none text-neutral-400 hover:text-neutral-200"
+      class="cursor-pointer text-fs-ds-20 mt-1 leading-none text-neutral-400 hover:text-neutral-200"
       on:click={handleClose}
     >
       ✕
@@ -104,9 +104,7 @@
 
   <!-- Description -->
   <p class="font-inter mt-2 text-fs-ds-12 leading-relaxed font-light text-neutral-200">
-    Are you sure you want to downgrade your plan from
-    <span class="font-medium text-neutral-50">{currentPlan}</span> to
-    <span class="font-medium text-neutral-50">{selectedPlan}</span>? Some features and access will
+    Are you sure you want to downgrade your plan from {currentPlan} to {selectedPlan}? Some features and access will
     change after the downgrade.
   </p>
 
@@ -121,9 +119,9 @@
     {/each}
   </ul>
 
-  <p class="font-inter mt-3 text-fs-ds-12 leading-relaxed font-light text-neutral-300">
+  <p class="font-inter mt-2 text-fs-ds-12 leading-relaxed font-light text-neutral-300">
     Not sure what's included in each plan? Take a quick look to
-    <a href="https://sparrowapp.dev/pricing/" target="_blank" class="ml-1 text-blue-400 underline">
+    <a href="https://sparrowapp.dev/pricing/" target="_blank" class="ml-1 text-blue-300 underline">
       compare plans
     </a>
     before downgrading.
@@ -131,7 +129,7 @@
 
   <!-- Warning box -->
   {#if currentPlan !== 'Enterprise'}
-    <div class="relative mt-3 flex items-start gap-3 overflow-hidden rounded-md bg-[#1D212B] p-3 ">
+    <div class="relative mt-2 flex items-start gap-3 overflow-hidden rounded-md bg-[#1D212B] p-3 shadow-2xl">
       <div
         class="absolute top-0 left-0 h-full w-[4px] rounded-l-md bg-gradient-to-b from-[#EB5651] to-[#8B3A36]"
       ></div>
@@ -154,7 +152,7 @@
     confirmText={currentPlan !== 'Enterprise' ? 'Continue to Downgrade' : 'Contact Sales'}
     primaryVariant="filled-primary"
     on:cancel={handleCancel}
-    on:confirm={handleContinueDowngrade}
+    on:confirm={currentPlan !== 'Enterprise' ? handleContinueDowngrade : undefined}
     class="mt-3"
   />
 </div>
