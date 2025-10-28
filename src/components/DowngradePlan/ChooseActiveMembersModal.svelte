@@ -12,10 +12,19 @@
   export let hubId: string;
   export let hubOwner: any;
   export let expiryDate: string;
+  let maxSelectable = 0
 
   const dispatch = createEventDispatcher();
   let selected = new Set();
-  $: maxSelectable = planLimits?.usersPerHub?.value;
+  $: {
+    if (typeof planLimits === 'number') {
+      maxSelectable = planLimits;
+    } else if (planLimits && typeof planLimits === 'object' && planLimits?.usersPerHub) {
+      maxSelectable = planLimits?.usersPerHub?.value;
+    } else {
+      maxSelectable = 0;
+    }
+  }  
   $: filteredUsers = Array.isArray(users) ? users : [];
 
   const toggleMember = (id: string) => {

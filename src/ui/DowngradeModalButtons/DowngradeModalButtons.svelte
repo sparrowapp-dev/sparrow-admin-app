@@ -51,7 +51,13 @@
       variant={primaryVariant}
       size="medium"
       disabled={isPrimaryDisabled}
-      on:click={handleConfirm}
+      on:click={() => {
+        if (confirmText === 'Contact Sales') {
+          window.open("mailto:contactus@sparrowapp.dev", "_blank");
+        } else {
+          handleConfirm();
+        }
+      }}
     >
       {overridePrimaryText ? overridePrimaryText : confirmText}
     </Button>

@@ -152,7 +152,7 @@
     confirmText={currentPlan !== 'Enterprise' ? 'Continue to Downgrade' : 'Contact Sales'}
     primaryVariant="filled-primary"
     on:cancel={handleCancel}
-    on:confirm={handleContinueDowngrade}
+    on:confirm={currentPlan !== 'Enterprise' ? handleContinueDowngrade : undefined}
     class="mt-3"
   />
 </div>

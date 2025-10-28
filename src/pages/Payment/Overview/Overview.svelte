@@ -15,6 +15,7 @@
     processSubscriptionData,
     getCurrentPlanDetails,
     initializePlanDetails,
+    DEFAULT_PLAN_DETAILS
   } from '@/utils/pricing';
   import { getDynamicCssClasses } from '@/utils/planTagStyles';
   import { captureEvent } from '@/utils/posthogConfig';
@@ -38,6 +39,9 @@
   import RedirectIcon from '@/assets/icons/RedirectIcon.svelte';
   import CircularLoader from '@/ui/CircularLoader/CircularLoader.svelte';
   import GreenCheckIconFill from '@/assets/icons/GreenCheckIconFill.svelte';
+    import ChooseActiveWorkspaceModal from '@/components/DowngradePlan/ChooseActiveWorkspaceModal.svelte';
+    import ChooseActiveMembersModal from '@/components/DowngradePlan/ChooseActiveMembersModal.svelte';
+    import ReviewScheduledDowngradeModal from '@/components/DowngradePlan/ReviewScheduledDowngradeModal.svelte';
 
   // ===== CONSTANTS =====
   const location = useLocation();
@@ -65,7 +69,16 @@
   let invoiceUrl = '';
   let isScheduledDowngrade = false;
   let promoDiscount = null;
-
+  let workspaces = [];
+  let selectedWorkspaces = [];
+  let unSelectedWorkspaces = [];
+  let selectedMembers = [];
+  let membersFromSelectedWorkspaces = [];
+  let hubOwner = null
+  let hubUsers = []
+  let showMembersModal = false
+  let createdAt = null
+  let feedback = ''
   // UI state
   let isLoadingSubscription = false;
   let hasRedirected = false; // Prevent multiple redirects
@@ -75,8 +88,10 @@
 
   // Cancel subscription state
   let showCancelConfirmModal = false;
+  let showWorkspaceModal = false;
   let showCancelSuccessModal = false;
   let cancelInProgress = false;
+  let showReviewModal = false;
 
   // Resubscribe state
   let showResubscribeModal = false;
@@ -182,12 +197,41 @@
     }
   }
 
+  function getExpiryDate(createdAt){
+    if (!createdAt) return '-';
+    const created = new Date(createdAt);
+    const expiry = new Date(created);
+    expiry.setDate(expiry.getDate() + 30);
+
+    // Format like "28 Aug 2025, 10:00 AM UTC"
+    const options= {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC',
+    };
+
+    // Calculate days left
+    const now = new Date();
+    const diffInMs = expiry.getTime() - now.getTime();
+    const daysLeft = Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0); // avoid negative
+
+    const formattedExpiry = expiry.toLocaleString('en-GB', options) + ' UTC';
+    return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
+  }
   // Process hub data when it changes
   $: if ($hubData !== undefined) {
     currentHubData = $hubData?.data || null;
     hubName = currentHubData?.name || '';
     userCount = $hubData?.data?.users?.length + $hubData?.data?.invites?.length || 1;
     planStatus = currentHubData?.billing?.status;
+    workspaces = currentHubData?.workspaces;
+    hubUsers = currentHubData?.users;
+    hubOwner = currentHubData?.owner;
+    createdAt = currentHubData?.createdAt;
     // Use plan name from the database
     currentPlan = currentHubData?.plan?.name || 'Community';
     invoiceUrl =
@@ -266,6 +310,8 @@
     }
   }
 
+  $: expiryDate = getExpiryDate(createdAt);
+
   // Add animation trigger
   $: if (!$isFetchingSubscription && !$isFetchingHub && $hubData?.data) {
     setTimeout(() => {
@@ -326,28 +372,122 @@
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
   }
 
+  $: plans = DEFAULT_PLAN_DETAILS;
+
   // Cancel subscription functions
   function openCancelModal() {
     showCancelConfirmModal = true;
+  } 
+
+  function openWorkspaceModal(){
+    showWorkspaceModal = true;
+  }
+
+  function openMembersModal(){
+    showMembersModal = true;
+  }
+
+  function openReviewModal(){
+    showReviewModal = true;
   }
 
   function closeCancelConfirmModal() {
     showCancelConfirmModal = false;
   }
 
+  function closeActiveWorkspaceModal(){
+    showWorkspaceModal = false;
+  }
+
+  function closeActiveMembersModal(){
+    showMembersModal = false;
+  }
+
+  function closeReviewModal(){
+    showReviewModal = false;
+  }
+
   function closeCancelSuccessModal() {
     showCancelSuccessModal = false;
   }
 
-  async function confirmCancelSubscription() {
+  function removeAdminFromMembersList(hubOwner, members = []) {
+    if (!hubOwner) return members;
+    return members.filter((member) => member.id !== hubOwner);
+  }
+
+  function confirmWorkspaceSelection(e){
+    selectedWorkspaces = e.detail.selected;
+    unSelectedWorkspaces = e.detail.unselected;
+    membersFromSelectedWorkspaces = removeAdminFromMembersList(hubOwner, e.detail.members) || [];
+    closeActiveWorkspaceModal();
+    if(membersFromSelectedWorkspaces?.length > plans.community.monthly.collaborators){
+      openMembersModal()
+    }else{
+      selectedMembers = membersFromSelectedWorkspaces;
+      openReviewModal()
+    }
+  }
+
+  function confirmMemberSelection(e){
+    selectedMembers = e.detail.selected;
+    closeActiveMembersModal();
+    openReviewModal()
+  }
+
+  function confirmCancelSubscription() {
     cancelInProgress = true;
+    closeCancelConfirmModal()
+    if(workspaces.length > plans.community.monthly.workspaces){
+      openWorkspaceModal()
+    }else{
+      selectedWorkspaces = workspaces;
+      if(hubUsers?.length > plans.community.monthly.collaborators){
+        openMembersModal()
+      }else{
+        selectedMembers = removeAdminFromMembersList(hubOwner, hubUsers) || [];
+        openReviewModal()
+      }
+    }
+  }
+
+  function closeReviewScheduledDowngradeModal(){
+    if (hubUsers?.length > plans.community.monthly.collaborators) {
+      closeReviewModal();
+      openMembersModal();
+      if (workspaces.length > plans.community.monthly.workspaces) {
+        closeActiveMembersModal();
+        openWorkspaceModal();
+      }
+    } else if (workspaces.length > plans.community.monthly.workspaces) {
+      closeReviewModal();
+      openWorkspaceModal();
+    } else {
+      closeReviewModal();
+    }
+  }
+
+  async function confirmDowngradeToCommunity(e){
+    feedback = e.detail.feedback;
+
+    const downgradePayload = {
+      teamId: hubId,
+      workspaces: selectedWorkspaces.map((ws) => ({
+        id: ws._id || ws.id,
+        name: ws.name,
+      })),
+      users: selectedMembers.map((user) => ({
+        id: user._id || user.id,
+        email: user.email,
+      })),
+    };
+
     try {
       // Call the cancel subscription API
-      
-      await billingService.cancelSubscription({ subscriptionId });
+      await billingService.cancelSubscription({ subscriptionId, ...downgradePayload });
 
-      // Close confirmation modal and show success modal
-      closeCancelConfirmModal();
+      // Close review modal and show success modal
+      closeReviewModal();
       showCancelSuccessModal = true;
 
       // Update local state
@@ -768,6 +908,47 @@
           isLoading={cancelInProgress}
           on:close={closeCancelConfirmModal}
           on:confirmCancel={confirmCancelSubscription}
+        />
+      </Modal>
+    {/if}
+
+    {#if showWorkspaceModal}
+        <ChooseActiveWorkspaceModal
+          {hubId}
+          {currentPlan}
+          selectedPlan="Community"
+          planLimits = {plans.community.monthly.workspaces}
+          isOpen={showWorkspaceModal}
+          workspaces={workspaces}
+          on:close={closeActiveWorkspaceModal}
+          on:next={confirmWorkspaceSelection}
+        />
+    {/if}
+
+    {#if showMembersModal}
+        <ChooseActiveMembersModal
+          users = {membersFromSelectedWorkspaces}
+          planLimits = {plans.community.monthly.collaborators}
+          isOpen={showMembersModal}
+          expiryDate={expiryDate}
+          on:close={closeActiveMembersModal}
+          on:next={confirmMemberSelection}
+        />
+    {/if}
+
+    {#if showReviewModal}
+      <Modal on:close={closeReviewModal}>
+        <ReviewScheduledDowngradeModal
+          isOpen={showReviewModal}
+          currentPlan={currentPlan}
+          selectedPlan="Community"
+          hubName={hubName}
+          selectedWorkspaces={selectedWorkspaces}
+          selectedMembers={selectedMembers}
+          expiryDate={expiryDate}
+          hubWorkspaces={workspaces}
+          on:close={closeReviewScheduledDowngradeModal}
+          on:confirm={confirmDowngradeToCommunity}
         />
       </Modal>
     {/if}

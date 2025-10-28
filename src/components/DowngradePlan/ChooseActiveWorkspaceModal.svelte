@@ -9,14 +9,21 @@
   export let workspaces = [];
   export let hubId;
   export let planLimits:[];
-
+  let maxSelectable = 0
   const dispatch = createEventDispatcher();
   let selected = new Set();
   let workspaceDetails = new Map();
   let loading = false;
 
-  $: maxSelectable = planLimits?.workspacesPerHub?.value;
-  
+  $: {
+    if (typeof planLimits === 'number') {
+      maxSelectable = planLimits;
+    } else if (planLimits && typeof planLimits === 'object' && planLimits.workspacesPerHub) {
+      maxSelectable = planLimits?.workspacesPerHub?.value;
+    } else {
+      maxSelectable = 0;
+    }
+  }
   const toggleWorkspace = (id) => {
     if (selected.has(id)) selected.delete(id);
     else if (selected.size < maxSelectable) selected.add(id);
