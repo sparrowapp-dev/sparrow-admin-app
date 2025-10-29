@@ -397,10 +397,12 @@
 
   function closeActiveWorkspaceModal(){
     showWorkspaceModal = false;
+    cancelInProgress = false;
   }
 
   function closeActiveMembersModal(){
     showMembersModal = false;
+    cancelInProgress = false;
   }
 
   function closeReviewModal(){
@@ -927,7 +929,9 @@
 
     {#if showMembersModal}
         <ChooseActiveMembersModal
-          users = {membersFromSelectedWorkspaces}
+          users={workspaces.length > plans.community.monthly.workspaces
+            ? membersFromSelectedWorkspaces
+            : removeAdminFromMembersList(hubOwner, hubUsers)}          
           planLimits = {plans.community.monthly.collaborators}
           isOpen={showMembersModal}
           expiryDate={expiryDate}
