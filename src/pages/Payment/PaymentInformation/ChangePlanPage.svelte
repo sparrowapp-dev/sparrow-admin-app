@@ -709,7 +709,8 @@
       : filterOutOwners(hubUsers)}
     on:close={() => {
       downgradeFlow.chooseMembersModal = false;
-      downgradeFlow.chooseWorkspaceModal = true;
+      const c = getDowngradeConstraints();
+      if (c.workspaceCount > c.maxWorkspaces) downgradeFlow.chooseWorkspaceModal = true;
     }}
     on:next={(e) => {
       downgradeData.selectedMembers = e.detail.selected;
