@@ -266,7 +266,7 @@ export const makeRequest = async (
     case 'PUT':
       return httpClient.put(endpoint, data, requestConfig);
     case 'DELETE':
-      return httpClient.delete(endpoint, requestConfig);
+      return httpClient.delete(endpoint, data, requestConfig);
     case 'PATCH':
       return httpClient.patch(endpoint, data, requestConfig);
     default:

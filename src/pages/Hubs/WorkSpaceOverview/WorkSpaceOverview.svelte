@@ -150,7 +150,6 @@
       tab: queryState.tab,
       resources: queryState.resourceType,
     };
-
     return hubsService.getWorkspaceDetails(queryParams);
   });
 

@@ -27,12 +27,16 @@ interface CreateSubscriptionParams {
 
 interface UpdateSubscriptionParams {
   subscriptionId: string;
-  priceId: string;
-  paymentMethodId: string;
-  metadata?: any;
   isDowngrade?: boolean;
+  priceId?: string;
+  paymentMethodId?: string;
+  metadata?: any;
   seats?: number;
   paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
+  // For downgrade
+  teamId?: string;
+  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  users?: Array<{ id: string; email: string; }>;
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -45,6 +49,9 @@ interface SubscriptionResponse {
 
 interface CancelSubscriptionParams {
   subscriptionId: string;
+  teamId: string;
+  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  users?: Array<{ id: string; email: string; }>;
 }
 
 interface ReactivateSubscriptionParams {
@@ -220,23 +227,31 @@ export class BillingService {
    */
   public async updateSubscription(params: UpdateSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
-    const requestBody: any = {
-      priceId: params.priceId,
-      paymentMethodId: params.paymentMethodId,
-      metadata: params.metadata,
-      seats: params.seats,
-      paymentBehavior: params.paymentBehavior,
-    };
-
-    // If this is a downgrade, set it to happen at the end of the billing cycle
+    let requestBody: any = {};
     if (params.isDowngrade) {
-      requestBody.prorationBehavior = 'none';
-      requestBody.atPeriodEnd = true;
+      requestBody = {
+        priceId: params.priceId,
+        teamID: params.teamId,
+        metadata: params.metadata,
+        workspaces: params.workspaces,
+        users: params.users,
+        prorationBehavior: 'none',
+        atPeriodEnd: true,
+      };
+    } else {
+      requestBody = {
+        priceId: params.priceId,
+        paymentMethodId: params.paymentMethodId,
+        metadata: params.metadata,
+        seats: params.seats,
+        paymentBehavior: params.paymentBehavior,
+      };
     }
 
     const res = await makeRequest('PUT', url, requestBody);
     return res?.data;
   }
+
 
   /**
    * Cancel a subscription
@@ -244,7 +259,16 @@ export class BillingService {
    */
   public async cancelSubscription(params: CancelSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
-    const res = await makeRequest('DELETE', url);
+
+    // Prepare the request body
+    const body = {
+      cancelImmediately: false,
+      teamId: params.teamId,
+      workspaces: params.workspaces,
+      users: params.users,
+    };
+
+    const res = await makeRequest('POST', url, body);
     return res?.data;
   }
 
