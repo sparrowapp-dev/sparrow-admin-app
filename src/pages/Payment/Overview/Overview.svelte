@@ -489,7 +489,6 @@
   }
 
   async function confirmDowngradeToCommunity(e){
-    debugger;
     feedback = e.detail.feedback;
 
     const downgradePayload = {
