@@ -22,6 +22,7 @@
   export let removeUserPopupOpen: () => void;
   export let onSuccess: () => void;
   export let hubId: string | null = null;
+  export let hubName: string | null = null;
   export let changingRolePopupOpen;
   let isLoading = false;
   let options = [
@@ -122,7 +123,7 @@
     <div class="flex flex-col gap-6">
       <div class="flex justify-between">
         <h2 class="font-fw-ds-500 text-fs-ds-20 leading-lh-ds-120 font-inter text-neutral-50">
-          Access to Enterprise Hub
+          Access to {hubName} Hub
         </h2>
         <span class="cursor-pointer" on:click={onClose}><CloseIcon /></span>
       </div>

@@ -495,6 +495,7 @@
               hubsDataRefetch();
               hubStatsRefetch();
             }}
+            hubName={hubName}
           />
         {:else if modalVariants.removeUser}
           <RemoveuserPopup

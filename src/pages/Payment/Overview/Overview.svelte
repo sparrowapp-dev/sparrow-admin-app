@@ -68,6 +68,7 @@
   let subscriptionStatus = '';
   let invoiceUrl = '';
   let isScheduledDowngrade = false;
+  let isScheduleUpgrade = false;
   let promoDiscount = null;
   let workspaces = [];
   let selectedWorkspaces = [];
@@ -236,8 +237,24 @@
     currentPlan = currentHubData?.plan?.name || 'Community';
     invoiceUrl =
       currentHubData?.billing?.failed_invoice_url || currentHubData?.billing?.invoice_url || ''; // failed_invoice_url is for backward compatibility
-    isScheduledDowngrade = currentHubData?.billing?.scheduledDowngrade || false;
+    isScheduledDowngrade = currentHubData?.billing?.scheduledDowngrade && !isUpgrade(currentPlan, currentHubData?.billing?.scheduledDowngrade?.planName) || false;
+    isScheduleUpgrade = isUpgrade(currentPlan, currentHubData?.billing?.scheduledDowngrade?.planName) || false;
   }
+
+  const isUpgrade=(currentPlan, selectedPlan)=>{
+    // Allowed plan hierarchy
+    const hierarchy = {
+      standard: 1,
+      professional: 2,
+    };
+    const currentValue = hierarchy[currentPlan?.toLowerCase()] ?? null;
+    const selectedValue = hierarchy[selectedPlan?.toLowerCase()] ?? null;
+    // If either plan is invalid → return false
+    if (currentValue === null || selectedValue === null) return false;
+    // Return true only when selected plan is greater
+    return selectedValue > currentValue;
+  }
+
 
   // Process subscription data when it changes
   $: if ($subscriptionApiData !== undefined) {
@@ -341,6 +358,8 @@
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'upgrade',
+      isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
+      isScheduledCancelled: subscriptionData?.cancel_at_period_end ? 'true' : 'false'
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -365,7 +384,7 @@
       userCount: userCount.toString(),
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'change-plan',
-      isScheduledDowngrade: isScheduledDowngrade ? 'true' : 'false',
+      isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
       isScheduledCancelled: subscriptionData?.cancel_at_period_end ? 'true' : 'false'
     });
 
@@ -659,6 +678,18 @@
           variant="warning"
           title="Scheduled Downgrade"
           subtitle={`You have a scheduled downgrade in progress. Your subscription will be downgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade, downgrade or cancel your plan until this change takes effect.`}
+          showButton={false}
+          class_name="border-l-2 border-blue-400 bg-gradient-to-r from-blue-400/18 from-1% via-10% via-surface-600 to-surface-600"
+        />
+      </div>
+    {/if}
+
+    {#if isScheduleUpgrade}
+      <div class="mt-2 mb-8">
+        <Alert
+          variant="warning"
+          title="Scheduled upgrade"
+          subtitle={`You have a scheduled upgrade in progress. Your subscription will be upgraded automatically at the end of your current billing cycle on ${nextBillingDate}. You won’t be able to upgrade, downgrade or cancel your plan until this change takes effect.`}
           showButton={false}
           class_name="border-l-2 border-blue-400 bg-gradient-to-r from-blue-400/18 from-1% via-10% via-surface-600 to-surface-600"
         />
