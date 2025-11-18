@@ -359,7 +359,7 @@
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'upgrade',
       isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
-      isScheduledCancelled: subscriptionData?.cancel_at_period_end ? 'true' : 'false'
+      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false'
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -385,7 +385,7 @@
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'change-plan',
       isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
-      isScheduledCancelled: subscriptionData?.cancel_at_period_end ? 'true' : 'false'
+      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false'
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -489,6 +489,7 @@
   }
 
   async function confirmDowngradeToCommunity(e){
+    debugger;
     feedback = e.detail.feedback;
 
     const downgradePayload = {
