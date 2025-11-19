@@ -392,34 +392,6 @@
     captureEvent('admin_plan_upgraded', eventProperties);
   };
   
-  function getExpiryDate(createdAt: string): string {
-    if (!createdAt) return '-';
-    const created = new Date(createdAt);
-    const expiry = new Date(created);
-    expiry.setDate(expiry.getDate() + 30);
-
-    // Format like "28 Aug 2025, 10:00 AM UTC"
-    const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-      timeZone: 'UTC',
-    };
-
-    // Calculate days left
-    const now = new Date();
-    const diffInMs = expiry.getTime() - now.getTime();
-    const daysLeft = Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0); // avoid negative
-
-    const formattedExpiry = expiry.toLocaleString('en-GB', options) + ' UTC';
-    return `${formattedExpiry} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`;
-  }
-
-  $: expiryDate = getExpiryDate(createdAt);
-  
   function removeAdminFromMembersList(hubOwner, members = []) {
     if (!hubOwner) return members;
     return members.filter((member) => member.id !== hubOwner);
@@ -885,7 +857,7 @@
       fromPlan={currentPlan}
       toPlan={selectedPlan}
       PlanUpdateTitle="Your Downgrade is Scheduled"
-      description={`You've successfully scheduled the ${hubName} to downgrade to the ${selectedPlan} edition. This change will take effect on ${expiryDate}.
+      description={`You've successfully scheduled the ${hubName} to downgrade to the ${selectedPlan} edition. This change will take effect on ${nextBillingDate}.
         You can upgrade anytime and continue with the features.`}
       buttonText="Got it"
       on:close={() => {
