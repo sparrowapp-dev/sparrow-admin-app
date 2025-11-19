@@ -359,7 +359,8 @@
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'upgrade',
       isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
-      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false'
+      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false',
+      nextBillingDate,
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);
@@ -385,7 +386,8 @@
       inTrial: $hubData?.data?.billing?.in_trial ? 'true' : 'false',
       mode: 'change-plan',
       isScheduledDowngrade: (isScheduledDowngrade || isScheduleUpgrade) ? 'true' : 'false',
-      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false'
+      isScheduledCancelled: ( subscriptionId && subscriptionData?.cancel_at_period_end) ? 'true' : 'false',
+      nextBillingDate
     });
 
     navigate(`/billing/billingInformation/changePlan/${hubId}?${searchParams.toString()}`);

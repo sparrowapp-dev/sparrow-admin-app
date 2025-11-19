@@ -105,6 +105,7 @@
     members: [],
   };
   let planLimits: [];
+  let nextBillingDate: string = '';
 
   // URL parsing
   $: {
@@ -130,6 +131,7 @@
     mode = searchParams.get('mode') || 'change-plan';
     isScheduledDowngrade = searchParams.get('isScheduledDowngrade') === 'true';
     isScheduledCancelled = searchParams.get('isScheduledCancelled') === 'true';
+    nextBillingDate = searchParams.get('nextBillingDate') || '';
   }
 
   $: pageHeading = mode === 'upgrade' ? 'Upgrade Plan' : 'Change Your Plan';
@@ -692,7 +694,7 @@
       {hubName}
       {hubWorkspaces}
       {planLimits}
-      {expiryDate}
+      expiryDate={nextBillingDate}
       on:close={() => (downgradeFlow.downgradeModal = false)}
       on:cancel={() => (downgradeFlow.downgradeModal = false)}
       on:continue={handleDowngradeModalContinue}
@@ -746,7 +748,7 @@
     {currentPlan}
     {selectedPlan}
     {planLimits}
-    {expiryDate}
+    expiryDate={nextBillingDate}
     isOpen={downgradeFlow.chooseMembersModal}
     hubOwner={hubUsers.find((u) => u.role === 'owner')}
     users={downgradeData.members.length > 0
@@ -773,7 +775,7 @@
       {hubWorkspaces}
       {currentPlan}
       {selectedPlan}
-      {expiryDate}
+      expiryDate ={nextBillingDate}
       selectedWorkspaces={downgradeData.selectedWorkspaces}
       selectedMembers={downgradeData.selectedMembers}
       on:close={() => {
@@ -879,7 +881,7 @@
     <PlanUpdateSuccess
       {hubName}
       {currentPlan}
-      nextBillingDate={expiryDate}
+      {nextBillingDate}
       fromPlan={currentPlan}
       toPlan={selectedPlan}
       PlanUpdateTitle="Your Downgrade is Scheduled"
