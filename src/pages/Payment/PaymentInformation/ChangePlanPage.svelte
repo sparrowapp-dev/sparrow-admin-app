@@ -198,6 +198,18 @@
     return false;
   }
 
+  const isUpgraded = (selectedPlan:string, currentPlan:string) => {
+    const hierarchy = {
+      standard: 1,
+      professional: 2,
+    };
+    const currentValue = hierarchy[currentPlan?.toLowerCase()] ?? null;
+    const selectedValue = hierarchy[selectedPlan?.toLowerCase()] ?? null;
+    // If either plan is invalid → return false
+    if (currentValue === null || selectedValue === null) return false;
+    return selectedValue > currentValue;
+  };
+
   // Handle plan selection
   function selectPlan(plan) {
     selectedPlan = plan;
@@ -229,6 +241,7 @@
           billingCycle,
         );
         const downgradeApplyFlag = downgradeConditionApply();
+        const isUpgrade = isUpgraded(plan, currentPlan);
         if(isScheduledDowngrade){
           notification.warning(
             'You have a scheduled downgrade in place. Please contact the support team to update or cancel the plan.',
@@ -277,6 +290,7 @@
           currentPlan: currentPlan,
           status: subscriptionStatus || '',
           isDowngrade: subscriptionId ? "true" : "false",
+          isUpgrade: isUpgrade ? "true" : "false",
         });
 
         navigate(
