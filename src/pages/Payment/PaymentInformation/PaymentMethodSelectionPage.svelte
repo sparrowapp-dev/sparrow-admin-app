@@ -47,6 +47,7 @@
   let customerId: string = '';
   let currentPlan: string = 'Community';
   let isDowngrade: boolean = false;
+  let isUpgrade: boolean = false;
   let minUserCount: number = 1;
 
   // URL parsing
@@ -72,6 +73,7 @@
     currentPlan = searchParams.get('currentPlan') || 'Community';
     subscriptionStatus = searchParams.get('status') || '';
     isDowngrade = searchParams.get('isDowngrade') === 'true';
+    isUpgrade = searchParams.get('isUpgrade') === 'true';
   }
 
   // Initialize Stripe
@@ -406,7 +408,7 @@
           <Alert
             variant="info"
             showButton={false}
-            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
+            subtitle={`Your plan will be ${isUpgrade ? "upgraded" :  "downgraded"} at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the ${isUpgrade ? "upgraded" :  "downgraded"} is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
           />
         </div>
       {/if}
@@ -619,6 +621,7 @@
         nextBillingDate={selectedPlanDetails.nextBilling}
         fromPlan={selectedPlanDetails.fromPlan}
         toPlan={selectedPlanDetails?.toPlan}
+        {isUpgrade}
         {hubId}
         on:close={() => {
           showSubscriptionScheduleConfirmModal = false;
