@@ -24,7 +24,7 @@ interface CreateSubscriptionParams {
   seats?: number;
   promoCodeId?: string; // Optional promo code ID
   isUpgrade?: boolean;
-  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  workspaces?: Array<{ id: string; name: string; }>;
 }
 
 interface UpdateSubscriptionParams {
@@ -37,7 +37,7 @@ interface UpdateSubscriptionParams {
   paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
   // For downgrade
   teamId?: string;
-  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  workspaces?: Array<{ id: string; name: string; }>;
   users?: Array<{ id: string; email: string; }>;
   isUpgrade?: boolean;
 }
