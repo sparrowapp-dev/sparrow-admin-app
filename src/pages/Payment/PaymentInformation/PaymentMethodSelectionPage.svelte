@@ -299,6 +299,7 @@
           metadata,
           trialPeriodDays: 0,
           seats: userCount || 1,
+          isUpgrade: isUpgrade || false,
         });
       } else {
         throw new Error('No customer ID available to create subscription');

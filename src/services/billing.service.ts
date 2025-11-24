@@ -23,6 +23,8 @@ interface CreateSubscriptionParams {
   trialType?: string;
   seats?: number;
   promoCodeId?: string; // Optional promo code ID
+  isUpgrade?: boolean;
+  workspaces?: Array<{ workspaceId: string; name: string; }>;
 }
 
 interface UpdateSubscriptionParams {
@@ -37,6 +39,7 @@ interface UpdateSubscriptionParams {
   teamId?: string;
   workspaces?: Array<{ workspaceId: string; name: string; }>;
   users?: Array<{ id: string; email: string; }>;
+  isUpgrade?: boolean;
 }
 
 // Add response interfaces for subscription operations that may require 3DS
