@@ -45,20 +45,10 @@
   }
 
   const toggleWorkspace = (id) => {
-    if (isUpgrade) {
-      // For upgrades: Free selection up to available slots
-      if (selected.has(id)) {
-        selected.delete(id);
-      } else if (selected.size < maxSelectable) {
-        selected.add(id);
-      }
-    } else {
-      // For downgrades: Keep existing logic
-      if (selected.has(id)) {
-        selected.delete(id);
-      } else if (selected.size < maxSelectable) {
-        selected.add(id);
-      }
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else if (selected.size < maxSelectable) {
+      selected.add(id);
     }
     selected = new Set(selected);
   };
@@ -128,7 +118,6 @@
       members: allMembers,
     });
   };
-
 
   function getTimeDifference(updatedAt) {
     const updatedDate = new Date(updatedAt);
