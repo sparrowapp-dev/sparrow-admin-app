@@ -186,6 +186,7 @@
       cancelText="Cancel"
       confirmText={selectedPlan?.toLowerCase() === 'enterprise' ? 'Contact Sales' : 'Continue to Upgrade'}
       primaryVariant="filled-primary"
+      on:cancel={handleCancel}
       on:confirm={selectedPlan?.toLowerCase() === 'enterprise' 
         ? () => window.open('mailto:contactus@sparrowapp.dev', '_blank')
         : handleContinueUpgrade}

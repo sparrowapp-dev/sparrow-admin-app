@@ -99,7 +99,18 @@
     nextBilling: '',
   };
 
+   let selectedWorkspaces: Array<{ id: string; name: string; }> = [];
+
   onMount(async () => {
+    const storedWorkspaces = sessionStorage.getItem('selectedWorkspaces');
+    if (storedWorkspaces) {
+      try {
+        selectedWorkspaces = JSON.parse(storedWorkspaces);
+      } catch (error) {
+        console.error('Failed to parse selected workspaces:', error);
+        selectedWorkspaces = [];
+      }
+    }
     // Initialize Stripe
     stripe = await initializeStripe();
 
@@ -288,7 +299,8 @@
           metadata,
           isDowngrade,
           seats: userCount || 1,
-          paymentBehavior: 'default_incomplete', // Use default_incomplete to handle 3D Secure
+          paymentBehavior: 'default_incomplete',
+          workspaces: selectedWorkspaces, // Use default_incomplete to handle 3D Secure
         });
       } else if (customerId) {
         // Create new subscription
@@ -300,9 +312,16 @@
           trialPeriodDays: 0,
           seats: userCount || 1,
           isUpgrade: isUpgrade || false,
+          workspaces: selectedWorkspaces,
         });
       } else {
         throw new Error('No customer ID available to create subscription');
+      }
+
+      // Clean up session storage after successful API call
+      if (selectedWorkspaces.length > 0) {
+        sessionStorage.removeItem('selectedWorkspaces');
+        console.log('Cleaned up selectedWorkspaces from session storage');
       }
 
       // Check if additional authentication is required (like 3D Secure)

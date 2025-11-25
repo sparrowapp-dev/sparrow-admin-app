@@ -304,6 +304,15 @@ export class BillingService {
     const url = `/api/payment-methods/default`;
     await makeRequest('POST', url, { customerId, paymentMethodId });
   }
+
+    /**
+   * Get unrestricted/restorable workspaces for a team and selected plan
+   */
+  public async getUnRestrictWorkspaces(teamId: string, selectedPlan: string): Promise<any> {
+    const url = `/api/stripe/${teamId}/shared-workspaces/${selectedPlan}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
+  }
 }
 
 export const billingService = new BillingService();
