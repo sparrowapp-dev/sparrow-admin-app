@@ -37,6 +37,7 @@
   import PaymentProcessingModal from '@/components/PaymentProcessingModal/PaymentProcessingModal.svelte';
   import { PlanUpdateSuccess } from '@/components/PlanUpdateStatus';
   import { PlanDowngradeFailed } from '@/components/PlanUpdateStatus';
+  import UpgradePlanModal from '@/components/UpgradePlan/UpgradePlanModal.svelte';
 
   const location = useLocation();
 
@@ -95,6 +96,11 @@
     showProcessingModal: false,
     showDowngradeConfirmModal: false,
     showDowngradeFailedModal: false,
+  };
+  let unrestrictedWorkspaces = [];
+  let upgradeFlow = {
+    upgradeModal: false,
+    chooseWorkspaceModal: false,
   };
   let priceId: string | undefined;
   let downgradeData = {
@@ -202,6 +208,7 @@
 
   const isUpgraded = (selectedPlan:string, currentPlan:string) => {
     const hierarchy = {
+      community: 0,
       standard: 1,
       professional: 2,
     };
@@ -213,7 +220,7 @@
   };
 
   // Handle plan selection
-  function selectPlan(plan) {
+  async function selectPlan(plan) {
     selectedPlan = plan;
     const selectedPlanLimits = planDetails?.[plan]?.[billingCycle] ?? {};
     planLimits = {
@@ -274,6 +281,22 @@
           downgradeData.selectedWorkspaces = [];
           downgradeData.selectedMembers = [];
           return;
+        }
+        if (isUpgrade) {
+          // Call API to get unrestricted workspaces
+          try {
+            const selectedPlan = capitalizeFirstLetter(plan);
+            const response = await billingService.getUnRestrictWorkspaces(hubId, selectedPlan);
+
+            if (response && response.length > 0) {
+              unrestrictedWorkspaces = response;
+              upgradeFlow.upgradeModal = true;
+              return;
+            }
+          } catch (error) {
+            notification.error('Failed to check unrestricted workspaces.');
+            return;
+          }
         }
 
         // Store current Change Plan page URL in session storage
@@ -391,7 +414,7 @@
     };
     captureEvent('admin_plan_upgraded', eventProperties);
   };
-  
+
   function removeAdminFromMembersList(hubOwner, members = []) {
     if (!hubOwner) return members;
     return members.filter((member) => member.id !== hubOwner);
@@ -459,6 +482,11 @@
       downgradeData.selectedMembers = filterOutOwners(hubUsers) || [];
       downgradeFlow.reviewModal = true;
     }
+  };
+
+  const handleUpgradeModalContinue = () => {
+    upgradeFlow.upgradeModal = false;
+    upgradeFlow.chooseWorkspaceModal = true;
   };
 </script>
 
@@ -780,10 +808,13 @@
         };
         const downgradePayload = {
           teamId: hubId,
-          workspaces: downgradeData.selectedWorkspaces.map((ws) => ({
-            id: ws._id || ws.id,
-            name: ws.name,
-          })),
+          workspaces:
+            downgradeData.unselectedWorkspaces.length > 0
+              ? downgradeData.selectedWorkspaces?.map((ws) => ({
+                  id: ws._id || ws.id,
+                  name: ws.name,
+                }))
+              : [],
           users: filterOutOwners(downgradeData.selectedMembers).map((user) => ({
             id: user._id || user.id,
             email: user.email,
@@ -795,13 +826,13 @@
           if (selectedPlan?.toLowerCase() === "community") {
               const isSamePlan = 
                 selectedPlan?.toLowerCase() === currentPlan?.toLowerCase();
-              const payload = isSamePlan
-                ? { subscriptionId }               
-                : { subscriptionId, ...downgradePayload }; 
-              await billingService.cancelSubscription(payload);
-              downgradeFlow.showProcessingModal = false;
-              downgradeFlow.showDowngradeConfirmModal = true;
-              return;
+            const payload = isSamePlan
+              ? { subscriptionId }
+              : { subscriptionId, ...downgradePayload };
+            await billingService.cancelSubscription(payload);
+            downgradeFlow.showProcessingModal = false;
+            downgradeFlow.showDowngradeConfirmModal = true;
+            return;
           }
           else if (selectedPlan?.toLowerCase() === "standard" || selectedPlan?.toLowerCase() === "professional") {
             const isSamePlan =
@@ -827,8 +858,8 @@
         catch (error) {
           downgradeFlow.showProcessingModal = false;
           downgradeFlow.showDowngradeFailedModal = true;
-          }
-        }}
+        }
+      }}
     />
   </Modal>
 {/if}
@@ -880,8 +911,8 @@
       navigate(`/billing/billingOverview/${hubId}`);
     }}
   >
-    <PlanDowngradeFailed 
-      {hubName} 
+    <PlanDowngradeFailed
+      {hubName}
       on:close={() => {
         downgradeFlow.showDowngradeFailedModal = false;
         navigate(`/billing/billingOverview/${hubId}`);
@@ -892,6 +923,70 @@
       on:tryAgain={() => {
         downgradeFlow.showDowngradeFailedModal = false;
         downgradeFlow.reviewModal = true;
+      }}
+    />
+  </Modal>
+{/if}
+
+{#if upgradeFlow.upgradeModal}
+  <Modal on:close={() => (upgradeFlow.upgradeModal = false)}>
+    <UpgradePlanModal
+      {hubId}
+      {currentPlan}
+      {selectedPlan}
+      {hubName}
+      {hubWorkspaces}
+      {billingCycle}
+      {planLimits}
+      on:close={() => (upgradeFlow.upgradeModal = false)}
+      on:cancel={() => (upgradeFlow.upgradeModal = false)}
+      on:continue={handleUpgradeModalContinue}
+    />
+  </Modal>
+{/if}
+
+{#if upgradeFlow.chooseWorkspaceModal}
+  <Modal on:close={() => (upgradeFlow.chooseWorkspaceModal = false)}>
+    <ChooseActiveWorkspaceModal
+      {hubId}
+      {currentPlan}
+      {selectedPlan}
+      {planLimits}
+      isOpen={upgradeFlow.chooseWorkspaceModal}
+      workspaces={unrestrictedWorkspaces}
+      isUpgrade={true}
+      on:close={() => {
+        upgradeFlow.chooseWorkspaceModal = false;
+      }}
+      on:next={(e) => {
+        const selectedWorkspaces = e.detail.selected;
+        upgradeFlow.chooseWorkspaceModal = false;
+        sessionStorage.setItem(
+          'selectedWorkspaces',
+          JSON.stringify(
+            selectedWorkspaces.map((ws) => ({
+              id: ws.id || ws._id,
+              name: ws.name,
+            })),
+          ),
+        );
+
+        // Navigate to payment with selected workspaces
+        const searchParams = new URLSearchParams({
+          plan: capitalizeFirstLetter(selectedPlan),
+          billingCycle: billingCycle,
+          priceId: priceId || '',
+          userCount: userCount.toString(),
+          subscriptionId: subscriptionId || '',
+          currentPlan: currentPlan,
+          status: subscriptionStatus || '',
+          isDowngrade: 'false',
+          isUpgrade: 'true',
+        });
+
+        navigate(
+          `/billing/billingInformation/selectPaymentMethod/${hubId}?${searchParams.toString()}`,
+        );
       }}
     />
   </Modal>
