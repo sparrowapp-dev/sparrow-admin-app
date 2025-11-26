@@ -23,6 +23,8 @@ interface CreateSubscriptionParams {
   trialType?: string;
   seats?: number;
   promoCodeId?: string; // Optional promo code ID
+  isUpgrade?: boolean;
+  workspaces?: Array<{ id: string; name: string; }>;
 }
 
 interface UpdateSubscriptionParams {
@@ -35,8 +37,9 @@ interface UpdateSubscriptionParams {
   paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
   // For downgrade
   teamId?: string;
-  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  workspaces?: Array<{ id: string; name: string; }>;
   users?: Array<{ id: string; email: string; }>;
+  isUpgrade?: boolean;
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -300,6 +303,15 @@ export class BillingService {
   public async setUpDefaultPaymentMethod(customerId, paymentMethodId) {
     const url = `/api/payment-methods/default`;
     await makeRequest('POST', url, { customerId, paymentMethodId });
+  }
+
+    /**
+   * Get unrestricted/restorable workspaces for a team and selected plan
+   */
+  public async getUnRestrictWorkspaces(teamId: string, selectedPlan: string): Promise<any> {
+    const url = `/api/stripe/${teamId}/shared-workspaces/${selectedPlan}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
   }
 }
 

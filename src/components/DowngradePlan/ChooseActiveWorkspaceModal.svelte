@@ -8,27 +8,68 @@
   export let selectedPlan;
   export let workspaces = [];
   export let hubId;
-  export let planLimits:[];
-  let maxSelectable = 0
+  export let planLimits: [];
+  export let isUpgrade: boolean = false;
+
+  let maxSelectable = 0;
+  let currentActiveWorkspaceCount = 0;
   const dispatch = createEventDispatcher();
   let selected = new Set();
   let workspaceDetails = new Map();
   let loading = false;
 
+  // Calculate maxSelectable based on upgrade/downgrade flow
   $: {
-    if (typeof planLimits === 'number') {
-      maxSelectable = planLimits;
-    } else if (planLimits && typeof planLimits === 'object' && planLimits.workspacesPerHub) {
-      maxSelectable = planLimits?.workspacesPerHub?.value;
+    if (isUpgrade) {
+      // For upgrades: Use advanced logic with current active workspace count
+      let planLimit = 0;
+
+      if (typeof planLimits === 'number') {
+        planLimit = planLimits;
+      } else if (planLimits && typeof planLimits === 'object' && planLimits.workspacesPerHub) {
+        planLimit = planLimits?.workspacesPerHub?.value || 0;
+      }
+
+      // For upgrades: plan limit - current active workspaces = available slots
+      maxSelectable = Math.max(0, planLimit - currentActiveWorkspaceCount);
     } else {
-      maxSelectable = 0;
+      // For downgrades: Keep existing logic
+      if (typeof planLimits === 'number') {
+        maxSelectable = planLimits;
+      } else if (planLimits && typeof planLimits === 'object' && planLimits.workspacesPerHub) {
+        maxSelectable = planLimits?.workspacesPerHub?.value || 0;
+      } else {
+        maxSelectable = 0;
+      }
     }
   }
+
   const toggleWorkspace = (id) => {
-    if (selected.has(id)) selected.delete(id);
-    else if (selected.size < maxSelectable) selected.add(id);
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else if (selected.size < maxSelectable) {
+      selected.add(id);
+    }
     selected = new Set(selected);
   };
+
+  // Function to get current active workspace count (only for upgrades)
+  async function getCurrentActiveWorkspaceCount() {
+    if (!isUpgrade) return; // Skip for downgrades
+
+    try {
+      const response = await hubsService.getHubDetails(hubId);
+      if (response?.data?.workspaces) {
+        // Count workspaces that are not restricted (active workspaces)
+        const activeWorkspaces = response.data.workspaces.filter((ws) => !ws.isRestricted);
+        currentActiveWorkspaceCount = activeWorkspaces.length;
+        console.log('Current active workspaces (upgrade flow):', currentActiveWorkspaceCount);
+      }
+    } catch (error) {
+      console.error('Error fetching current active workspace count:', error);
+      currentActiveWorkspaceCount = 0;
+    }
+  }
 
   const handleNext = async () => {
     const selectedWorkspaces = workspaces.filter((ws) => selected.has(ws.id));
@@ -64,8 +105,7 @@
         const flattened = results.flat();
         const uniqueMembers = flattened.filter(
           (user, i, self) =>
-            i ===
-            self.findIndex((u) => u.email === user.email || u.id === user.id)
+            i === self.findIndex((u) => u.email === user.email || u.id === user.id),
         );
         allMembers = uniqueMembers.filter((u) => (u.role || '').toLowerCase() !== 'owner');
       } catch (error) {
@@ -78,7 +118,6 @@
       members: allMembers,
     });
   };
-
 
   function getTimeDifference(updatedAt) {
     const updatedDate = new Date(updatedAt);
@@ -103,14 +142,26 @@
   onMount(async () => {
     if (!workspaces?.length) return;
     loading = true;
+
+    if (isUpgrade) {
+      await getCurrentActiveWorkspaceCount();
+    }
+    // Enhance with API data for non-restricted workspaces only
     const promises = workspaces.map(async (ws) => {
+      let data;
       try {
-        const res = await hubsService.getWorkspaceSummary({ workspaceId: ws.id, hubId });
-        const data = res?.data;
+        if (!ws.isRestricted) {
+          const res = await hubsService.getWorkspaceSummary({ workspaceId: ws.id, hubId });
+          data = res?.data;
+        }
         workspaceDetails.set(ws.id, {
-          collections: data?.totalCollections ?? '-',
-          contributors: data?.totalContributors ?? '-',
-          updated: data?.updatedAt ? getTimeDifference(data.updatedAt) : '-',
+          collections: data?.totalCollections ?? ws.collection ?? '-',
+          contributors: data?.totalContributors ?? ws.contributors ?? '-',
+          updated: data?.updatedAt
+            ? getTimeDifference(data.updatedAt)
+            : ws.lastUpdated
+              ? getTimeDifference(ws.lastUpdated)
+              : '-',
         });
         workspaceDetails = new Map(workspaceDetails);
       } catch (err) {
@@ -124,14 +175,16 @@
 
 <TableModalCommonLayout
   {isOpen}
-  title="Choose Your Active Workspaces"
-  subheading1="Your new plan includes {maxSelectable} active private workspaces. Please select the ones you want to keep active below."
+  title={isUpgrade ? 'Choose Workspaces to Reactivate' : 'Choose Your Active Workspaces'}
+  subheading1={isUpgrade
+    ? `Your new plan allows ${currentActiveWorkspaceCount + maxSelectable} active workspaces. You have ${currentActiveWorkspaceCount} active and can restore ${maxSelectable} more.`
+    : `Your new plan includes ${maxSelectable} active private workspaces. Please select the ones you want to keep active below.`}
   subheading2="Unselected workspaces will be safely archived and can be restored anytime by upgrading."
   {maxSelectable}
-  stepIndicator={maxSelectable === 3 ? true : false}
+  stepIndicator={isUpgrade ? false : maxSelectable === 3 ? true : false}
   selectedCount={selected.size}
-  isPrimaryDisabled={selected.size !== maxSelectable}
-  confirmText="Next: Choose Members"
+  isPrimaryDisabled={isUpgrade ? false : selected.size !== maxSelectable}
+  confirmText={isUpgrade ? 'Confirm Selection' : 'Next: Choose Members'}
   on:confirm={handleNext}
   on:close={() => dispatch('close')}
 >
@@ -147,6 +200,7 @@
     <div class="mx-2 h-px w-12 border-t border-dotted bg-gray-600"></div>
     <span class="text-fs-ds-14 text-gray-400">Step 2</span>
   </div>
+
   <!-- Slot: table content -->
   <div class="flex-grow overflow-y-auto">
     <table class="text-fs-ds-12 w-full border-collapse text-white">
@@ -172,10 +226,12 @@
                   checked={selected.has(ws.id)}
                   on:change={(e) => {
                     e.stopPropagation();
-                    toggleWorkspace(ws.id)
+                    toggleWorkspace(ws.id);
                   }}
-                  disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
-                  class="peer h-[13px] w-[13px] cursor-pointer appearance-none rounded-xs border border-neutral-400 bg-[#181C26] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none"
+                  disabled={isUpgrade
+                    ? false
+                    : !selected.has(ws.id) && selected.size >= maxSelectable}
+                  class="peer h-[13px] w-[13px] cursor-pointer appearance-none rounded-xs border border-neutral-400 bg-[#181C26] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <!-- Checkmark icon -->
                 <svg
