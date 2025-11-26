@@ -45,11 +45,11 @@
   }
 
   const toggleWorkspace = (id) => {
-    if (selected.has(id)) {
-      selected.delete(id);
-    } else if (selected.size < maxSelectable) {
-      selected.add(id);
-    }
+      if (selected.has(id)) {
+        selected.delete(id);
+      } else if (selected.size < maxSelectable) {
+        selected.add(id);
+      }
     selected = new Set(selected);
   };
 
@@ -228,9 +228,7 @@
                     e.stopPropagation();
                     toggleWorkspace(ws.id);
                   }}
-                  disabled={isUpgrade
-                    ? false
-                    : !selected.has(ws.id) && selected.size >= maxSelectable}
+                  disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
                   class="peer h-[13px] w-[13px] cursor-pointer appearance-none rounded-xs border border-neutral-400 bg-[#181C26] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <!-- Checkmark icon -->
