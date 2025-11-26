@@ -45,11 +45,11 @@
   }
 
   const toggleWorkspace = (id) => {
-      if (selected.has(id)) {
-        selected.delete(id);
-      } else if (selected.size < maxSelectable) {
-        selected.add(id);
-      }
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else if (selected.size < maxSelectable) {
+      selected.add(id);
+    }
     selected = new Set(selected);
   };
 
@@ -220,12 +220,11 @@
             on:click={() => toggleWorkspace(ws.id)}
           >
             <td class="relative px-2 py-2 text-center">
-              <label class="relative flex items-center justify-center">
+              <label class="relative flex items-center justify-center" on:click|stopPropagation>
                 <input
                   type="checkbox"
                   checked={selected.has(ws.id)}
-                  on:change={(e) => {
-                    e.stopPropagation();
+                  on:change={() => {
                     toggleWorkspace(ws.id);
                   }}
                   disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
