@@ -220,17 +220,14 @@
             on:click={() => toggleWorkspace(ws.id)}
           >
             <td class="relative px-2 py-2 text-center">
-              <label class="relative flex items-center justify-center">
+              <label class="relative flex items-center justify-center" on:click|stopPropagation>
                 <input
                   type="checkbox"
                   checked={selected.has(ws.id)}
-                  on:change={(e) => {
-                    e.stopPropagation();
+                  on:change={() => {
                     toggleWorkspace(ws.id);
                   }}
-                  disabled={isUpgrade
-                    ? false
-                    : !selected.has(ws.id) && selected.size >= maxSelectable}
+                  disabled={!selected.has(ws.id) && selected.size >= maxSelectable}
                   class="peer h-[13px] w-[13px] cursor-pointer appearance-none rounded-xs border border-neutral-400 bg-[#181C26] checked:border-[#2B74FF] checked:bg-[#2B74FF] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <!-- Checkmark icon -->
