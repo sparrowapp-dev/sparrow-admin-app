@@ -47,6 +47,7 @@
   let customerId: string = '';
   let currentPlan: string = 'Community';
   let isDowngrade: boolean = false;
+  let isUpgrade: boolean = false;
   let minUserCount: number = 1;
 
   // URL parsing
@@ -72,6 +73,7 @@
     currentPlan = searchParams.get('currentPlan') || 'Community';
     subscriptionStatus = searchParams.get('status') || '';
     isDowngrade = searchParams.get('isDowngrade') === 'true';
+    isUpgrade = searchParams.get('isUpgrade') === 'true';
   }
 
   // Initialize Stripe
@@ -97,7 +99,18 @@
     nextBilling: '',
   };
 
+   let selectedWorkspaces: Array<{ id: string; name: string; }> = [];
+
   onMount(async () => {
+    const storedWorkspaces = sessionStorage.getItem('selectedWorkspaces');
+    if (storedWorkspaces) {
+      try {
+        selectedWorkspaces = JSON.parse(storedWorkspaces);
+      } catch (error) {
+        console.error('Failed to parse selected workspaces:', error);
+        selectedWorkspaces = [];
+      }
+    }
     // Initialize Stripe
     stripe = await initializeStripe();
 
@@ -286,7 +299,8 @@
           metadata,
           isDowngrade,
           seats: userCount || 1,
-          paymentBehavior: 'default_incomplete', // Use default_incomplete to handle 3D Secure
+          paymentBehavior: 'default_incomplete',
+          workspaces: selectedWorkspaces, // Use default_incomplete to handle 3D Secure
         });
       } else if (customerId) {
         // Create new subscription
@@ -297,9 +311,17 @@
           metadata,
           trialPeriodDays: 0,
           seats: userCount || 1,
+          isUpgrade: isUpgrade || false,
+          workspaces: selectedWorkspaces,
         });
       } else {
         throw new Error('No customer ID available to create subscription');
+      }
+
+      // Clean up session storage after successful API call
+      if (selectedWorkspaces.length > 0) {
+        sessionStorage.removeItem('selectedWorkspaces');
+        console.log('Cleaned up selectedWorkspaces from session storage');
       }
 
       // Check if additional authentication is required (like 3D Secure)
@@ -406,7 +428,7 @@
           <Alert
             variant="info"
             showButton={false}
-            subtitle={`Your plan will be downgraded at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the downgrade is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
+            subtitle={`Your plan will be ${isUpgrade ? "upgraded" :  "downgraded"} at the end of your current billing cycle. You’ll continue to enjoy all ${currentPlan} features until then. Once the ${isUpgrade ? "upgraded" :  "downgraded"} is scheduled, you won’t be able to upgrade, downgrade, cancel your plan or invite new members to your hub during this period until the change takes effect.`}
           />
         </div>
       {/if}
@@ -619,6 +641,7 @@
         nextBillingDate={selectedPlanDetails.nextBilling}
         fromPlan={selectedPlanDetails.fromPlan}
         toPlan={selectedPlanDetails?.toPlan}
+        {isUpgrade}
         {hubId}
         on:close={() => {
           showSubscriptionScheduleConfirmModal = false;

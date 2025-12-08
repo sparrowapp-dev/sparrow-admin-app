@@ -16,6 +16,7 @@
   export let fromPlan: string = '';
   export let toPlan: string = '';
   export let hubId: string = '';
+  export let isUpgrade: boolean = false;
 
   function handleClose() {
     captureUserPlanDowngradeClick(fromPlan, toPlan);
@@ -49,7 +50,7 @@
   <div class="mb-3 flex items-start justify-between">
     <div class="flex items-center gap-2">
       <h2 class="text-fs-ds-20 font-inter font-fw-ds-500 text-neutral-50">
-        We’re sorry to see you downgrade plan
+        { isUpgrade ? "We have Scheduled Plan Change" :"We’re sorry to see you downgrade plan"}
       </h2>
     </div>
 
@@ -58,8 +59,8 @@
     </button>
   </div>
   <p class="text-fs-ds-12 font-fw-ds-300 font-inter mt-2 mb-3 text-neutral-400">
-    Your plan will be downgraded to the {toPlan} Plan after your current billing cycle ends. You’ll continue
-    to enjoy {currentPlan} Plan features until then. After the downgrade, you’ll still have access to
+    Your plan will be { isUpgrade ? "upgrade" :"downgrade"} to the {toPlan} Plan after your current billing cycle ends. You’ll continue
+    to enjoy {currentPlan} Plan features until then. After the { isUpgrade ? "upgrade" :"downgrade"}, you’ll still have access to
     essential features, and you can upgrade again anytime if your needs grow.
   </p>
 

@@ -23,6 +23,8 @@ interface CreateSubscriptionParams {
   trialType?: string;
   seats?: number;
   promoCodeId?: string; // Optional promo code ID
+  isUpgrade?: boolean;
+  workspaces?: Array<{ id: string; name: string; }>;
 }
 
 interface UpdateSubscriptionParams {
@@ -35,8 +37,9 @@ interface UpdateSubscriptionParams {
   paymentBehavior?: 'default_incomplete' | 'allow_incomplete';
   // For downgrade
   teamId?: string;
-  workspaces?: Array<{ workspaceId: string; name: string; }>;
+  workspaces?: Array<{ id: string; name: string; }>;
   users?: Array<{ id: string; email: string; }>;
+  isUpgrade?: boolean;
 }
 
 // Add response interfaces for subscription operations that may require 3DS
@@ -227,28 +230,22 @@ export class BillingService {
    */
   public async updateSubscription(params: UpdateSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
-    let requestBody: any = {};
+    let requestBody: any = {
+      priceId: params.priceId,
+      metadata: params.metadata,
+    };
     if (params.isDowngrade) {
-      requestBody = {
-        priceId: params.priceId,
-        teamID: params.teamId,
-        metadata: params.metadata,
-        workspaces: params.workspaces,
-        users: params.users,
-        prorationBehavior: 'none',
-        atPeriodEnd: true,
-      };
+      requestBody.prorationBehavior = "none";
+      requestBody.atPeriodEnd = true;
+      if (params.teamId) requestBody.teamID = params.teamId;
+      if (params.workspaces) requestBody.workspaces = params.workspaces;
+      if (params.users) requestBody.users = params.users;
     } else {
-      requestBody = {
-        priceId: params.priceId,
-        paymentMethodId: params.paymentMethodId,
-        metadata: params.metadata,
-        seats: params.seats,
-        paymentBehavior: params.paymentBehavior,
-      };
+      if (params.paymentMethodId) requestBody.paymentMethodId = params.paymentMethodId;
+      if (params.seats) requestBody.seats = params.seats;
+      if (params.paymentBehavior) requestBody.paymentBehavior = params.paymentBehavior;
     }
-
-    const res = await makeRequest('PUT', url, requestBody);
+    const res = await makeRequest("PUT", url, requestBody);
     return res?.data;
   }
 
@@ -260,17 +257,16 @@ export class BillingService {
   public async cancelSubscription(params: CancelSubscriptionParams): Promise<any> {
     const url = `/api/stripe/subscriptions/${params.subscriptionId}`;
 
-    // Prepare the request body
-    const body = {
+    const body: any = {
       cancelImmediately: false,
-      teamId: params.teamId,
-      workspaces: params.workspaces,
-      users: params.users,
     };
-
-    const res = await makeRequest('POST', url, body);
+    if (params.teamId) body.teamId = params.teamId;
+    if (params.workspaces) body.workspaces = params.workspaces;
+    if (params.users) body.users = params.users;
+    const res = await makeRequest("POST", url, body);
     return res?.data;
   }
+
 
   /**
    * Reactivate a cancelled subscription
@@ -307,6 +303,15 @@ export class BillingService {
   public async setUpDefaultPaymentMethod(customerId, paymentMethodId) {
     const url = `/api/payment-methods/default`;
     await makeRequest('POST', url, { customerId, paymentMethodId });
+  }
+
+    /**
+   * Get unrestricted/restorable workspaces for a team and selected plan
+   */
+  public async getUnRestrictWorkspaces(teamId: string, selectedPlan: string): Promise<any> {
+    const url = `/api/stripe/${teamId}/shared-workspaces/${selectedPlan}`;
+    const res = await makeRequest('GET', url);
+    return res?.data;
   }
 }
 

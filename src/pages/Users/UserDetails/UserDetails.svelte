@@ -294,6 +294,7 @@
             onSuccess={() => {
               refetch();
             }}
+            hubName={modalData?.data?.teamName}
           />
         {:else if modalVariants.removeUser}
           <RemoveuserPopup
