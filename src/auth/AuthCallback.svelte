@@ -50,7 +50,6 @@
       }
       window.location.href = '/hubs';
     } catch (err) {
-      errorMessage = 'Authentication failed. Redirecting to login...';
       setTimeout(() => {
         window.location.href = '/login';
       }, 2000);
