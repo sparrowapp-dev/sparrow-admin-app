@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { setTokens } from '@/store/auth';
   import axios from 'axios';
+  import { API_BASE_URL } from '@/constants/environment';
+
 
   let ssoToken: string | null = null;
   let error = '';
@@ -16,7 +18,7 @@
     }
 
     try {
-      const response = await axios.post('http://localhost:9000/api/admin/auth/validate-sso', {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/auth/validate-sso`, {
         token: ssoToken,
       });
 
