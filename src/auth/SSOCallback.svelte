@@ -4,13 +4,13 @@
   import axios from 'axios';
   import { API_BASE_URL } from '@/constants/environment';
 
-
   let ssoToken: string | null = null;
   let error = '';
 
   onMount(async () => {
     const params = new URLSearchParams(window.location.search);
     ssoToken = params.get('ssoToken');
+    const redirectTo = params.get('redirectTo');
 
     if (!ssoToken) {
       window.location.href = '/login';
@@ -34,7 +34,11 @@
         refreshToken,
       });
 
-      window.location.href = `/?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      if (redirectTo) {
+        window.location.href = redirectTo;
+      } else {
+        window.location.href = '/';
+      }
     } catch (err) {
       console.error('SSO login failed', err);
       error = 'SSO login failed. Redirecting to login...';
