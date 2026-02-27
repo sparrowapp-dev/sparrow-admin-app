@@ -13,6 +13,8 @@
   import UserTrialFlow from '@/pages/UserTrialFlow/UserTrialFlow.svelte';
   import Plans from '@/pages/Plans/Plans.svelte';
   import { APP_EDITION } from '@/constants/environment';
+  import SSOCallback from '@/auth/SSOCallback.svelte';
+
 
   // URL passed from parent component
   export let url: string = '';
@@ -20,8 +22,10 @@
 
 <Router>
   <!--auth callback -->
-  <Route path="/" component={AuthCallback} />
+  <Route path="/" component={AuthCallback} exact />
   <Route path="/login" component={Login} />
+  <Route path="/sso" component={SSOCallback} />
+
 
   <!-- Protected routes -->
   <!-- <PrivateRoute path="/workspace" component={Workspace} /> -->
