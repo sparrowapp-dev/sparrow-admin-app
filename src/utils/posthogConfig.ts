@@ -9,6 +9,8 @@ export const initPostHog = () => {
       api_host: 'https://us.i.posthog.com',
 
       person_profiles: 'always',
+
+      capture_exceptions: true,
     })
 
     isInitialized = true
@@ -26,6 +28,16 @@ export const captureEvent = (
 ) => {
   posthog.capture(eventName, properties)
 }
+
+export const captureException = (
+  error: Error | unknown,
+  properties?: Record<string, any>,
+): void => {
+  if (!isInitialized) {
+    initPostHog();
+  }
+  posthog.captureException(error, properties);
+};
 
 export const identifyUser = (email: string): void => {
   if (!posthog) {
