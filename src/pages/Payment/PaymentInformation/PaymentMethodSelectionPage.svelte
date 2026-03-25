@@ -119,6 +119,13 @@
       onPaymentSuccess: (data) => {
         console.log('Payment success:', data);
         const { team } = data;
+        // PostHog event for subscription confirmation
+        captureEvent('subscription_confirmed', {
+          hubName: team?.name || '',
+          planName,
+          userCount,
+          nextBilling: team?.billing?.current_period_end,
+        });
         setTimeout(() => {
           isProcessing = false;
           showProcessingModal = false;
