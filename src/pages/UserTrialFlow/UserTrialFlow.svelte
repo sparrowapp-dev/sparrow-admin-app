@@ -14,6 +14,8 @@
   import { notification } from '@/components/Toast';
   import DropdownNoSearch from '@/components/DropdownNoSearch/DropdownNoSearch.svelte';
   import { navigate } from 'svelte-routing';
+  import { captureEvent } from '@/utils/posthogConfig';
+  
   let _viewModel = new TrialFlowViewModel();
 
   let currentStep = 1;
@@ -394,6 +396,13 @@
         console.log('Payment success team:', team);
         let formatTeamData: { email: string; role: string }[] = [];
         let userCount = 1;
+        // PostHog event for subscription confirmation
+        captureEvent('subscription_confirmed', {
+          hubName: team?.name || '',
+          planName: planTier,
+          userCount: triggerPoint === 'finish' ? teamdata.length : 1,
+          nextBilling: team?.billing?.current_period_end,
+        });
         if (invoice?.amount_paid === 0) {
           setTimeout(async () => {
             if (triggerPoint === 'finish') {

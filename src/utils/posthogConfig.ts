@@ -1,7 +1,7 @@
-import posthog from 'posthog-js'
-import { POSTHOG_API_KEY } from '@/constants/environment'
+import posthog from 'posthog-js';
+import { POSTHOG_API_KEY } from '@/constants/environment';
 
-let isInitialized = false
+let isInitialized = false;
 
 export const initPostHog = () => {
   if (!isInitialized) {
@@ -9,30 +9,39 @@ export const initPostHog = () => {
       api_host: 'https://us.i.posthog.com',
 
       person_profiles: 'always',
-    })
 
-    isInitialized = true
+      capture_exceptions: true,
+    });
 
-    return true
+    isInitialized = true;
+
+    return true;
   }
+  return false;
+};
 
-  return false
-}
+export const captureEvent = (eventName: string, properties?: Record<string, any>) => {
+  if (!isInitialized) {
+    initPostHog();
+  }
+  posthog.capture(eventName, properties);
+};
 
-export const captureEvent = (
-  eventName: string,
-
+export const captureException = (
+  error: Error | unknown,
   properties?: Record<string, any>,
-) => {
-  posthog.capture(eventName, properties)
-}
+): void => {
+  if (!isInitialized) {
+    initPostHog();
+  }
+  posthog.captureException(error, properties);
+};
 
 export const identifyUser = (email: string): void => {
-  if (!posthog) {
-    console.error('PostHog is not initialized');
-    return;
+  if (!isInitialized) {
+    initPostHog();
   }
   posthog.identify(email);
 };
 
-export const posthogClient = posthog
+export const posthogClient = posthog;
